@@ -936,11 +936,11 @@ loops_reset; \
 r3_x3cl_three_complex_djbunfft_preload; \
 for(unsigned int loopA = 3*2*2*clm; loopA; ) { \
 	xtouch(xptr(rcx+rbp+(clm-1)*128));	/* Preload TLB */ \
-	for(unsigned int loopB = 2*2*clm; loopB; ) { \
+	do{ \
 		do{ \
 			r3_x3cl_three_complex_djbunfft(rsi, 64, 2*clmblkdst, rdi, 2*2*clm*XMM_SCD1); \
 			rdi += XMM_SCD1;		/* Next clm's sin/cos data */ \
-		}while(--loopB & (2*clm-1)); \
+		}while(--loopA & (2*clm-1)); \
 		newxloop2(clm, c7b, clmblkdst);	/* 2*2*clm iterations */ \
 	}while(loopA & (2*2*clm-1)); \
 	rsi += -2*clmblkdst+6*clmblkdst; /* Next source pointer */ \
@@ -2795,7 +2795,7 @@ loops_init(8*2*clm);		/* 8*2*clm iterations */ \
 r3_x3cl_three_complex_djbunfft_preload; \
 for(unsigned int loopA = 4*2*2*clm; loopA; ) { \
 	xtouch(xptr(rcx+rbp+(clm-1)*128));	/* Preload TLB */ \
-	for(unsigned int loopB = 2*2*clm; loopB; ) { \
+	do{ \
 		do{ \
 			r3_x3cl_three_complex_djbunfft(rsi, 64, 2*clmblkdst, rdi, 2*2*clm*XMM_SCD1); \
 			rdi += XMM_SCD1;		/* Next clm's sin/cos data */ \
@@ -2884,7 +2884,7 @@ pfing(rcx += 10*blkdst);		/* We've already prefetched 10 blocks */ \
 loops_init(12*2*clm);		/* 6 iters of 2*2*clm */ \
 for(unsigned int loopA = 6*2*2*clm; loopA; ) { \
 	xtouch(xptr(rcx+rbp+(clm-1)*128));	/* Preload TLB */ \
-	for(unsigned int loopB = 2*2*clm; loopB; ) { \
+	do{ \
 		do{ \
 			r4_x2cl_four_complex_first_fft4_scratch(rsi, 64, 12*clmblkdst, rdi); \
 			rdi += XMM_SCD4;		/* Next sin/cos/premult ptr */ \
