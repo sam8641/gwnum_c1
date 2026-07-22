@@ -10,47 +10,13 @@
 #include "../xmult.h"
 #include "../gwnum_func.h"
 
+#include "r3.h"
 #include "r4.h"
+#include "r5.h"
+#include "r8.h"
+#include "r4pass2.h"
 #include "r4dwpnpass1sc.h"
 
-	//
-//
-//volatile short test12342;
-
-void xpass2_r4_8_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_768_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_10_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_1280_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_1536_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_11_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_2304_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_2560_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_3072_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_3840_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_12_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_4608_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_5120_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_6144_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_6400_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_7680_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_13_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_9216_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_10240_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_12288_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_12800_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_15360_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_14_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_20480_levels(struct gwasm_data *__restrict g);
-void xpass2_r4_25600_levels(struct gwasm_data *__restrict g);
-
-void xgw_carries_wpn(struct gwasm_data *__restrict g);
-
-//r4dwpn_pass1sc128(xfft_r4dwpn_8K_np_8_4_P4, xpass2_r4_8_levels, 8, 4);
-
-//r4dwpn_pass1sc128(xfft_r4dwpn_32K_8_4_P4, xpass2_r4_8_levels, 8, 4);
-
-
-#if 1
 r4dwpn_pass1sc128ac(xfft_r4dwpn_32K_ac_8_4_P4, xpass2_r4_8_levels, 8, 4);
 r4dwpn_pass1sc256ac(xfft_r4dwpn_64K_ac_8_4_P4, xpass2_r4_8_levels, 8, 4);
 r4dwpn_pass1sc128ac(xfft_r4dwpn_128K_ac_10_4_P4, xpass2_r4_10_levels, 10, 4);
@@ -88,5 +54,3 @@ r4dwpn_pass1sc768ac(xfft_r4dwpn_4800K_ac_6400_4_P4, xpass2_r4_6400_levels, 6400,
 r4dwpn_pass1sc1280ac(xfft_r4dwpn_5M_ac_12_4_P4, xpass2_r4_12_levels, 12, 4);
 r4dwpn_pass1sc1280ac(xfft_r4dwpn_5760K_ac_4608_4_P4, xpass2_r4_4608_levels, 4608, 4);
 r4dwpn_pass1sc768ac(xfft_r4dwpn_6M_ac_13_4_P4, xpass2_r4_13_levels, 13, 4);
-#endif
-

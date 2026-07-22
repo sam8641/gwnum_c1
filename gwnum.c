@@ -339,14 +339,22 @@ int avx_prctab_index (gwhandle *gwdata, int z, int e, int c)
 #define sse2_explode3(macro,name,suff,zp)	sse2_explode4(macro,name,suff,zp)	sse2_explode4(macro,name##e,suff,zp)
 #define sse2_explode4(macro,name,suff,zp)	sse2_explode5(macro,name,suff,zp,notc)	sse2_explode5(macro,name##c,suff,zp,c)
 #define sse2_explode5(macro,name,suff,zp,c)	sse2_explode6(macro,name,suff,zp,c)	sse2_explode6(macro,name##b,suff,zp,c)
+
+// SSE4.1 rounding
+#if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64)
 #define sse2_explode6(macro,name,suff,zp,c)	sse2_explode7##zp(macro,name,suff,c)	sse2_explode7##zp(macro,name##s4,suff,c)
+#else // no SSE4.1 rounding, All ARM64 natively support rounding.
+#define sse2_explode6(macro,name,suff,zp,c)	sse2_explode7##zp(macro,name,suff,c)	sse2_explode7##zp(macro,name,suff,c)
+#endif
+
 #define sse2_explode7notzp(macro,name,suff,c)	sse2_explode9##suff(macro,name)
 #define sse2_explode7zp(macro,name,suff,c)	sse2_explode8##c(macro,name,suff)	sse2_explode8##c(macro,name##k,suff)
 #define sse2_explode8c(macro,name,suff)		sse2_explode9##suff(macro,name)
 #define sse2_explode8notc(macro,name,suff)	sse2_explode9##suff(macro,name)		sse2_explode9##suff(macro,name##c1)	sse2_explode9##suff(macro,name##cm1)
 #define sse2_explode9BLEND(macro,name)		macro(name##BLEND)
 #define sse2_explode9CORE(macro,name)		macro(name##CORE)
-#ifndef __APPLE__
+
+#if (defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64)) && !defined(__APPLE__)
 #define sse2_explode9K8(macro,name)		macro(name##K8)
 #else
 #define sse2_explode9K8(macro,name)		macro(name##CORE)		/* Macs do not have AMD CPUs */
@@ -473,8 +481,20 @@ void raw_gwsetaddin (gwhandle *gwdata, unsigned long word, double *ptr, double v
 int multithread_init (gwhandle *gwdata);
 void multithread_term (gwhandle *gwdata);
 void do_multithread_op_work (gwhandle *gwdata, struct gwasm_data *asm_data);
+
+#ifdef USE_ASM_ENTRY_POINT
 void pass1_aux_entry_point (void*);
 void pass2_aux_entry_point (void*);
+#else
+typedef void (*func_gwasm_data)(struct gwasm_data *__restrict g);
+static inline void pass1_aux_entry_point(struct gwasm_data *__restrict g) {
+	((func_gwasm_data)g->thread_work_routine)(g);
+}
+static inline void pass2_aux_entry_point(struct gwasm_data *__restrict g) {
+	((func_gwasm_data)g->thread_work_routine)(g);
+}
+#endif
+
 void pass2_aux_entry_point2 (struct gwasm_data *__restrict g); // TEST: c code
 void gw_fixed_random_number (gwhandle *gwdata, gwnum x);
 gwnum gwalloc_internal (gwhandle *gwdata);
@@ -6079,23 +6099,9 @@ int pass1_post_carries (
 /* 1 = inverse fft */
 /* 999 = not in pass 1, we're doing pass 2 */
 
-#if 0
-int pass1_get_next_block_B (struct gwasm_data *asm_data);
-#endif
-
 int pass1_get_next_block (
 	struct gwasm_data *asm_data)
 {
-#if 0
-	int r = pass1_get_next_block_B(asm_data);
-	printf("get_next_block %i\n", r);
-	return r;
-}
-int pass1_get_next_block_B (
-	struct gwasm_data *asm_data)
-{
-#endif
-
 	gwhandle *gwdata = asm_data->gwdata;
 
 /* If state is zero, then we are doing the forward FFT.  In this case we */
@@ -6208,7 +6214,6 @@ int pass1_get_next_block_B (
 int pass1_get_next_block_mt (
 	struct gwasm_data *asm_data)
 {
-	//__sync_synchronize(); // ARM64 may need this to avoid multithread errors.
 	gwhandle *gwdata = asm_data->gwdata;
 	int	i;
 
@@ -6468,7 +6473,6 @@ int pass2_get_next_block (
 int pass2_get_next_block_mt (
 	struct gwasm_data *asm_data)
 {
-	//__sync_synchronize(); // ARM64 may need this to avoid multithread errors.
 	gwhandle *gwdata = asm_data->gwdata;
 
 /* There are no more blocks to process when the next block is the same */

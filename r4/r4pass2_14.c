@@ -12,13 +12,6 @@
 
 #include "r4.h"
 
-
-
-
-
-
-
-
 /* *************** radix4-pass2-14-levels-real macro ****************** */
 /* This macro takes 32768 real values and performs the final 15 levels of */
 /* the FFT.  Independently, this macro also takes 16384 complex values and */
@@ -754,7 +747,7 @@ r4_pass2_14_levels_complex(g);
 
 void r4_pass2_14_levels_complex(struct gwasm_data *__restrict g) {
 do{
-	uintptr_t rdx,rbx,rbp,rsi,rdi;
+	uintptr_t rbx,rbp,rsi,rdi;
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
 	/* Type 4 FFTs skip the forward FFT process */

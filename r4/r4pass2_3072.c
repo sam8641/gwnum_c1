@@ -10,6 +10,7 @@
 #include "../xmult.h"
 #include "../gwnum_func.h"
 
+#include "r3.h"
 #include "r4.h"
 
 /* *************** radix4-pass2-3072-levels-real macro ****************** */

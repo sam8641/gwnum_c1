@@ -10,8 +10,8 @@
 #include "../xmult.h"
 #include "../gwnum_func.h"
 
+#include "r3.h"
 #include "r4.h"
-
 
 /* *************** radix4-pass2-12288-levels-real macro ****************** */
 /* This macro takes 24576 real values and performs the final 14.585 levels of */

@@ -8,6 +8,9 @@
 #define _GWTABLES_H
 
 typedef double __attribute__ ((vector_size (16))) vec2f64;
+typedef double __attribute__ ((vector_size (32))) vec4f64;
+typedef double __attribute__ ((vector_size (64))) vec8f64;
+
 #define memcpy_vec2f64(A,B) A = B
 
 /* This is a C library.  If used in a C++ program, don't let the C++ */

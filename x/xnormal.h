@@ -1140,8 +1140,13 @@ const1(f0 *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 ;	/* column two-to-phi multiplier for the first value will be 1.0.  We  */ \
 ;	/* must go 6 words deep in case k is 48-50 bits and c is 32 bits. */ \
 \
+	vec2f64 TMP12 = g->u.xmm.XMM_TMP1; \
+	vec2f64 TMP34 = g->u.xmm.XMM_TMP2; \
+	vec2f64 TMP56 = g->u.xmm.XMM_TMP3; \
+	TMP34 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
+	TMP56 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
 	rax = u8ptr(rdi);	/* First word  */ \
-	f0 = g->u.xmm.XMM_TMP1[0];	/* Load integer part of divide by k */ \
+	f0 = TMP12[0];	/* Load integer part of divide by k */ \
 	f0 += xmm3[0];		/* Add in shifted high FFT carry */ \
 	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
 	f0 += XMM_BIGVAL1; \
@@ -1150,7 +1155,7 @@ const1(f0 *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 	f64ptr(rsi) = f0;		/* Save value1 */ \
 \
 	rax = u8ptr(rdi+1);	/* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP2[0];	/* Load integer part of divide by k */ \
+	f0 = TMP12[1];	/* Load integer part of divide by k */ \
 	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
 	f1 = f64ptr(rsi+16);	/* Load FFT data */ \
 	f1 *= f64ptr(rbp+32);	/* Mul values2 by two-to-minus-phi */ \
@@ -1162,8 +1167,7 @@ const1(f0 *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 	f64ptr(rsi+16) = f0;	/* Save value2 */ \
 \
 	rax = u8ptr(rdi+4);	/* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP3[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	f0 = TMP34[0];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+64);	/* Load FFT data */ \
 	f1 *= f64ptr(rbp+128);	/* Mul values3 by two-to-minus-phi */ \
 	f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -1174,8 +1178,7 @@ const1(f0 *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 	f64ptr(rsi+64) = f0;	/* Save value3 */ \
 \
 	rax = u8ptr(rdi+5);	/* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP4[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	f0 = TMP34[1];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+64+16);	/* Load FFT data */ \
 	f1 *= f64ptr(rbp+128+32);	/* Mul values4 by two-to-minus-phi */ \
 	f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -1190,8 +1193,7 @@ const1(f0 *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 		/* memory addresses for the fourth */ \
 		/* and higher data elements */ \
 		rax = u8ptr(rdi+8);	/* Load big vs. little flags */ \
-		f0 = g->u.xmm.XMM_TMP5[0];	/* Load integer part of divide by k */ \
-		f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+		f0 = TMP56[0];	/* Load integer part of divide by k */ \
 		f1 = f64ptr(rsi+128);	/* Load FFT data */ \
 		f1 *= f64ptr(rbp+256);	/* Mul values4 by two-to-minus-phi */ \
 		f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -1202,8 +1204,7 @@ const1(f0 *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 		f64ptr(rsi+128) = f0;	/* Save value5 */ \
 	\
 		rax = u8ptr(rdi+9);	/* Load big vs. little flags */ \
-		f0 = g->u.xmm.XMM_TMP6[0];	/* Load integer part of divide by k */ \
-		f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+		f0 = TMP56[1];	/* Load integer part of divide by k */ \
 		f1 = f64ptr(rsi+128+16);	/* Load FFT data */ \
 		f1 *= f64ptr(rbp+256+32);	/* Mul values6 by two-to-minus-phi */ \
 		f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -1230,8 +1231,7 @@ const1(f0 *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 		/* Same as the above but with different addresses required by */ \
 		/* the length 80 and 112 FFT lengths */ \
 		rax = u8ptr(rdi);	/* Load big vs. little flags */ \
-		f0 = g->u.xmm.XMM_TMP5[0];	/* Load integer part of divide by k */ \
-		f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+		f0 = TMP56[0];	/* Load integer part of divide by k */ \
 		f1 = f64ptr(rsi+8);		/* Load FFT data */ \
 		f1 *= f64ptr(rbp+8);		/* Mul values5 by two-to-minus-phi */ \
 		f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -1242,8 +1242,7 @@ const1(f0 *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 		f64ptr(rsi+8) = f0;		/* Save value5 */ \
 	\
 		rax = u8ptr(rdi+1);	/* Load big vs. little flags */ \
-		f0 = g->u.xmm.XMM_TMP6[0];	/* Load integer part of divide by k */ \
-		f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+		f0 = TMP56[1];	/* Load integer part of divide by k */ \
 		f1 = f64ptr(rsi+16+8);	/* Load FFT data */ \
 		f1 *= f64ptr(rbp+32+8);	/* Mul values6 by two-to-minus-phi */ \
 		f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -2449,7 +2448,7 @@ if(g->this_block == 0) {		/* Are we carrying into the first data block? */ \
 
 
 
-#define xnorm012_2d_zpad_part1_cmn(const1, base2) \
+#define xnorm012_2d_zpad_part1_cmn(const1, base2) { \
 \
 ;	/* Strip BIGVAL from the traditional carry, we'll add the traditional */ \
 ;	/* carry in later when we are working on the ZPAD0 - ZPAD6 values. */ \
@@ -2603,8 +2602,13 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 ;	/* column two-to-phi multiplier for the first value will be 1.0.  We  */ \
 ;	/* must go 6 words deep in case k is 48-50 bits and c is 32 bits. */ \
 \
+	vec2f64 TMP12 = g->u.xmm.XMM_TMP1; \
+	vec2f64 TMP34 = g->u.xmm.XMM_TMP2; \
+	vec2f64 TMP56 = g->u.xmm.XMM_TMP3; \
+	TMP34 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
+	TMP56 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
 	rax = u8ptr(rdi);	/* First word  */ \
-	xmm0[0] = g->u.xmm.XMM_TMP1[0];	/* Load integer part of divide by k */ \
+	xmm0[0] = TMP12[0];	/* Load integer part of divide by k */ \
 	xmm0[0] += xmm3[0];		/* Add in shifted high FFT carry */ \
 	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
 	xmm0[0] += XMM_BIGVAL1; \
@@ -2613,7 +2617,7 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 	f64ptr(rsi+0*64) = xmm0[0];	/* Save value1 */ \
 \
 	rax = u8ptr(rdi+4);	/* Load big vs. little flags */ \
-	xmm0[0] = g->u.xmm.XMM_TMP2[0];	/* Load integer part of divide by k */ \
+	xmm0[0] = TMP12[1];	/* Load integer part of divide by k */ \
 	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
 	xmm1[0] = f64ptr(rsi+1*64);	/* Load FFT data */ \
 	xmm1[0] *= f64ptr(rbp+1*32);	/* Mul values2 by two-to-minus-phi */ \
@@ -2624,11 +2628,10 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 	xmm0[0] *= f64ptr(rbp+1*32+16);	/* new value2 = val * two-to-phi */ \
 	f64ptr(rsi+1*64) = xmm0[0];	/* Save value2 */ \
 \
-	rcx = g->BIGLIT_INCR2;/* Different clm values step through */ \
+	rcx = rdi + g->BIGLIT_INCR2;/* Different clm values step through */ \
 ;					/* big/lit array differently */ \
-	rax = u8ptr(rdi+rcx); /* Load big vs. little flags */ \
-	xmm0[0] = g->u.xmm.XMM_TMP3[0];	/* Load integer part of divide by k */ \
-	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx); /* Load big vs. little flags */ \
+	xmm0[0] = TMP34[0];	/* Load integer part of divide by k */ \
 	xmm1[0] = f64ptr(rsi+2*64);	/* Load FFT data */ \
 	xmm1[0] *= f64ptr(rbp+2*32);	/* Mul values3 by two-to-minus-phi */ \
 	xmm1[0] *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -2638,9 +2641,8 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 	xmm0[0] *= f64ptr(rbp+2*32+16);	/* new value3 = val * two-to-phi */ \
 	f64ptr(rsi+2*64) = xmm0[0];	/* Save value3 */ \
 \
-	rax = u8ptr(rdi+rcx+4); /* Load big vs. little flags */ \
-	xmm0[0] = g->u.xmm.XMM_TMP4[0];	/* Load integer part of divide by k */ \
-	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+4); /* Load big vs. little flags */ \
+	xmm0[0] = TMP34[1];	/* Load integer part of divide by k */ \
 	xmm1[0] = f64ptr(rsi+3*64);	/* Load FFT data */ \
 	xmm1[0] *= f64ptr(rbp+3*32);	/* Mul values4 by two-to-minus-phi */ \
 	xmm1[0] *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -2650,11 +2652,10 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 	xmm0[0] *= f64ptr(rbp+3*32+16);	/* new value4 = val * two-to-phi */ \
 	f64ptr(rsi+3*64) = xmm0[0];	/* Save value4 */ \
 \
-	rcx = g->BIGLIT_INCR4;/* Different clm values step through */ \
+	rcx = rdi + g->BIGLIT_INCR4;/* Different clm values step through */ \
 ;					/* big/lit array differently */ \
-	rax = u8ptr(rdi+rcx);	/* Load big vs. little flags */ \
-	xmm0[0] = g->u.xmm.XMM_TMP5[0];	/* Load integer part of divide by k */ \
-	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx);	/* Load big vs. little flags */ \
+	xmm0[0] = TMP56[0];	/* Load integer part of divide by k */ \
 	xmm1[0] = f64ptr(rsi+4*64);	/* Load FFT data */ \
 	xmm1[0] *= f64ptr(rbp+4*32);	/* Mul values4 by two-to-minus-phi */ \
 	xmm1[0] *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -2664,9 +2665,8 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 	xmm0[0] *= f64ptr(rbp+4*32+16);	/* new value4 = val * two-to-phi */ \
 	f64ptr(rsi+4*64) = xmm0[0];	/* Save value4 */ \
 \
-	rax = u8ptr(rdi+rcx+4); /* Load big vs. little flags */ \
-	xmm0[0] = g->u.xmm.XMM_TMP6[0];	/* Load integer part of divide by k */ \
-	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+4); /* Load big vs. little flags */ \
+	xmm0[0] = TMP56[1];	/* Load integer part of divide by k */ \
 	xmm1[0] = f64ptr(rsi+5*64);	/* Load FFT data */ \
 	xmm1[0] *= f64ptr(rbp+5*32);	/* Mul values5 by two-to-minus-phi */ \
 	xmm1[0] *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -2678,7 +2678,7 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 \
 	rcx += g->BIGLIT_INCR2;/* Different clm values step through */ \
 ;					/* big/lit array differently */ \
-	rax = u8ptr(rdi+rcx);	/* Load big vs. little flags */ \
+	rax = u8ptr(rcx);	/* Load big vs. little flags */ \
 	xmm0[0] = f64ptr(rsi+6*64);	/* Load FFT data */ \
 	xmm0[0] *= f64ptr(rbp+6*32);	/* Mul values3 by two-to-minus-phi */ \
 	xmm0[0] *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -2691,8 +2691,8 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 	xmm2[0] *= f64ptr(rbp+7*32+16);	/* new value7 = val * two-to-phi */ \
 	xmm2[0] += f64ptr(rsi+7*64);	/* Add in FFT data */ \
 	f64ptr(rsi+7*64) = xmm2[0];	/* Save value7 */ \
-\
-\
+}
+
 
 #define xnorm012_2d_zpad \
 	if(g->B_IS_2 == 0) {		/* Is b = 2? */ \
@@ -3863,7 +3863,7 @@ if(g->const_fft != 0) { /* Are we also multiplying by a constant? */ \
 \
 /* On input, xmm2 and xmm3 contain high carries from the last carries array row */ \
 
-#define xnorm012_wpn_zpad_part1_cmn(const1, base2) \
+#define xnorm012_wpn_zpad_part1_cmn(const1, base2) { \
 \
 ;	/* Strip BIGVAL from the traditional carry, we'll add the traditional */ \
 ;	/* carry in later when we are working on the ZPAD0 - ZPAD6 values. */ \
@@ -4003,7 +4003,12 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 ;	/* must go 6 words deep in case k is 48-50 bits and c is 32 bits. */ \
 \
 	rax = u8ptr(rdi+1);	/* Load big vs. little flags */ \
-	xmm0[0] = g->u.xmm.XMM_TMP1[0];	/* Load integer part of divide by k */ \
+	vec2f64 TMP12 = g->u.xmm.XMM_TMP1; \
+	vec2f64 TMP34 = g->u.xmm.XMM_TMP2; \
+	vec2f64 TMP56 = g->u.xmm.XMM_TMP3; \
+	TMP34 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
+	TMP56 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
+	xmm0[0] = TMP12[0];	/* Load integer part of divide by k */ \
 	xmm0[0] += xmm3[0];		/* Add in shifted high FFT carry */ \
 	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
 	xmm0[0] += XMM_BIGVAL1; \
@@ -4012,44 +4017,40 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 	f64ptr(rsi+0*64) = xmm0[0];	/* Save value1 */ \
 \
 	rax = u8ptr(rdi+3);	/* Load big vs. little flags */ \
-	xmm0[0] = g->u.xmm.XMM_TMP2[0];	/* Load integer part of divide by k */ \
+	xmm0[0] = TMP12[1];	/* Load integer part of divide by k */ \
 	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
 	xmm0[0] += f64ptr(rsi+1*64);	/* Add in the FFT data */ \
 	xmm0[0] += xmm2[0];		/* x2 = value + carry */ \
 	single_rounding(base2, xmm0[0], xmm2[0], xmm4[0], rax*4); \
 	f64ptr(rsi+1*64) = xmm0[0];	/* Save value2 */ \
 \
-	rcx = g->BIGLIT_INCR2;/* Different clm values step through */ \
+	rcx = rdi + g->BIGLIT_INCR2;/* Different clm values step through */ \
 ;					/* big/lit array differently */ \
-	rax = u8ptr(rdi+rcx+1); /* Load big vs. little flags */ \
-	xmm0[0] = g->u.xmm.XMM_TMP3[0];	/* Load integer part of divide by k */ \
-	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+1); /* Load big vs. little flags */ \
+	xmm0[0] = TMP34[0];	/* Load integer part of divide by k */ \
 	xmm0[0] += f64ptr(rsi+2*64);	/* Add in the FFT data */ \
 	xmm0[0] += xmm2[0];		/* x3 = value + carry */ \
 	single_rounding(base2, xmm0[0], xmm2[0], xmm4[0], rax*4); \
 	f64ptr(rsi+2*64) = xmm0[0];	/* Save value3 */ \
 \
-	rax = u8ptr(rdi+rcx+3); /* Load big vs. little flags */ \
-	xmm0[0] = g->u.xmm.XMM_TMP4[0];	/* Load integer part of divide by k */ \
-	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+3); /* Load big vs. little flags */ \
+	xmm0[0] = TMP34[1];	/* Load integer part of divide by k */ \
 	xmm0[0] += f64ptr(rsi+3*64);	/* Add in the FFT data */ \
 	xmm0[0] += xmm2[0];		/* x4 = value + carry */ \
 	single_rounding(base2, xmm0[0], xmm2[0], xmm4[0], rax*4); \
 	f64ptr(rsi+3*64) = xmm0[0];	/* Save value4 */ \
 \
-	rcx = g->BIGLIT_INCR4;/* Different clm values step through */ \
+	rcx = rdi + g->BIGLIT_INCR4;/* Different clm values step through */ \
 ;					/* big/lit array differently */ \
-	rax = u8ptr(rdi+rcx+1); /* Load big vs. little flags */ \
-	xmm0[0] = g->u.xmm.XMM_TMP5[0];	/* Load integer part of divide by k */ \
-	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+1); /* Load big vs. little flags */ \
+	xmm0[0] = TMP56[0];	/* Load integer part of divide by k */ \
 	xmm0[0] += f64ptr(rsi+4*64);	/* Add in the FFT data */ \
 	xmm0[0] += xmm2[0];		/* x4 = value + carry */ \
 	single_rounding(base2, xmm0[0], xmm2[0], xmm4[0], rax*4); \
 	f64ptr(rsi+4*64) = xmm0[0];	/* Save value4 */ \
 \
-	rax = u8ptr(rdi+rcx+3); /* Load big vs. little flags */ \
-	xmm0[0] = g->u.xmm.XMM_TMP6[0];	/* Load integer part of divide by k */ \
-	xmm0[0] *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+3); /* Load big vs. little flags */ \
+	xmm0[0] = TMP56[1];	/* Load integer part of divide by k */ \
 	xmm0[0] += f64ptr(rsi+5*64);	/* Add in the FFT data */ \
 	xmm0[0] += xmm2[0];		/* x5 = value + carry */ \
 	single_rounding(base2, xmm0[0], xmm2[0], xmm4[0], rax*4); \
@@ -4057,7 +4058,7 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 \
 	rcx += g->BIGLIT_INCR2;/* Different clm values step through */ \
 ;					/* big/lit array differently */ \
-	rax = u8ptr(rdi+rcx+1); /* Load big vs. little flags */ \
+	rax = u8ptr(rcx+1); /* Load big vs. little flags */ \
 	xmm0[0] = f64ptr(rsi+6*64);	/* Load FFT data */ \
 	xmm0[0] += xmm2[0];		/* x6 = value + carry */ \
 	single_rounding(base2, xmm0[0], xmm2[0], xmm4[0], rax*4); \
@@ -4066,7 +4067,7 @@ const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 	xmm2[0] -= XMM_BIGVAL1;/* Remove rounding constant */ \
 	xmm2[0] += f64ptr(rsi+7*64);	/* Add in FFT data */ \
 	f64ptr(rsi+7*64) = xmm2[0];	/* Save value7 */ \
-\
+}
 
 #define xnorm012_wpn_zpad \
 	if(g->B_IS_2 == 0){		/* Is b = 2? */ \
@@ -4770,17 +4771,21 @@ ttp(rbp += 128);		/* Next two-to-phi ptr */ \
 ;	/* column two-to-phi multiplier for the first value will be 1.0.  We  */ \
 ;	/* must go 6 words deep in case k is 48-50 bits and c is 32 bits. */ \
 \
+	vec2f64 TMP12 = g->u.xmm.XMM_TMP1; \
+	vec2f64 TMP34 = g->u.xmm.XMM_TMP2; \
+	vec2f64 TMP56 = g->u.xmm.XMM_TMP3; \
+	TMP12 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
+	TMP34 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
+	TMP56 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
 	rax = u8ptr(rdi);	/* First word  */ \
-	f0 = g->u.xmm.XMM_TMP1[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	f0 = TMP12[0];	/* Load integer part of divide by k */ \
 	f0 += XMM_BIGVAL1; \
 	f0 += f64ptr(rsi);		/* Add in the FFT data */ \
 	single_rounding(base2, f0, f2, f4, rax); \
 	f64ptr(rsi) = f0;		/* Save value1 */ \
 \
 	rax = u8ptr(rdi+1);	/* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP2[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	f0 = TMP12[1];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+16);	/* Load FFT data */ \
 	f1 *= f64ptr(rbp+32);	/* Mul values2 by two-to-minus-phi */ \
 	f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -4791,8 +4796,7 @@ ttp(rbp += 128);		/* Next two-to-phi ptr */ \
 	f64ptr(rsi+16) = f0;	/* Save value2 */ \
 \
 	rax = u8ptr(rdi+4);	/* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP3[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	f0 = TMP34[0];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+64);	/* Load FFT data */ \
 	f1 *= f64ptr(rbp+128);	/* Mul values3 by two-to-minus-phi */ \
 	f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -4803,8 +4807,7 @@ ttp(rbp += 128);		/* Next two-to-phi ptr */ \
 	f64ptr(rsi+64) = f0;	/* Save value3 */ \
 \
 	rax = u8ptr(rdi+5);	/* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP4[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	f0 = TMP34[1];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+64+16);	/* Load FFT data */ \
 	f1 *= f64ptr(rbp+128+32);	/* Mul values4 by two-to-minus-phi */ \
 	f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -4819,8 +4822,7 @@ ttp(rbp += 128);		/* Next two-to-phi ptr */ \
 		/* and higher data elements */ \
 	\
 		rax = u8ptr(rdi+8);	/* Load big vs. little flags */ \
-		f0 = g->u.xmm.XMM_TMP5[0];	/* Load integer part of divide by k */ \
-		f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+		f0 = TMP56[0];	/* Load integer part of divide by k */ \
 		f1 = f64ptr(rsi+128);	/* Load FFT data */ \
 		f1 *= f64ptr(rbp+256);	/* Mul values4 by two-to-minus-phi */ \
 		f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -4831,8 +4833,7 @@ ttp(rbp += 128);		/* Next two-to-phi ptr */ \
 		f64ptr(rsi+128) = f0;	/* Save value5 */ \
 	\
 		rax = u8ptr(rdi+9);	/* Load big vs. little flags */ \
-		f0 = g->u.xmm.XMM_TMP6[0];	/* Load integer part of divide by k */ \
-		f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+		f0 = TMP56[1];	/* Load integer part of divide by k */ \
 		f1 = f64ptr(rsi+128+16);	/* Load FFT data */ \
 		f1 *= f64ptr(rbp+256+32);	/* Mul values6 by two-to-minus-phi */ \
 		f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -4852,8 +4853,7 @@ ttp(rbp += 128);		/* Next two-to-phi ptr */ \
 ;	/* the length 80 and 112 FFT lengths */ \
 \
 		rax = u8ptr(rdi);	/* Load big vs. little flags */ \
-		f0 = g->u.xmm.XMM_TMP5[0];	/* Load integer part of divide by k */ \
-		f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+		f0 = TMP56[0];	/* Load integer part of divide by k */ \
 		f1 = f64ptr(rsi+8);		/* Load FFT data */ \
 		f1 *= f64ptr(rbp+8);		/* Mul values5 by two-to-minus-phi */ \
 		f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -4864,8 +4864,7 @@ ttp(rbp += 128);		/* Next two-to-phi ptr */ \
 		f64ptr(rsi+8) = f0;		/* Save value5 */ \
 	\
 		rax = u8ptr(rdi+1);	/* Load big vs. little flags */ \
-		f0 = g->u.xmm.XMM_TMP6[0];	/* Load integer part of divide by k */ \
-		f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+		f0 = TMP56[1];	/* Load integer part of divide by k */ \
 		f1 = f64ptr(rsi+16+8);	/* Load FFT data */ \
 		f1 *= f64ptr(rbp+32+8);	/* Mul values6 by two-to-minus-phi */ \
 		f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -5676,17 +5675,21 @@ ttp(rbx += 32);			/* Next column two-to-phi ptr */ \
 ;	/* column two-to-phi multiplier for the first value will be 1.0.  We  */ \
 ;	/* must go 6 words deep in case k is 48-50 bits and c is 32 bits. */ \
 \
+	vec2f64 TMP12 = g->u.xmm.XMM_TMP1; \
+	vec2f64 TMP34 = g->u.xmm.XMM_TMP2; \
+	vec2f64 TMP56 = g->u.xmm.XMM_TMP3; \
+	TMP12 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
+	TMP34 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
+	TMP56 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
 	rax = u8ptr(rdi);	/* First word  */ \
-	f0 = g->u.xmm.XMM_TMP1[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	f0 = TMP12[0];	/* Load integer part of divide by k */ \
 	f0 += XMM_BIGVAL1; \
 	f0 += f64ptr(rsi+0*64);	/* Add in the FFT data */ \
 	single_rounding(base2, f0, f2, f4, rax); \
 	f64ptr(rsi+0*64) = f0;	/* Save value1 */ \
 \
 	rax = u8ptr(rdi+4);	/* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP2[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	f0 = TMP12[1];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+1*64);	/* Load FFT data */ \
 	f1 *= f64ptr(rbx+1*32);	/* Mul values2 by col two-to-minus-phi */ \
 	f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -5696,11 +5699,10 @@ ttp(rbx += 32);			/* Next column two-to-phi ptr */ \
 	f0 *= f64ptr(rbx+1*32+16);	/* new value2 = val * col two-to-phi */ \
 	f64ptr(rsi+1*64) = f0;	/* Save value2 */ \
 \
-	rcx = g->BIGLIT_INCR2;/* Different clm values step through */ \
+	rcx = rdi + g->BIGLIT_INCR2;/* Different clm values step through */ \
 ;					/* big/lit array differently */ \
-	rax = u8ptr(rdi+rcx);	/* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP3[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx);	/* Load big vs. little flags */ \
+	f0 = TMP34[0];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+2*64);	/* Load FFT data */ \
 	f1 *= f64ptr(rbx+2*32);	/* Mul values3 by col two-to-minus-phi */ \
 	f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -5710,9 +5712,8 @@ ttp(rbx += 32);			/* Next column two-to-phi ptr */ \
 	f0 *= f64ptr(rbx+2*32+16);	/* new value3 = val * col two-to-phi */ \
 	f64ptr(rsi+2*64) = f0;	/* Save value3 */ \
 \
-	rax = u8ptr(rdi+rcx+4); /* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP4[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+4); /* Load big vs. little flags */ \
+	f0 = TMP34[1];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+3*64);	/* Load FFT data */ \
 	f1 *= f64ptr(rbx+3*32);	/* Mul values4 by col two-to-minus-phi */ \
 	f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -5722,11 +5723,10 @@ ttp(rbx += 32);			/* Next column two-to-phi ptr */ \
 	f0 *= f64ptr(rbx+3*32+16);	/* new value4 = val * col two-to-phi */ \
 	f64ptr(rsi+3*64) = f0;	/* Save value4 */ \
 \
-	rcx = g->BIGLIT_INCR4;/* Different clm values step through */ \
+	rcx = rdi + g->BIGLIT_INCR4;/* Different clm values step through */ \
 ;					/* big/lit array differently */ \
-	rax = u8ptr(rdi+rcx);	/* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP5[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx);	/* Load big vs. little flags */ \
+	f0 = TMP56[0];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+4*64);	/* Load FFT data */ \
 	f1 *= f64ptr(rbx+4*32);	/* Mul values4 by col two-to-minus-phi */ \
 	f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -5736,9 +5736,8 @@ ttp(rbx += 32);			/* Next column two-to-phi ptr */ \
 	f0 *= f64ptr(rbx+4*32+16);	/* new value4 = val * col two-to-phi */ \
 	f64ptr(rsi+4*64) = f0;	/* Save value4 */ \
 \
-	rax = u8ptr(rdi+rcx+4); /* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP6[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+4); /* Load big vs. little flags */ \
+	f0 = TMP56[1];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+5*64);	/* Load FFT data */ \
 	f1 *= f64ptr(rbx+5*32);	/* Mul values5 by col two-to-minus-phi */ \
 	f1 *= g->u.xmm.XMM_NORM012_FF[0];	/* Mul by FFTLEN/2 */ \
@@ -6329,7 +6328,7 @@ ttp(rdi += 2);			/* Next flags ptr */ \
 /* xmm7 = wraparound carry (this will be zero for smallmul of zero-padded number) */ \
 
 
-#define xnorm_smallmul_wpn_fft_zpad(base2) \
+#define xnorm_smallmul_wpn_fft_zpad(base2) { \
 	double f0, f1, f2, f4; \
 \
 ;	/* Copy and integerize data from 7 words above halfway point to ZPAD0-ZPAD6 */ \
@@ -6417,57 +6416,57 @@ ttp(rdi += 2);			/* Next flags ptr */ \
 ;	/* column two-to-phi multiplier for the first value will be 1.0.  We  */ \
 ;	/* must go 6 words deep in case k is 48-50 bits and c is 32 bits. */ \
 \
+	vec2f64 TMP12 = g->u.xmm.XMM_TMP1; \
+	vec2f64 TMP34 = g->u.xmm.XMM_TMP2; \
+	vec2f64 TMP56 = g->u.xmm.XMM_TMP3; \
+	TMP12 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
+	TMP34 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
+	TMP56 *= g->u.xmm.XMM_MINUS_C;	/* Mul by -c */ \
 	rax = u8ptr(rdi+1);	/* First word  */ \
-	f0 = g->u.xmm.XMM_TMP1[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	f0 = TMP12[0];	/* Load integer part of divide by k */ \
 	f0 += XMM_BIGVAL1; \
 	f0 += f64ptr(rsi+0*64);	/* Add in the FFT data */ \
 	single_rounding(base2, f0, f2, f4, rax*4); \
 	f64ptr(rsi+0*64) = f0;	/* Save value1 */ \
 \
 	rax = u8ptr(rdi+3);	/* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP2[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	f0 = TMP12[1];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+1*64);	/* Load FFT data */ \
 	f0 += f1;		/* Add in the FFT data */ \
 	f0 += f2;		/* x2 = value + carry */ \
 	single_rounding(base2, f0, f2, f4, rax*4); \
 	f64ptr(rsi+1*64) = f0;	/* Save value2 */ \
 \
-	rcx = g->BIGLIT_INCR2;/* Different clm values step through */ \
+	rcx = rdi + g->BIGLIT_INCR2;/* Different clm values step through */ \
 ;					/* big/lit array differently */ \
-	rax = u8ptr(rdi+rcx+1); /* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP3[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+1); /* Load big vs. little flags */ \
+	f0 = TMP34[0];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+2*64);	/* Load FFT data */ \
 	f0 += f1;		/* Add in the FFT data */ \
 	f0 += f2;		/* x3 = value + carry */ \
 	single_rounding(base2, f0, f2, f4, rax*4); \
 	f64ptr(rsi+2*64) = f0;	/* Save value3 */ \
 \
-	rax = u8ptr(rdi+rcx+3); /* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP4[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+3); /* Load big vs. little flags */ \
+	f0 = TMP34[1];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+3*64);	/* Load FFT data */ \
 	f0 += f1;		/* Add in the FFT data */ \
 	f0 += f2;		/* x4 = value + carry */ \
 	single_rounding(base2, f0, f2, f4, rax*4); \
 	f64ptr(rsi+3*64) = f0;	/* Save value4 */ \
 \
-	rcx = g->BIGLIT_INCR4;/* Different clm values step through */ \
+	rcx = rdi + g->BIGLIT_INCR4;/* Different clm values step through */ \
 ;					/* big/lit array differently */ \
-	rax = u8ptr(rdi+rcx+1); /* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP5[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+1); /* Load big vs. little flags */ \
+	f0 = TMP56[0];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+4*64);	/* Load FFT data */ \
 	f0 += f1;		/* Add in the FFT data */ \
 	f0 += f2;		/* x4 = value + carry */ \
 	single_rounding(base2, f0, f2, f4, rax*4); \
 	f64ptr(rsi+4*64) = f0;	/* Save value4 */ \
 \
-	rax = u8ptr(rdi+rcx+3); /* Load big vs. little flags */ \
-	f0 = g->u.xmm.XMM_TMP6[0];	/* Load integer part of divide by k */ \
-	f0 *= g->u.xmm.XMM_MINUS_C[0];	/* Mul by -c */ \
+	rax = u8ptr(rcx+3); /* Load big vs. little flags */ \
+	f0 = TMP56[1];	/* Load integer part of divide by k */ \
 	f1 = f64ptr(rsi+5*64);	/* Load FFT data */ \
 	f0 += f1;		/* Add in the FFT data */ \
 	f0 += f2;		/* x5 = value + carry */ \
@@ -6477,9 +6476,9 @@ ttp(rdi += 2);			/* Next flags ptr */ \
 	f2 -= XMM_BIGVAL1;/* Remove rounding constant */ \
 	f2 += f64ptr(rsi+6*64);	/* Add in FFT data */ \
 	f64ptr(rsi+6*64) = f2;	/* Save value6 */ \
-\
-\
-\
+}
+
+
 /* */ \
 /* Macro to copy and possibly zero 4 or 8 doubles */ \
 /* */ \

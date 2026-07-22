@@ -10,7 +10,9 @@
 #include "../xmult.h"
 #include "../gwnum_func.h"
 
+#include "r3.h"
 #include "r4.h"
+#include "r8.h"
 
 /********************************************************************************************** */
 /*			Macros derived from pass2-11-levels */
@@ -537,7 +539,7 @@ void xpass2_r4_1536_levels(struct gwasm_data *__restrict g) {
 
 void r4_pass2_1536_levels_complex(struct gwasm_data *__restrict g) {
 do{
-	uintptr_t rdx,rbx,rbp,rsi,rdi;
+	uintptr_t rbx,rbp,rsi,rdi;
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
 	/* Type 4 FFTs skip the forward FFT process */

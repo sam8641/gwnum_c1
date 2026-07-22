@@ -10,6 +10,7 @@
 #include "../xmult.h"
 #include "../gwnum_func.h"
 
+#include "r3.h"
 #include "r4.h"
 
 /********************************************************************************************** */
@@ -641,7 +642,7 @@ void xpass2_r4_2304_levels(struct gwasm_data *__restrict g) {
 
 void r4_pass2_2304_levels_complex(struct gwasm_data *__restrict g) {
 do{
-	uintptr_t rdx,rbx,rbp,rsi,rdi;
+	uintptr_t rbx,rbp,rsi,rdi;
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	/* Type 4 FFTs skip the forward FFT process */
 

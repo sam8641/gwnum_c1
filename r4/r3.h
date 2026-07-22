@@ -122,17 +122,17 @@
 	t2 = r6; \
 	r6 += r5;			/* I2 + I3 */ \
 	r2 -= t1;			/* R2 - R3 */ \
-	t1 = r3 * 0.5;			/* 0.5 * (R2 + R3) */ \
+	t1 = r3;			/* 0.5 * (R2 + R3) */ \
 	r5 -= t2;			/* I2 - I3 */ \
-	t2 = r6 * 0.5;			/* 0.5 * (I2 + I3) */ \
+	t2 = r6;			/* 0.5 * (I2 + I3) */ \
 	r1 = memr1; \
 	r3 += r1;			/* R1 + R2 + R3 (final R1) */ \
 	r2 *= CONST2_P866;		/* 0.866 * (R2 - R3) */ \
-	r1 -= t1;			/* (R1-.5R2-.5R3) */ \
+	r1 -= t1 * 0.5;			/* (R1-.5R2-.5R3) */ \
 	r5 *= CONST2_P866;		/* 0.866 * (I2 - I3) */ \
 	r4 = memi1; \
 	r6 += r4;			/* I1 + I2 + I3 (final I1) */ \
-	r4 -= t2;			/* (I1-.5I2-.5I3) */ \
+	r4 -= t2 * 0.5;			/* (I1-.5I2-.5I3) */ \
 \
 	xprefetchw(u8ptr(pre1)); \
 \
@@ -747,14 +747,14 @@
 \
 	r6 += t2;			/* I2 + I3 */ \
 	r4 *= CONST2_P866;		/* 0.866 * (I2 - I3) */ \
-	t1 = r5 * 0.5;			/* 0.5 * (R2 + R3) */ \
+	t1 = r5;			/* 0.5 * (R2 + R3) */ \
 	r1 = memr1; \
 	r5 += r1;			/* R1 + R2 + R3 (final R1) */ \
-	r1 -= t1;			/* (R1-.5R2-.5R3) */ \
-	t1 = r6 * 0.5;			/* 0.5 * (I2 + I3) */ \
+	r1 -= t1 * 0.5;			/* (R1-.5R2-.5R3) */ \
+	t1 = r6;			/* 0.5 * (I2 + I3) */ \
 	r2 = memi1; \
 	r6 += r2;			/* I1 + I2 + I3 (final I1) */ \
-	r2 -= t1;			/* (I1-.5I2-.5I3) */ \
+	r2 -= t1 * 0.5;			/* (I1-.5I2-.5I3) */ \
 	t1 = r1; \
 	r1 -= r4;			/* Final R3 */ \
 	r4 += t1;			/* Final R2 */ \
@@ -1214,18 +1214,17 @@
 
 #define r3_fh3cl_six_reals_three_complex_djbfft(srcreg,srcinc,d1,screg1,scoff1,screg2,scoff2) { \
 	vec2f64 TMP1, TMP2; \
-	r3_h6r_h3c_djbfft_mem(xptr(srcreg+d1+rbx),xptr(srcreg+16+rbx),xptr(srcreg+2*d1+16+rbx),xptr(srcreg+d1+32+rbx),xptr(srcreg+48+rbx),xptr(srcreg+2*d1+48+rbx),screg1+scoff1,screg2+scoff2,srcreg+srcinc,d1); \
-	xmm6 = xptr(srcreg+d1+16+rbx);	/* R3 */ \
-	xmm7 = xptr(srcreg+d1+48+rbx);	/* R6 */ \
+	uintptr_t src_rbx = srcreg+rbx; \
+	r3_h6r_h3c_djbfft_mem(xptr(src_rbx+d1),xptr(src_rbx+16),xptr(src_rbx+2*d1+16),xptr(src_rbx+d1+32),xptr(src_rbx+48),xptr(src_rbx+2*d1+48),screg1+scoff1,screg2+scoff2,srcreg+srcinc,d1); \
+	TMP1 = xptr(src_rbx+d1+16);	/* R3 */ \
+	TMP2 = xptr(src_rbx+d1+48);	/* R6 */ \
 	xptr(srcreg+16) = xmm2;		/* Save R1 #1/R1 */ \
 	xptr(srcreg+48) = xmm5;		/* Save R1 #2/I1 */ \
 	xptr(srcreg+d1+16) = xmm0;		/* Save R2 */ \
 	xptr(srcreg+d1+48) = xmm1;		/* Save I2 */ \
 	xptr(srcreg+2*d1+16) = xmm4;		/* Save R3 */ \
 	xptr(srcreg+2*d1+48) = xmm3;		/* Save I3 */ \
-	TMP1 = xmm6; \
-	TMP2 = xmm7; \
-	r3_h6r_h3c_djbfft_mem(xptr(srcreg+rbx),xptr(srcreg+2*d1+rbx),TMP1,xptr(srcreg+32+rbx),xptr(srcreg+2*d1+32+rbx),TMP2,screg1,screg2,srcreg+srcinc+2*d1,0); \
+	r3_h6r_h3c_djbfft_mem(xptr(src_rbx),xptr(src_rbx+2*d1),TMP1,xptr(src_rbx+32),xptr(src_rbx+2*d1+32),TMP2,screg1,screg2,srcreg+srcinc+2*d1,0); \
 	xptr(srcreg) = xmm2;			/* Save R1 #1/R1 */ \
 	xptr(srcreg+32) = xmm5;		/* Save R1 #2/I1 */ \
 	xptr(srcreg+d1) = xmm0;		/* Save R2 */ \
@@ -1242,16 +1241,14 @@
 #define r3_h3cl_six_reals_three_complex_djbfft(srcreg,srcinc,d1,screg1,scoff1,screg2,scoff2) { \
 vec2f64 TMP1, TMP2; \
 	r3_h6r_h3c_djbfft_mem(xptr(srcreg+d1),xptr(srcreg+16),xptr(srcreg+2*d1+16),xptr(srcreg+d1+32),xptr(srcreg+48),xptr(srcreg+2*d1+48),screg1+scoff1,screg2+scoff2,srcreg+srcinc,d1); \
-	xmm6 = xptr(srcreg+d1+16);		/* R3 */ \
-	xmm7 = xptr(srcreg+d1+48);		/* R6 */ \
+	TMP1 = xptr(srcreg+d1+16);		/* R3 */ \
+	TMP2 = xptr(srcreg+d1+48);		/* R6 */ \
 	xptr(srcreg+16) = xmm2;		/* Save R1 #1/R1 */ \
 	xptr(srcreg+48) = xmm5;		/* Save R1 #2/I1 */ \
 	xptr(srcreg+d1+16) = xmm0;		/* Save R2 */ \
 	xptr(srcreg+d1+48) = xmm1;		/* Save I2 */ \
 	xptr(srcreg+2*d1+16) = xmm4;		/* Save R3 */ \
 	xptr(srcreg+2*d1+48) = xmm3;		/* Save I3 */ \
-	TMP1 = xmm6; \
-	TMP2 = xmm7; \
 	r3_h6r_h3c_djbfft_mem(xptr(srcreg),xptr(srcreg+2*d1),TMP1,xptr(srcreg+32),xptr(srcreg+2*d1+32),TMP2,screg1,screg2,srcreg+srcinc+2*d1,0); \
 	xptr(srcreg) = xmm2;			/* Save R1 #1/R1 */ \
 	xptr(srcreg+32) = xmm5;		/* Save R1 #2/I1 */ \
@@ -1271,16 +1268,16 @@ vec2f64 TMP1, TMP2; \
 	t2 -= r6;			/* R2 - R6 */ \
 	r6 += mem2;		/* R2 + R6 */ \
 \
-	r5 = t1 * 0.5;			/* 0.5 * (R3 + R5) */ \
+	r5 = t1;			/* 0.5 * (R3 + R5) */ \
 	r1 = mem1;		/* R1 */ \
 	t1 += r1;			/* final R1 #1 = R1 + R3 + R5 */ \
-	r2 = r6 * 0.5;			/* 0.5 * (R2 + R6) */ \
+	r2 = r6;			/* 0.5 * (R2 + R6) */ \
 	r4 = mem4;		/* R4 */ \
 	r6 += r4;			/* final R1 #2 = R2 + R4 + R6 */ \
 	r3 *= CONST2_P866;		/* new I3 = 0.866 * (R3 - R5) */ \
-	r1 -= r5;			/* new R2 = R1 - 0.5 * (R3 + R5) */ \
+	r1 -= r5 * 0.5;			/* new R2 = R1 - 0.5 * (R3 + R5) */ \
 	t2 *= CONST2_P866;		/* new I2 = 0.866 * (R2 - R6) */ \
-	r2 -= r4;			/* new R3 = 0.5 * (R2 + R6) - R4 */ \
+	r2 = r2 * 0.5 - r4;		/* new R3 = 0.5 * (R2 + R6) - R4 */ \
 \
 	xprefetchw(u8ptr(pre1)); \
 \
@@ -1331,16 +1328,14 @@ vec2f64 TMP1, TMP2; \
 	f1 *= CONST_P866;	/* 0.866 * (R2 - R3) */ \
 	f5 += mem5[1];		/* I2 + I3 */ \
 	f4 *= CONST_P866;	/* 0.866 * (I2 - I3) */ \
-	f6 = 0.5; \
-	f6 *= f2;		/* 0.5 * (R2 + R3) */ \
+	f6 = f2;		/* 0.5 * (R2 + R3) */ \
 	f0 = mem1[1]; \
 	f2 += f0;		/* R1 + R2 + R3 (final R1) */ \
-	f0 -= f6;		/* (R1-.5R2-.5R3) */ \
-	f6 = 0.5; \
-	f6 *= f5;		/* 0.5 * (I2 + I3) */ \
+	f0 -= f6 * 0.5;		/* (R1-.5R2-.5R3) */ \
+	f6 = f5;		/* 0.5 * (I2 + I3) */ \
 	f3 = mem4[1];		/* I1 */ \
 	f5 += f3;		/* I1 + I2 + I3 (final I1) */ \
-	f3 -= f6;		/* (I1-.5I2-.5I3) */ \
+	f3 -= f6 * 0.5;		/* (I1-.5I2-.5I3) */ \
 	f6 = f0; \
 	f0 -= f4;		/* Final R2 */ \
 	f7 = f3; \
@@ -1390,18 +1385,16 @@ vec2f64 TMP1, TMP2; \
 	f3 -= f5;		/* R2 - R6 */ \
 	f5 += mem2[0];		/* R2 + R6 */ \
 \
-	f7 = 0.5; \
-	f7 *= f2;		/* 0.5 * (R3 + R5) */ \
+	f7 = f2;		/* 0.5 * (R3 + R5) */ \
 	f4 = mem1[0];		/* R1 */ \
 	f2 += f4;		/* final R1 #1 = R1 + R3 + R5 */ \
-	f0 = 0.5; \
-	f0 *= f5;		/* 0.5 * (R2 + R6) */ \
+	f0 = f5;		/* 0.5 * (R2 + R6) */ \
 	f6 = mem4[0];		/* R4 */ \
 	f5 += f6;		/* final R1 #2 = R2 + R4 + R6 */ \
 	f1 *= CONST_P866;	/* new I3 = 0.866 * (R3 - R5) */ \
-	f4 -= f7;		/* new R2 = R1 - 0.5 * (R3 + R5) */ \
+	f4 -= f7 * 0.5;		/* new R2 = R1 - 0.5 * (R3 + R5) */ \
 	f3 *= CONST_P866;	/* new I2 = 0.866 * (R2 - R6) */ \
-	f0 -= f6;		/* new R3 = 0.5 * (R2 + R6) - R4 */ \
+	f0 = f0 * 0.5 - f6;	/* new R3 = 0.5 * (R2 + R6) - R4 */ \
 \
 	f7 = f4;		/* Copy R2 */ \
 	f4 -= f0;		/* R2 = R2 - R3 (final R3) */ \
@@ -1503,15 +1496,15 @@ vec2f64 TMP1, TMP2; \
 	xprefetchw(u8ptr(pre1+pre2)); \
 	#endif*/ \
 \
-	t2 = r3 * 0.5;			/* 0.5 * (R2 - R3) */ \
-	t1 = r5 * 0.5;			/* 0.5 * (R2 + R3) */ \
+	t2 = r3;			/* 0.5 * (R2 - R3) */ \
+	t1 = r5;			/* 0.5 * (R2 + R3) */ \
 	r4 *= CONST2_P866;		/* 0.866 * (I2 - I3) */ \
 	r6 *= CONST2_P866;		/* 0.866 * (I2 + I3) */ \
 	r2 = memr1_2;		/* R1#2 */ \
-	t2 += r2;			/* R1#2 + 0.5 * (R2 - R3) */ \
+	t2 = t2 * 0.5 + r2;		/* R1#2 + 0.5 * (R2 - R3) */ \
 	r1 = memr1_1;		/* R1#1 */ \
 	r5 += r1;			/* final R1 = R1#1 + (R2 + R3) */ \
-	r1 -= t1;			/* R1#1 - 0.5 * (R2 + R3) */ \
+	r1 -= t1 * 0.5;			/* R1#1 - 0.5 * (R2 + R3) */ \
 	r2 -= r3;			/* final R4 = R1#2 - (R2 - R3) */ \
 	t1 = r6;			/* Copy 0.866 * (I2 + I3) */ \
 	r6 += t2;			/* final R2 = R1#2 + 0.5 * (R2 - R3) + 0.866 * (I2 + I3) */ \
@@ -1689,16 +1682,14 @@ vec2f64 TMP1, TMP2; \
 	f3 -= f5;		/* I2 - I3 */ \
 	f5 += f7;		/* I2 + I3 */ \
 	f3 *= CONST_P866;	/* 0.866 * (I2 - I3) */ \
-	f6 = 0.5; \
-	f6 *= f4;		/* 0.5 * (R2 + R3) */ \
+	f6 = f4;		/* 0.5 * (R2 + R3) */ \
 	f0 = memr1_1[1];	/* R1 */ \
 	f4 += f0;		/* R1 + R2 + R3 (final R1) */ \
-	f0 -= f6;		/* (R1-.5R2-.5R3) */ \
-	f6 = 0.5; \
-	f6 *= f5;		/* 0.5 * (I2 + I3) */ \
+	f0 -= f6 * 0.5;		/* (R1-.5R2-.5R3) */ \
+	f6 = f5;		/* 0.5 * (I2 + I3) */ \
 	f1 = memr1_2[1];	/* I1 */ \
 	f5 += f1;		/* I1 + I2 + I3 (final I1) */ \
-	f1 -= f6;		/* (I1-.5I2-.5I3) */ \
+	f1 -= f6 * 0.5;		/* (I1-.5I2-.5I3) */ \
 	f6 = f0; \
 	f0 -= f3;		/* Final R3 */ \
 	f3 += f6;		/* Final R2 */ \
@@ -1743,17 +1734,15 @@ vec2f64 TMP1, TMP2; \
 	f2 = f0;		/* Copy I2 */ \
 	f0 -= f3;		/* I2 - I3 */ \
 	f3 += f2;		/* I2 + I3 */ \
-	f2 = 0.5; \
-	f2 *= f6;		/* 0.5 * (R2 - R3) */ \
-	f7 = 0.5; \
-	f7 *= f4;		/* 0.5 * (R2 + R3) */ \
+	f2 = f6;		/* 0.5 * (R2 - R3) */ \
+	f7 = f4;		/* 0.5 * (R2 + R3) */ \
 	f0 *= CONST_P866;	/* 0.866 * (I2 - I3) */ \
 	f3 *= CONST_P866;	/* 0.866 * (I2 + I3) */ \
 	f5 = memr1_2[0];		/* R1#2 */ \
-	f2 += f5;		/* R1#2 + 0.5 * (R2 - R3) */ \
+	f2 = f2 * 0.5 + f5;		/* R1#2 + 0.5 * (R2 - R3) */ \
 	f1 = memr1_1[0];		/* R1#1 */ \
 	f4 += f1;		/* final R1 = R1#1 + (R2 + R3) */ \
-	f1 -= f7;		/* R1#1 - 0.5 * (R2 + R3) */ \
+	f1 -= f7 * 0.5;		/* R1#1 - 0.5 * (R2 + R3) */ \
 	f5 -= f6;		/* final R4 = R1#2 - (R2 - R3) */ \
 	f7 = f3;		/* Copy 0.866 * (I2 + I3) */ \
 	f3 += f2;		/* final R2 = R1#2 + 0.5 * (R2 - R3) + 0.866 * (I2 + I3) */ \

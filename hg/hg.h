@@ -1,11 +1,12 @@
 #pragma once
 	//
 
-#define s2cl_eight_reals_first_fft(srcreg,srcinc,d1) \
-	shuffle_load(xmm0,xmm2,xptr(srcreg+rbx),xptr(srcreg+16+rbx)); /* R1,R3 */ \
-	shuffle_load(xmm1,xmm3,xptr(srcreg+d1+rbx),xptr(srcreg+d1+16+rbx)); /* R2,R4 */ \
-	shuffle_load(xmm4,xmm6,xptr(srcreg+32+rbx),xptr(srcreg+48+rbx)); /* R5,R7 */ \
-	shuffle_load(xmm5,xmm7,xptr(srcreg+d1+32+rbx),xptr(srcreg+d1+48+rbx)); /* R6,R8 */ \
+#define s2cl_eight_reals_first_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	shuffle_load(xmm0,xmm2,xptr(src_rbx),xptr(src_rbx+16)); /* R1,R3 */ \
+	shuffle_load(xmm1,xmm3,xptr(src_rbx+d1),xptr(src_rbx+d1+16)); /* R2,R4 */ \
+	shuffle_load(xmm4,xmm6,xptr(src_rbx+32),xptr(src_rbx+48)); /* R5,R7 */ \
+	shuffle_load(xmm5,xmm7,xptr(src_rbx+d1+32),xptr(src_rbx+d1+48)); /* R6,R8 */ \
 	x8r_fft; \
 	xptr(srcreg) = xmm7; \
 	xptr(srcreg+16) = xmm6; \
@@ -16,17 +17,18 @@
 	xptr(srcreg+d1+32) = xmm0; \
 	xptr(srcreg+d1+48) = xmm2; \
 	srcreg += srcinc; \
-\
+}
 
-#define x2cl_eight_reals_first_fft(srcreg,srcinc,d1) \
-	xmm0 = xptr(srcreg+rbx); \
-	xmm1 = xptr(srcreg+d1+rbx); \
-	xmm2 = xptr(srcreg+16+rbx); \
-	xmm3 = xptr(srcreg+d1+16+rbx); \
-	xmm4 = xptr(srcreg+32+rbx); \
-	xmm5 = xptr(srcreg+d1+32+rbx); \
-	xmm6 = xptr(srcreg+48+rbx); \
-	xmm7 = xptr(srcreg+d1+48+rbx); \
+#define x2cl_eight_reals_first_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmm0 = xptr(src_rbx); \
+	xmm1 = xptr(src_rbx+d1); \
+	xmm2 = xptr(src_rbx+16); \
+	xmm3 = xptr(src_rbx+d1+16); \
+	xmm4 = xptr(src_rbx+32); \
+	xmm5 = xptr(src_rbx+d1+32); \
+	xmm6 = xptr(src_rbx+48); \
+	xmm7 = xptr(src_rbx+d1+48); \
 	x8r_fft; \
 	xptr(srcreg) = xmm7; \
 	xptr(srcreg+16) = xmm6; \
@@ -37,7 +39,7 @@
 	xptr(srcreg+d1+32) = xmm0; \
 	xptr(srcreg+d1+48) = xmm2; \
 	srcreg += srcinc; \
-\
+}
 
 #define x2cl_eight_reals_fft(srcreg,srcinc,d1) \
 	xmm0 = xptr(srcreg); \
@@ -60,17 +62,18 @@
 	srcreg += srcinc; \
 \
 
-#define g2cl_eight_reals_first_fft(srcreg,srcinc,d1,dstreg,dstinc,e1) \
-	xmm0 = xptr(srcreg+rbx); \
-	xmm1 = xptr(srcreg+d1+rbx); \
-	xmm2 = xptr(srcreg+16+rbx); \
-	xmm3 = xptr(srcreg+d1+16+rbx); \
-	xmm4 = xptr(srcreg+32+rbx); \
-	xmm5 = xptr(srcreg+d1+32+rbx); \
-	xmm6 = xptr(srcreg+48+rbx); \
-	xmm7 = xptr(srcreg+d1+48+rbx); \
+#define g2cl_eight_reals_first_fft(srcreg,srcinc,d1,dstreg,dstinc,e1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmm0 = xptr(src_rbx); \
+	xmm1 = xptr(src_rbx+d1); \
+	xmm2 = xptr(src_rbx+16); \
+	xmm3 = xptr(src_rbx+d1+16); \
+	xmm4 = xptr(src_rbx+32); \
+	xmm5 = xptr(src_rbx+d1+32); \
+	xmm6 = xptr(src_rbx+48); \
+	xmm7 = xptr(src_rbx+d1+48); \
 	srcreg += srcinc; \
-	x8r_fft(); \
+	x8r_fft; \
 	xptr(dstreg) = xmm7; \
 	xptr(dstreg+16) = xmm6; \
 	xptr(dstreg+32) = xmm4; \
@@ -80,6 +83,7 @@
 	xptr(dstreg+e1+32) = xmm0; \
 	xptr(dstreg+e1+48) = xmm2; \
 	dstreg += dstinc; \
+}
 
 #define x8r_fft \
 	xmm3 -= xmm7;		/* new R8 = R4 - R8 */ \
@@ -196,21 +200,22 @@
 #define xfive_reals_fft_preload \
 \
 
-#define s5cl_five_reals_first_fft(srcreg,srcinc,d1) \
-	shuffle_load(xmm0,xmm7,xptr(srcreg+rbx),xptr(srcreg+16+rbx)); /* R1,R1 */ \
+#define s5cl_five_reals_first_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	shuffle_load(xmm0,xmm7,xptr(src_rbx),xptr(src_rbx+16)); /* R1,R1 */ \
 	xptr(srcreg+16) =xmm7;		/* Save it */ \
-	shuffle_load(xmm1,xmm2,xptr(srcreg+3*d1+rbx),xptr(srcreg+3*d1+16+rbx)); /*R2,R3 */ \
-	shuffle_load(xmm3,xmm4,xptr(srcreg+d1+32+rbx),xptr(srcreg+d1+48+rbx)); /* R4,R5 */ \
+	shuffle_load(xmm1,xmm2,xptr(src_rbx+3*d1),xptr(src_rbx+3*d1+16)); /*R2,R3 */ \
+	shuffle_load(xmm3,xmm4,xptr(src_rbx+d1+32),xptr(src_rbx+d1+48)); /* R4,R5 */ \
 	x5r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
 	xptr(srcreg) = xmm0;			/* Save R1 */ \
-	shuffle_load(xmm0,xmm2,xptr(srcreg+d1+rbx),xptr(srcreg+d1+16+rbx)); /* R1,R2 */ \
+	shuffle_load(xmm0,xmm2,xptr(src_rbx+d1),xptr(src_rbx+d1+16)); /* R1,R2 */ \
 	xptr(srcreg+d1) = xmm7;		/* Save R2 */ \
 	xptr(srcreg+d1+16) = xmm1;		/* Save R3 */ \
 	xptr(srcreg+d1+32) = xmm5;		/* Save R4 */ \
 	xptr(srcreg+d1+48) = xmm6;		/* Save R5 */ \
-	shuffle_load(xmm1,xmm7,xptr(srcreg+32+rbx),xptr(srcreg+48+rbx)); /* R3,R3 */ \
+	shuffle_load(xmm1,xmm7,xptr(src_rbx+32),xptr(src_rbx+48)); /* R3,R3 */ \
 	xptr(srcreg+48) =xmm7;		/* Save it */ \
-	shuffle_load(xmm3,xmm4,xptr(srcreg+3*d1+32+rbx),xptr(srcreg+3*d1+48+rbx));/*R4,R5 */ \
+	shuffle_load(xmm3,xmm4,xptr(src_rbx+3*d1+32),xptr(src_rbx+3*d1+48));/*R4,R5 */ \
 	x5r_fft(xmm0, xmm2, xmm1, xmm3, xmm4, xmm5, xmm6, xmm7); \
 	xptr(srcreg+32) = xmm0;		/* Save R1 */ \
 	xptr(srcreg+3*d1) = xmm7;		/* Save R2 */ \
@@ -219,17 +224,17 @@
 	xptr(srcreg+3*d1+48) = xmm6;		/* Save R5 */ \
 \
 	xmm0 = xptr(srcreg+16);		/* R1 */ \
-	shuffle_load(xmm1,xmm2,xptr(srcreg+4*d1+rbx),xptr(srcreg+4*d1+16+rbx));/*R2,R3 */ \
-	shuffle_load(xmm3,xmm4,xptr(srcreg+2*d1+32+rbx),xptr(srcreg+2*d1+48+rbx));/*R4,R5 */ \
+	shuffle_load(xmm1,xmm2,xptr(src_rbx+4*d1),xptr(src_rbx+4*d1+16));/*R2,R3 */ \
+	shuffle_load(xmm3,xmm4,xptr(src_rbx+2*d1+32),xptr(src_rbx+2*d1+48));/*R4,R5 */ \
 	x5r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
 	xptr(srcreg+16) = xmm0;		/* Save R1 */ \
-	shuffle_load(xmm0,xmm2,xptr(srcreg+2*d1+rbx),xptr(srcreg+2*d1+16+rbx));/*R1,R2 */ \
+	shuffle_load(xmm0,xmm2,xptr(src_rbx+2*d1),xptr(src_rbx+2*d1+16));/*R1,R2 */ \
 	xptr(srcreg+2*d1) = xmm7;		/* Save R2 */ \
 	xptr(srcreg+2*d1+16) = xmm1;		/* Save R3 */ \
 	xptr(srcreg+2*d1+32) = xmm5;		/* Save R4 */ \
 	xptr(srcreg+2*d1+48) = xmm6;		/* Save R5 */ \
 	xmm1 = xptr(srcreg+48);		/* R3 */ \
-	shuffle_load(xmm3,xmm4,xptr(srcreg+4*d1+32+rbx),xptr(srcreg+4*d1+48+rbx));/*R4,R5 */ \
+	shuffle_load(xmm3,xmm4,xptr(src_rbx+4*d1+32),xptr(src_rbx+4*d1+48));/*R4,R5 */ \
 	x5r_fft(xmm0, xmm2, xmm1, xmm3, xmm4, xmm5, xmm6, xmm7); \
 	xptr(srcreg+48) = xmm0;		/* Save R1 */ \
 	xptr(srcreg+4*d1) = xmm7;		/* Save R2 */ \
@@ -237,25 +242,26 @@
 	xptr(srcreg+4*d1+32) = xmm5;		/* Save R4 */ \
 	xptr(srcreg+4*d1+48) = xmm6;		/* Save R5 */ \
 	srcreg += srcinc; \
-\
+}
 
-#define x5cl_five_reals_first_fft(srcreg,srcinc,d1) \
-	xmm0 = xptr(srcreg+rbx); \
-	xmm1 = xptr(srcreg+3*d1+rbx); \
-	xmm2 = xptr(srcreg+3*d1+16+rbx); \
-	xmm3 = xptr(srcreg+d1+32+rbx); \
-	xmm4 = xptr(srcreg+d1+48+rbx); \
+#define x5cl_five_reals_first_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmm0 = xptr(src_rbx); \
+	xmm1 = xptr(src_rbx+3*d1); \
+	xmm2 = xptr(src_rbx+3*d1+16); \
+	xmm3 = xptr(src_rbx+d1+32); \
+	xmm4 = xptr(src_rbx+d1+48); \
 	x5r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
-	xmm2 = xptr(srcreg+d1+rbx);	/* Load R1 */ \
-	xmm3 = xptr(srcreg+d1+16+rbx); /* Load R2 */ \
+	xmm2 = xptr(src_rbx+d1);	/* Load R1 */ \
+	xmm3 = xptr(src_rbx+d1+16); /* Load R2 */ \
 	xptr(srcreg) = xmm0;		/* Save R1 */ \
 	xptr(srcreg+d1) = xmm7;	/* Save R2 */ \
 	xptr(srcreg+d1+16) = xmm1;	/* Save R3 */ \
 	xptr(srcreg+d1+32) = xmm5;	/* Save R4 */ \
 	xptr(srcreg+d1+48) = xmm6;	/* Save R5 */ \
-	xmm0 = xptr(srcreg+32+rbx);	/* Load R3 */ \
-	xmm1 = xptr(srcreg+3*d1+32+rbx); /* Load R4 */ \
-	xmm4 = xptr(srcreg+3*d1+48+rbx); /* Load R5 */ \
+	xmm0 = xptr(src_rbx+32);	/* Load R3 */ \
+	xmm1 = xptr(src_rbx+3*d1+32); /* Load R4 */ \
+	xmm4 = xptr(src_rbx+3*d1+48); /* Load R5 */ \
 	x5r_fft(xmm2, xmm3, xmm0, xmm1, xmm4, xmm5, xmm6, xmm7); \
 	xptr(srcreg+32) = xmm2;	/* Save R1 */ \
 	xptr(srcreg+3*d1) = xmm7;	/* Save R2 */ \
@@ -263,22 +269,22 @@
 	xptr(srcreg+3*d1+32) = xmm5;	/* Save R4 */ \
 	xptr(srcreg+3*d1+48) = xmm6;	/* Save R5 */ \
 \
-	xmm0 = xptr(srcreg+16+rbx); \
-	xmm1 = xptr(srcreg+4*d1+rbx); \
-	xmm2 = xptr(srcreg+4*d1+16+rbx); \
-	xmm3 = xptr(srcreg+2*d1+32+rbx); \
-	xmm4 = xptr(srcreg+2*d1+48+rbx); \
+	xmm0 = xptr(src_rbx+16); \
+	xmm1 = xptr(src_rbx+4*d1); \
+	xmm2 = xptr(src_rbx+4*d1+16); \
+	xmm3 = xptr(src_rbx+2*d1+32); \
+	xmm4 = xptr(src_rbx+2*d1+48); \
 	x5r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
-	xmm2 = xptr(srcreg+2*d1+rbx); /* Load R1 */ \
-	xmm3 = xptr(srcreg+2*d1+16+rbx); /* Load R2 */ \
+	xmm2 = xptr(src_rbx+2*d1); /* Load R1 */ \
+	xmm3 = xptr(src_rbx+2*d1+16); /* Load R2 */ \
 	xptr(srcreg+16) = xmm0;	/* Save R1 */ \
 	xptr(srcreg+2*d1) = xmm7;	/* Save R2 */ \
 	xptr(srcreg+2*d1+16) = xmm1;	/* Save R3 */ \
 	xptr(srcreg+2*d1+32) = xmm5;	/* Save R4 */ \
 	xptr(srcreg+2*d1+48) = xmm6;	/* Save R5 */ \
-	xmm0 = xptr(srcreg+48+rbx);	/* Load R3 */ \
-	xmm1 = xptr(srcreg+4*d1+32+rbx); /* Load R4 */ \
-	xmm4 = xptr(srcreg+4*d1+48+rbx); /* Load R5 */ \
+	xmm0 = xptr(src_rbx+48);	/* Load R3 */ \
+	xmm1 = xptr(src_rbx+4*d1+32); /* Load R4 */ \
+	xmm4 = xptr(src_rbx+4*d1+48); /* Load R5 */ \
 	x5r_fft(xmm2, xmm3, xmm0, xmm1, xmm4, xmm5, xmm6, xmm7); \
 	xptr(srcreg+48) = xmm2;	/* Save R1 */ \
 	xptr(srcreg+4*d1) = xmm7;	/* Save R2 */ \
@@ -286,7 +292,7 @@
 	xptr(srcreg+4*d1+32) = xmm5;	/* Save R4 */ \
 	xptr(srcreg+4*d1+48) = xmm6;	/* Save R5 */ \
 	srcreg += srcinc; \
-\
+}
 
 #define x5cl_five_reals_fft(srcreg,srcinc,d1) \
 	xmm0 = xptr(srcreg); \
@@ -337,23 +343,24 @@
 	srcreg += srcinc; \
 \
 
-#define g5cl_five_reals_first_fft(srcreg,srcinc,d1,dstreg,dstinc,e1) \
-	xmm0 = xptr(srcreg+rbx); \
-	xmm1 = xptr(srcreg+3*d1+rbx); \
-	xmm2 = xptr(srcreg+3*d1+16+rbx); \
-	xmm3 = xptr(srcreg+d1+32+rbx); \
-	xmm4 = xptr(srcreg+d1+48+rbx); \
+#define g5cl_five_reals_first_fft(srcreg,srcinc,d1,dstreg,dstinc,e1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmm0 = xptr(src_rbx); \
+	xmm1 = xptr(src_rbx+3*d1); \
+	xmm2 = xptr(src_rbx+3*d1+16); \
+	xmm3 = xptr(src_rbx+d1+32); \
+	xmm4 = xptr(src_rbx+d1+48); \
 	x5r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
-	xmm2 = xptr(srcreg+d1+rbx);	/* Load R1 */ \
-	xmm3 = xptr(srcreg+d1+16+rbx); /* Load R2 */ \
+	xmm2 = xptr(src_rbx+d1);	/* Load R1 */ \
+	xmm3 = xptr(src_rbx+d1+16); /* Load R2 */ \
 	xptr(dstreg) = xmm0;		/* Save R1 */ \
 	xptr(dstreg+e1) = xmm7;	/* Save R2 */ \
 	xptr(dstreg+e1+16) = xmm1;	/* Save R3 */ \
 	xptr(dstreg+e1+32) = xmm5;	/* Save R4 */ \
 	xptr(dstreg+e1+48) = xmm6;	/* Save R5 */ \
-	xmm0 = xptr(srcreg+32+rbx);	/* Load R3 */ \
-	xmm1 = xptr(srcreg+3*d1+32+rbx); /* Load R4 */ \
-	xmm4 = xptr(srcreg+3*d1+48+rbx); /* Load R5 */ \
+	xmm0 = xptr(src_rbx+32);	/* Load R3 */ \
+	xmm1 = xptr(src_rbx+3*d1+32); /* Load R4 */ \
+	xmm4 = xptr(src_rbx+3*d1+48); /* Load R5 */ \
 	x5r_fft(xmm2, xmm3, xmm0, xmm1, xmm4, xmm5, xmm6, xmm7); \
 	xptr(dstreg+32) = xmm2;	/* Save R1 */ \
 	xptr(dstreg+3*e1) = xmm7;	/* Save R2 */ \
@@ -361,22 +368,22 @@
 	xptr(dstreg+3*e1+32) = xmm5;	/* Save R4 */ \
 	xptr(dstreg+3*e1+48) = xmm6;	/* Save R5 */ \
 \
-	xmm0 = xptr(srcreg+16+rbx); \
-	xmm1 = xptr(srcreg+4*d1+rbx); \
-	xmm2 = xptr(srcreg+4*d1+16+rbx); \
-	xmm3 = xptr(srcreg+2*d1+32+rbx); \
-	xmm4 = xptr(srcreg+2*d1+48+rbx); \
+	xmm0 = xptr(src_rbx+16); \
+	xmm1 = xptr(src_rbx+4*d1); \
+	xmm2 = xptr(src_rbx+4*d1+16); \
+	xmm3 = xptr(src_rbx+2*d1+32); \
+	xmm4 = xptr(src_rbx+2*d1+48); \
 	x5r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
-	xmm2 = xptr(srcreg+2*d1+rbx); /* Load R1 */ \
-	xmm3 = xptr(srcreg+2*d1+16+rbx); /* Load R2 */ \
+	xmm2 = xptr(src_rbx+2*d1); /* Load R1 */ \
+	xmm3 = xptr(src_rbx+2*d1+16); /* Load R2 */ \
 	xptr(dstreg+16) = xmm0;	/* Save R1 */ \
 	xptr(dstreg+2*e1) = xmm7;	/* Save R2 */ \
 	xptr(dstreg+2*e1+16) = xmm1;	/* Save R3 */ \
 	xptr(dstreg+2*e1+32) = xmm5;	/* Save R4 */ \
 	xptr(dstreg+2*e1+48) = xmm6;	/* Save R5 */ \
-	xmm0 = xptr(srcreg+48+rbx);	/* Load R3 */ \
-	xmm1 = xptr(srcreg+4*d1+32+rbx); /* Load R4 */ \
-	xmm4 = xptr(srcreg+4*d1+48+rbx); /* Load R5 */ \
+	xmm0 = xptr(src_rbx+48);	/* Load R3 */ \
+	xmm1 = xptr(src_rbx+4*d1+32); /* Load R4 */ \
+	xmm4 = xptr(src_rbx+4*d1+48); /* Load R5 */ \
 	srcreg += srcinc; \
 	x5r_fft(xmm2, xmm3, xmm0, xmm1, xmm4, xmm5, xmm6, xmm7); \
 	xptr(dstreg+48) = xmm2;	/* Save R1 */ \
@@ -385,7 +392,7 @@
 	xptr(dstreg+4*e1+32) = xmm5;	/* Save R4 */ \
 	xptr(dstreg+4*e1+48) = xmm6;	/* Save R5 */ \
 	dstreg += dstinc; \
-\
+}
 
 #define x5r_fft(r1, r2, r3, r4, r5, t1, t2, t3) \
 	t1 = r5;			/* 0-5 Copy R5 */ \
@@ -499,26 +506,27 @@
 #define xsix_reals_fft_preload \
 \
 
-#define s3cl_six_reals_first_fft(srcreg,srcinc,d1) \
-	low_load(xmm0, xptr(srcreg+rbx), xptr(srcreg+16+rbx)); /* R1 */ \
-	low_load(xmm3, xptr(srcreg+32+rbx), xptr(srcreg+48+rbx)); /* R4 */ \
-	high_load(xmm2, xptr(srcreg+d1+rbx), xptr(srcreg+d1+16+rbx)); /* R3 */ \
-	high_load(xmm5, xptr(srcreg+d1+32+rbx), xptr(srcreg+d1+48+rbx)); /* R6 */ \
-	low_load(xmm1, xptr(srcreg+2*d1+rbx), xptr(srcreg+2*d1+16+rbx)); /* R2 */ \
-	low_load(xmm4, xptr(srcreg+2*d1+32+rbx), xptr(srcreg+2*d1+48+rbx)); /* R5 */ \
+#define s3cl_six_reals_first_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	low_load(xmm0, xptr(src_rbx), xptr(src_rbx+16)); /* R1 */ \
+	low_load(xmm3, xptr(src_rbx+32), xptr(src_rbx+48)); /* R4 */ \
+	high_load(xmm2, xptr(src_rbx+d1), xptr(src_rbx+d1+16)); /* R3 */ \
+	high_load(xmm5, xptr(src_rbx+d1+32), xptr(src_rbx+d1+48)); /* R6 */ \
+	low_load(xmm1, xptr(src_rbx+2*d1), xptr(src_rbx+2*d1+16)); /* R2 */ \
+	low_load(xmm4, xptr(src_rbx+2*d1+32), xptr(src_rbx+2*d1+48)); /* R5 */ \
 	x6r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
-	high_load(xmm3, xptr(srcreg+rbx), xptr(srcreg+16+rbx)); /* R2 */ \
-	high_load(xmm4, xptr(srcreg+32+rbx), xptr(srcreg+48+rbx)); /* R5 */ \
+	high_load(xmm3, xptr(src_rbx), xptr(src_rbx+16)); /* R2 */ \
+	high_load(xmm4, xptr(src_rbx+32), xptr(src_rbx+48)); /* R5 */ \
 	xptr(srcreg) = xmm1;			/* Save R1 */ \
 	xptr(srcreg+32) = xmm2;		/* Save R2 */ \
-	low_load(xmm1, xptr(srcreg+d1+rbx), xptr(srcreg+d1+16+rbx)); /* R1 */ \
-	low_load(xmm2, xptr(srcreg+d1+32+rbx), xptr(srcreg+d1+48+rbx));	/* R4 */ \
+	low_load(xmm1, xptr(src_rbx+d1), xptr(src_rbx+d1+16)); /* R1 */ \
+	low_load(xmm2, xptr(src_rbx+d1+32), xptr(src_rbx+d1+48));	/* R4 */ \
 	xptr(srcreg+d1) = xmm5;		/* Save R3 */ \
 	xptr(srcreg+d1+16) = xmm7;		/* Save R4 */ \
 	xptr(srcreg+d1+32) = xmm0;		/* Save R5 */ \
 	xptr(srcreg+d1+48) = xmm6;		/* Save R6 */ \
-	high_load(xmm5, xptr(srcreg+2*d1+rbx), xptr(srcreg+2*d1+16+rbx)); /* R3 */ \
-	high_load(xmm7, xptr(srcreg+2*d1+32+rbx), xptr(srcreg+2*d1+48+rbx)); /* R6 */ \
+	high_load(xmm5, xptr(src_rbx+2*d1), xptr(src_rbx+2*d1+16)); /* R3 */ \
+	high_load(xmm7, xptr(src_rbx+2*d1+32), xptr(src_rbx+2*d1+48)); /* R6 */ \
 	x6r_fft(xmm1, xmm3, xmm5, xmm2, xmm4, xmm7, xmm0, xmm6); \
 	xptr(srcreg+16) = xmm3;		/* Save R1 */ \
 	xptr(srcreg+48) = xmm5;		/* Save R2 */ \
@@ -527,28 +535,29 @@
 	xptr(srcreg+2*d1+32) = xmm1;		/* Save R5 */ \
 	xptr(srcreg+2*d1+48) = xmm0;		/* Save R6 */ \
 	srcreg += srcinc; \
-\
+}
 
-#define x3cl_six_reals_first_fft(srcreg,srcinc,d1) \
-	xmm0 = xptr(srcreg+rbx); \
-	xmm3 = xptr(srcreg+32+rbx); \
-	xmm2 = xptr(srcreg+d1+16+rbx); \
-	xmm5 = xptr(srcreg+d1+48+rbx); \
-	xmm1 = xptr(srcreg+2*d1+rbx); \
-	xmm4 = xptr(srcreg+2*d1+32+rbx); \
+#define x3cl_six_reals_first_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmm0 = xptr(src_rbx); \
+	xmm3 = xptr(src_rbx+32); \
+	xmm2 = xptr(src_rbx+d1+16); \
+	xmm5 = xptr(src_rbx+d1+48); \
+	xmm1 = xptr(src_rbx+2*d1); \
+	xmm4 = xptr(src_rbx+2*d1+32); \
 	x6r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
 	xptr(srcreg) = xmm1; \
 	xptr(srcreg+32) = xmm2; \
 	xptr(srcreg+d1+16) = xmm7; \
 	xptr(srcreg+d1+48) = xmm6; \
-	xmm1 = xptr(srcreg+d1+rbx);		/* R1 */ \
-	xmm2 = xptr(srcreg+d1+32+rbx);	/* R4 */ \
+	xmm1 = xptr(src_rbx+d1);		/* R1 */ \
+	xmm2 = xptr(src_rbx+d1+32);	/* R4 */ \
 	xptr(srcreg+d1) = xmm5; \
 	xptr(srcreg+d1+32) = xmm0; \
-	xmm3 = xptr(srcreg+16+rbx);		/* R2 */ \
-	xmm4 = xptr(srcreg+48+rbx);		/* R5 */ \
-	xmm5 = xptr(srcreg+2*d1+16+rbx);	/* R3 */ \
-	xmm6 = xptr(srcreg+2*d1+48+rbx);	/* R6 */ \
+	xmm3 = xptr(src_rbx+16);		/* R2 */ \
+	xmm4 = xptr(src_rbx+48);		/* R5 */ \
+	xmm5 = xptr(src_rbx+2*d1+16);	/* R3 */ \
+	xmm6 = xptr(src_rbx+2*d1+48);	/* R6 */ \
 	x6r_fft(xmm1, xmm3, xmm5, xmm2, xmm4, xmm6, xmm0, xmm7); \
 	xptr(srcreg+16) = xmm3; \
 	xptr(srcreg+48) = xmm5; \
@@ -557,7 +566,7 @@
 	xptr(srcreg+2*d1+32) = xmm1; \
 	xptr(srcreg+2*d1+48) = xmm0; \
 	srcreg += srcinc; \
-\
+}
 
 #define x3cl_six_reals_fft(srcreg,srcinc,d1) \
 	xmm0 = xptr(srcreg); \
@@ -589,26 +598,27 @@
 	srcreg += srcinc; \
 \
 
-#define g3cl_six_reals_first_fft(srcreg,srcinc,d1,dstreg,dstinc,e1) \
-	xmm0 = xptr(srcreg+rbx); \
-	xmm3 = xptr(srcreg+32+rbx); \
-	xmm2 = xptr(srcreg+d1+16+rbx); \
-	xmm5 = xptr(srcreg+d1+48+rbx); \
-	xmm1 = xptr(srcreg+2*d1+rbx); \
-	xmm4 = xptr(srcreg+2*d1+32+rbx); \
+#define g3cl_six_reals_first_fft(srcreg,srcinc,d1,dstreg,dstinc,e1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmm0 = xptr(src_rbx); \
+	xmm3 = xptr(src_rbx+32); \
+	xmm2 = xptr(src_rbx+d1+16); \
+	xmm5 = xptr(src_rbx+d1+48); \
+	xmm1 = xptr(src_rbx+2*d1); \
+	xmm4 = xptr(src_rbx+2*d1+32); \
 	x6r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
 	xptr(dstreg) = xmm1; \
 	xptr(dstreg+32) = xmm2; \
 	xptr(dstreg+e1+16) = xmm7; \
 	xptr(dstreg+e1+48) = xmm6; \
-	xmm1 = xptr(srcreg+d1+rbx);		/* R1 */ \
-	xmm2 = xptr(srcreg+d1+32+rbx);	/* R4 */ \
+	xmm1 = xptr(src_rbx+d1);		/* R1 */ \
+	xmm2 = xptr(src_rbx+d1+32);	/* R4 */ \
 	xptr(dstreg+e1) = xmm5; \
 	xptr(dstreg+e1+32) = xmm0; \
-	xmm3 = xptr(srcreg+16+rbx);		/* R2 */ \
-	xmm4 = xptr(srcreg+48+rbx);		/* R5 */ \
-	xmm5 = xptr(srcreg+2*d1+16+rbx);	/* R3 */ \
-	xmm6 = xptr(srcreg+2*d1+48+rbx);	/* R6 */ \
+	xmm3 = xptr(src_rbx+16);		/* R2 */ \
+	xmm4 = xptr(src_rbx+48);		/* R5 */ \
+	xmm5 = xptr(src_rbx+2*d1+16);	/* R3 */ \
+	xmm6 = xptr(src_rbx+2*d1+48);	/* R6 */ \
 	srcreg += srcinc; \
 	x6r_fft(xmm1, xmm3, xmm5, xmm2, xmm4, xmm6, xmm0, xmm7); \
 	xptr(dstreg+16) = xmm3; \
@@ -618,7 +628,7 @@
 	xptr(dstreg+2*e1+32) = xmm1; \
 	xptr(dstreg+2*e1+48) = xmm0; \
 	dstreg += dstinc; \
-\
+}
 /* Simplifying the pseudo code from pfa.mac yields: */ \
 /* new R1 = R1 + R3 + R5 */ \
 /* new R2 = R1 - 0.5 * (R3 + R5) */ \
@@ -737,27 +747,28 @@
 #define xseven_reals_fft_preload \
 \
 
-#define s7cl_seven_reals_first_fft(srcreg,srcinc,d1) \
-	shuffle_load(xmm0,xmm7,xptr(srcreg+rbx),xptr(srcreg+16+rbx)); /* R1,R1 */ \
+#define s7cl_seven_reals_first_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	shuffle_load(xmm0,xmm7,xptr(src_rbx),xptr(src_rbx+16)); /* R1,R1 */ \
 	xptr(srcreg+16) =xmm7;		/* Save it */ \
-	xmm1 = xptr(srcreg+d1+16+rbx); \
-	/*movlpd*/ xmm1[0] = f64ptr(srcreg+d1+8+rbx);	/* R2 */ \
-	shuffle_load(xmm2,xmm3,xptr(srcreg+5*d1+rbx),xptr(srcreg+5*d1+16+rbx)); /*R3,R4 */ \
-	low_load(xmm4, xptr(srcreg+d1+32+rbx), xptr(srcreg+d1+48+rbx));	/* R5 */ \
-	shuffle_load(xmm5,xmm6,xptr(srcreg+3*d1+32+rbx),xptr(srcreg+3*d1+48+rbx)); /*R6,R7 */ \
+	xmm1 = xptr(src_rbx+d1+16); \
+	/*movlpd*/ xmm1[0] = f64ptr(src_rbx+d1+8);	/* R2 */ \
+	shuffle_load(xmm2,xmm3,xptr(src_rbx+5*d1),xptr(src_rbx+5*d1+16)); /*R3,R4 */ \
+	low_load(xmm4, xptr(src_rbx+d1+32), xptr(src_rbx+d1+48));	/* R5 */ \
+	shuffle_load(xmm5,xmm6,xptr(src_rbx+3*d1+32),xptr(src_rbx+3*d1+48)); /*R6,R7 */ \
 	x7r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xptr(srcreg)); \
-	low_load(xmm2, xptr(srcreg+d1+rbx), xptr(srcreg+d1+16+rbx)); /* R1 */ \
-	high_load(xmm6, xptr(srcreg+d1+32+rbx), xptr(srcreg+d1+48+rbx)); /* R5 */ \
+	low_load(xmm2, xptr(src_rbx+d1), xptr(src_rbx+d1+16)); /* R1 */ \
+	high_load(xmm6, xptr(src_rbx+d1+32), xptr(src_rbx+d1+48)); /* R5 */ \
 	xptr(srcreg+d1) = xmm0;		/* Save R2 */ \
 	xptr(srcreg+d1+32) = xmm1;		/* Save R3 */ \
-	shuffle_load(xmm1,xmm0,xptr(srcreg+3*d1+rbx),xptr(srcreg+3*d1+16+rbx)); /*R2,R3 */ \
+	shuffle_load(xmm1,xmm0,xptr(src_rbx+3*d1),xptr(src_rbx+3*d1+16)); /*R2,R3 */ \
 	xptr(srcreg+3*d1) = xmm4;		/* Save R4 */ \
 	xptr(srcreg+3*d1+16) = xmm5;		/* Save R5 */ \
 	xptr(srcreg+3*d1+32) = xmm7;		/* Save R6 */ \
 	xptr(srcreg+3*d1+48) = xmm3;		/* Save R7 */ \
-	shuffle_load(xmm3,xmm7,xptr(srcreg+32+rbx),xptr(srcreg+48+rbx)); /* R4,R4 */ \
+	shuffle_load(xmm3,xmm7,xptr(src_rbx+32),xptr(src_rbx+48)); /* R4,R4 */ \
 	xptr(srcreg+48) =xmm7;		/* Save it */ \
-	shuffle_load(xmm5,xmm4,xptr(srcreg+5*d1+32+rbx),xptr(srcreg+5*d1+48+rbx));/*R6,R7 */ \
+	shuffle_load(xmm5,xmm4,xptr(src_rbx+5*d1+32),xptr(src_rbx+5*d1+48));/*R6,R7 */ \
 	x7r_fft(xmm2, xmm1, xmm0, xmm3, xmm6, xmm5, xmm4, xmm7, xptr(srcreg+32)); \
 	xptr(srcreg+d1+16) = xmm2;		/* Save R2 */ \
 	xptr(srcreg+d1+48) = xmm1;		/* Save R3 */ \
@@ -767,22 +778,22 @@
 	xptr(srcreg+5*d1+48) = xmm3;		/* Save R7 */ \
 \
 	xmm0 = xptr(srcreg+16);		/* R1 */ \
-	high_load(xmm1, xptr(srcreg+2*d1+rbx), xptr(srcreg+2*d1+16+rbx)); /* R2 */ \
-	shuffle_load(xmm2,xmm3,xptr(srcreg+6*d1+rbx),xptr(srcreg+6*d1+16+rbx));/*R3,R4 */ \
-	low_load(xmm4, xptr(srcreg+2*d1+32+rbx), xptr(srcreg+2*d1+48+rbx)); /* R5 */ \
-	shuffle_load(xmm5,xmm6,xptr(srcreg+4*d1+32+rbx),xptr(srcreg+4*d1+48+rbx));/*R6,R7 */ \
+	high_load(xmm1, xptr(src_rbx+2*d1), xptr(src_rbx+2*d1+16)); /* R2 */ \
+	shuffle_load(xmm2,xmm3,xptr(src_rbx+6*d1),xptr(src_rbx+6*d1+16));/*R3,R4 */ \
+	low_load(xmm4, xptr(src_rbx+2*d1+32), xptr(src_rbx+2*d1+48)); /* R5 */ \
+	shuffle_load(xmm5,xmm6,xptr(src_rbx+4*d1+32),xptr(src_rbx+4*d1+48));/*R6,R7 */ \
 	x7r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xptr(srcreg+16)); \
-	low_load(xmm2, xptr(srcreg+2*d1+rbx), xptr(srcreg+2*d1+16+rbx)); /* R1 */ \
-	high_load(xmm6, xptr(srcreg+2*d1+32+rbx), xptr(srcreg+2*d1+48+rbx)); \
+	low_load(xmm2, xptr(src_rbx+2*d1), xptr(src_rbx+2*d1+16)); /* R1 */ \
+	high_load(xmm6, xptr(src_rbx+2*d1+32), xptr(src_rbx+2*d1+48)); \
 	xptr(srcreg+2*d1) = xmm0;		/* Save R2 */ \
 	xptr(srcreg+2*d1+32) = xmm1;		/* Save R3 */ \
-	shuffle_load(xmm1,xmm0,xptr(srcreg+4*d1+rbx),xptr(srcreg+4*d1+16+rbx));/*R2,R3 */ \
+	shuffle_load(xmm1,xmm0,xptr(src_rbx+4*d1),xptr(src_rbx+4*d1+16));/*R2,R3 */ \
 	xptr(srcreg+4*d1) = xmm4;		/* Save R4 */ \
 	xptr(srcreg+4*d1+16) = xmm5;		/* Save R5 */ \
 	xptr(srcreg+4*d1+32) = xmm7;		/* Save R6 */ \
 	xptr(srcreg+4*d1+48) = xmm3;		/* Save R7 */ \
 	xmm3 = xptr(srcreg+48);		/* R4 */ \
-	shuffle_load(xmm5,xmm4,xptr(srcreg+6*d1+32+rbx),xptr(srcreg+6*d1+48+rbx));/*R6,R7 */ \
+	shuffle_load(xmm5,xmm4,xptr(src_rbx+6*d1+32),xptr(src_rbx+6*d1+48));/*R6,R7 */ \
 	x7r_fft(xmm2, xmm1, xmm0, xmm3, xmm6, xmm5, xmm4, xmm7, xptr(srcreg+48)); \
 	xptr(srcreg+2*d1+16) = xmm2;		/* Save R2 */ \
 	xptr(srcreg+2*d1+48) = xmm1;		/* Save R3 */ \
@@ -791,49 +802,50 @@
 	xptr(srcreg+6*d1+32) = xmm7;		/* Save R6 */ \
 	xptr(srcreg+6*d1+48) = xmm3;		/* Save R7 */ \
 	srcreg += srcinc; \
-\
+}
 /* 215.55 clocks */ \
 
-#define x7cl_seven_reals_first_fft(srcreg,srcinc,d1) \
-	xmm0 = xptr(srcreg+rbx);	/* Load R1 */ \
-	xmm1 = xptr(srcreg+d1+16+rbx);/* Load R2 */ \
-	xmm2 = xptr(srcreg+5*d1+rbx);/* Load R3 */ \
-	x7r_fft_mem(xptr(srcreg+5*d1+16+rbx), xptr(srcreg+d1+32+rbx), xptr(srcreg+3*d1+32+rbx), xptr(srcreg+3*d1+48+rbx), xptr(srcreg), xptr(srcreg+3*d1+32), 0); \
+#define x7cl_seven_reals_first_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmm0 = xptr(src_rbx);	/* Load R1 */ \
+	xmm1 = xptr(src_rbx+d1+16);/* Load R2 */ \
+	xmm2 = xptr(src_rbx+5*d1);/* Load R3 */ \
+	x7r_fft_mem(xptr(src_rbx+5*d1+16), xptr(src_rbx+d1+32), xptr(src_rbx+3*d1+32), xptr(src_rbx+3*d1+48), xptr(srcreg), xptr(srcreg+3*d1+32), 0); \
 	xptr(srcreg+d1+32) = xmm2;	/* Save I2 */ \
-	xmm2 = xptr(srcreg+3*d1+16+rbx);/* Load R3 */ \
+	xmm2 = xptr(src_rbx+3*d1+16);/* Load R3 */ \
 	xptr(srcreg+3*d1+16) = xmm1;	/* Save I3 */ \
-	xmm1 = xptr(srcreg+3*d1+rbx);/* Load R2 */ \
+	xmm1 = xptr(src_rbx+3*d1);/* Load R2 */ \
 	xptr(srcreg+3*d1) = xmm0;	/* Save R3 */ \
-	xmm0 = xptr(srcreg+d1+rbx);	/* Load R1 */ \
+	xmm0 = xptr(src_rbx+d1);	/* Load R1 */ \
 	xptr(srcreg+d1) = xmm4;	/* Save R2 */ \
 	xptr(srcreg+3*d1+48) = xmm3;	/* Save I4 */ \
-	x7r_fft_mem(xptr(srcreg+32+rbx), xptr(srcreg+d1+48+rbx), xptr(srcreg+5*d1+32+rbx), xptr(srcreg+5*d1+48+rbx), xptr(srcreg+32), xptr(srcreg+5*d1+32), 1); \
+	x7r_fft_mem(xptr(src_rbx+32), xptr(src_rbx+d1+48), xptr(src_rbx+5*d1+32), xptr(src_rbx+5*d1+48), xptr(srcreg+32), xptr(srcreg+5*d1+32), 1); \
 	xptr(srcreg+d1+16) = xmm4;	/* Save R2 */ \
 	xptr(srcreg+d1+48) = xmm2;	/* Save I2 */ \
 	xptr(srcreg+5*d1) = xmm0;	/* Save R3 */ \
 	xptr(srcreg+5*d1+16) = xmm1;	/* Save I3 */ \
 	xptr(srcreg+5*d1+48) = xmm3;	/* Save I4 */ \
 \
-	xmm0 = xptr(srcreg+16+rbx);	/* Load R1 */ \
-	xmm1 = xptr(srcreg+2*d1+16+rbx);/* Load R2 */ \
-	xmm2 = xptr(srcreg+6*d1+rbx);/* Load R3 */ \
-	x7r_fft_mem(xptr(srcreg+6*d1+16+rbx), xptr(srcreg+2*d1+32+rbx), xptr(srcreg+4*d1+32+rbx), xptr(srcreg+4*d1+48+rbx), xptr(srcreg+16), xptr(srcreg+4*d1+32), 0); \
+	xmm0 = xptr(src_rbx+16);	/* Load R1 */ \
+	xmm1 = xptr(src_rbx+2*d1+16);/* Load R2 */ \
+	xmm2 = xptr(src_rbx+6*d1);/* Load R3 */ \
+	x7r_fft_mem(xptr(src_rbx+6*d1+16), xptr(src_rbx+2*d1+32), xptr(src_rbx+4*d1+32), xptr(src_rbx+4*d1+48), xptr(srcreg+16), xptr(srcreg+4*d1+32), 0); \
 	xptr(srcreg+2*d1+32) = xmm2;	/* Save I2 */ \
-	xmm2 = xptr(srcreg+4*d1+16+rbx);/* Load R3 */ \
+	xmm2 = xptr(src_rbx+4*d1+16);/* Load R3 */ \
 	xptr(srcreg+4*d1+16) = xmm1;	/* Save I3 */ \
-	xmm1 = xptr(srcreg+4*d1+rbx);/* Load R2 */ \
+	xmm1 = xptr(src_rbx+4*d1);/* Load R2 */ \
 	xptr(srcreg+4*d1) = xmm0;	/* Save R3 */ \
-	xmm0 = xptr(srcreg+2*d1+rbx);/* Load R1 */ \
+	xmm0 = xptr(src_rbx+2*d1);/* Load R1 */ \
 	xptr(srcreg+2*d1) = xmm4;	/* Save R2 */ \
 	xptr(srcreg+4*d1+48) = xmm3;	/* Save I4 */ \
-	x7r_fft_mem(xptr(srcreg+48+rbx), xptr(srcreg+2*d1+48+rbx), xptr(srcreg+6*d1+32+rbx), xptr(srcreg+6*d1+48+rbx), xptr(srcreg+48), xptr(srcreg+6*d1+32), 1); \
+	x7r_fft_mem(xptr(src_rbx+48), xptr(src_rbx+2*d1+48), xptr(src_rbx+6*d1+32), xptr(src_rbx+6*d1+48), xptr(srcreg+48), xptr(srcreg+6*d1+32), 1); \
 	xptr(srcreg+2*d1+16) = xmm4;	/* Save R2 */ \
 	xptr(srcreg+2*d1+48) = xmm2;	/* Save I2 */ \
 	xptr(srcreg+6*d1) = xmm0;	/* Save R3 */ \
 	xptr(srcreg+6*d1+16) = xmm1;	/* Save I3 */ \
 	xptr(srcreg+6*d1+48) = xmm3;	/* Save I4 */ \
 	srcreg += srcinc; \
-\
+}
 
 #define x7cl_seven_reals_fft(srcreg,srcinc,d1) \
 	xmm0 = xptr(srcreg);		/* Load R1 */ \
@@ -876,39 +888,40 @@
 	srcreg += srcinc; \
 \
 
-#define g7cl_seven_reals_first_fft(srcreg,srcinc,d1,dstreg,dstinc,e1) \
-	xmm0 = xptr(srcreg+rbx);	/* Load R1 */ \
-	xmm1 = xptr(srcreg+d1+16+rbx);/* Load R2 */ \
-	xmm2 = xptr(srcreg+5*d1+rbx);/* Load R3 */ \
-	x7r_fft_mem(xptr(srcreg+5*d1+16+rbx), xptr(srcreg+d1+32+rbx), xptr(srcreg+3*d1+32+rbx), xptr(srcreg+3*d1+48+rbx), xptr(dstreg), xptr(dstreg+3*e1+32), 0); \
+#define g7cl_seven_reals_first_fft(srcreg,srcinc,d1,dstreg,dstinc,e1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmm0 = xptr(src_rbx);	/* Load R1 */ \
+	xmm1 = xptr(src_rbx+d1+16);/* Load R2 */ \
+	xmm2 = xptr(src_rbx+5*d1);/* Load R3 */ \
+	x7r_fft_mem(xptr(src_rbx+5*d1+16), xptr(src_rbx+d1+32), xptr(src_rbx+3*d1+32), xptr(src_rbx+3*d1+48), xptr(dstreg), xptr(dstreg+3*e1+32), 0); \
 	xptr(dstreg+e1+32) = xmm2;	/* Save I2 */ \
-	xmm2 = xptr(srcreg+3*d1+16+rbx);/* Load R3 */ \
+	xmm2 = xptr(src_rbx+3*d1+16);/* Load R3 */ \
 	xptr(dstreg+3*e1+16) = xmm1;	/* Save I3 */ \
-	xmm1 = xptr(srcreg+3*d1+rbx);/* Load R2 */ \
+	xmm1 = xptr(src_rbx+3*d1);/* Load R2 */ \
 	xptr(dstreg+3*e1) = xmm0;	/* Save R3 */ \
-	xmm0 = xptr(srcreg+d1+rbx);	/* Load R1 */ \
+	xmm0 = xptr(src_rbx+d1);	/* Load R1 */ \
 	xptr(dstreg+e1) = xmm4;	/* Save R2 */ \
 	xptr(dstreg+3*e1+48) = xmm3;	/* Save I4 */ \
-	x7r_fft_mem(xptr(srcreg+32+rbx), xptr(srcreg+d1+48+rbx), xptr(srcreg+5*d1+32+rbx), xptr(srcreg+5*d1+48+rbx), xptr(dstreg+32), xptr(dstreg+5*e1+32), 1); \
+	x7r_fft_mem(xptr(src_rbx+32), xptr(src_rbx+d1+48), xptr(src_rbx+5*d1+32), xptr(src_rbx+5*d1+48), xptr(dstreg+32), xptr(dstreg+5*e1+32), 1); \
 	xptr(dstreg+e1+16) = xmm4;	/* Save R2 */ \
 	xptr(dstreg+e1+48) = xmm2;	/* Save I2 */ \
 	xptr(dstreg+5*e1) = xmm0;	/* Save R3 */ \
 	xptr(dstreg+5*e1+16) = xmm1;	/* Save I3 */ \
 	xptr(dstreg+5*e1+48) = xmm3;	/* Save I4 */ \
 \
-	xmm0 = xptr(srcreg+16+rbx);	/* Load R1 */ \
-	xmm1 = xptr(srcreg+2*d1+16+rbx);/* Load R2 */ \
-	xmm2 = xptr(srcreg+6*d1+rbx);/* Load R3 */ \
-	x7r_fft_mem(xptr(srcreg+6*d1+16+rbx), xptr(srcreg+2*d1+32+rbx), xptr(srcreg+4*d1+32+rbx), xptr(srcreg+4*d1+48+rbx), xptr(dstreg+16), xptr(dstreg+4*d1+32), 0); \
+	xmm0 = xptr(src_rbx+16);	/* Load R1 */ \
+	xmm1 = xptr(src_rbx+2*d1+16);/* Load R2 */ \
+	xmm2 = xptr(src_rbx+6*d1);/* Load R3 */ \
+	x7r_fft_mem(xptr(src_rbx+6*d1+16), xptr(src_rbx+2*d1+32), xptr(src_rbx+4*d1+32), xptr(src_rbx+4*d1+48), xptr(dstreg+16), xptr(dstreg+4*d1+32), 0); \
 	xptr(dstreg+2*e1+32) = xmm2;	/* Save I2 */ \
-	xmm2 = xptr(srcreg+4*d1+16+rbx);/* Load R3 */ \
+	xmm2 = xptr(src_rbx+4*d1+16);/* Load R3 */ \
 	xptr(dstreg+4*e1+16) = xmm1;	/* Save I3 */ \
-	xmm1 = xptr(srcreg+4*d1+rbx);/* Load R2 */ \
+	xmm1 = xptr(src_rbx+4*d1);/* Load R2 */ \
 	xptr(dstreg+4*e1) = xmm0;	/* Save R3 */ \
-	xmm0 = xptr(srcreg+2*d1+rbx);/* Load R1 */ \
+	xmm0 = xptr(src_rbx+2*d1);/* Load R1 */ \
 	xptr(dstreg+2*e1) = xmm4;	/* Save R2 */ \
 	xptr(dstreg+4*e1+48) = xmm3;	/* Save I4 */ \
-	x7r_fft_mem(xptr(srcreg+48+rbx), xptr(srcreg+2*d1+48+rbx), xptr(srcreg+6*d1+32+rbx), xptr(srcreg+6*d1+48+rbx), xptr(dstreg+48), xptr(dstreg+6*d1+32), 1); \
+	x7r_fft_mem(xptr(src_rbx+48), xptr(src_rbx+2*d1+48), xptr(src_rbx+6*d1+32), xptr(src_rbx+6*d1+48), xptr(dstreg+48), xptr(dstreg+6*d1+32), 1); \
 	srcreg += srcinc; \
 	xptr(dstreg+2*e1+16) = xmm4;	/* Save R2 */ \
 	xptr(dstreg+2*e1+48) = xmm2;	/* Save I2 */ \
@@ -916,7 +929,7 @@
 	xptr(dstreg+6*e1+16) = xmm1;	/* Save I3 */ \
 	xptr(dstreg+6*e1+48) = xmm3;	/* Save I4 */ \
 	dstreg += dstinc; \
-\
+}
 /* xmm0, xmm1, xmm2 are preloaded with m1, m2, m3 */ \
 /* destr1 may be same address as m4 (in that case set m4_conflict to one) */ \
 /* destr4 may be same address as m6 */ \
@@ -2282,12 +2295,13 @@ dst2w(dst2 = xmm2); \
 	srcreg += srcinc; \
 \
 
-#define s2cl_eight_reals_fft_1(srcreg,srcinc,d1) \
-	shuffle_load(xmm0,xmm1,xptr(srcreg+rbx),xptr(srcreg+d1+rbx)); /* R1,R2 */ \
-	shuffle_load(xmm4,xmm5,xptr(srcreg+32+rbx),xptr(srcreg+d1+32+rbx)); /* R5,R6 */ \
-	shuffle_load(xmm6,xmm7,xptr(srcreg+48+rbx),xptr(srcreg+d1+48+rbx)); /* R7,R8 */ \
+#define s2cl_eight_reals_fft_1(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	shuffle_load(xmm0,xmm1,xptr(src_rbx),xptr(src_rbx+d1)); /* R1,R2 */ \
+	shuffle_load(xmm4,xmm5,xptr(src_rbx+32),xptr(src_rbx+d1+32)); /* R5,R6 */ \
+	shuffle_load(xmm6,xmm7,xptr(src_rbx+48),xptr(src_rbx+d1+48)); /* R7,R8 */ \
 	x4r_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
-	shuffle_load(xmm2,xmm3,xptr(srcreg+16+rbx),xptr(srcreg+d1+16+rbx)); /* R3,R4 */ \
+	shuffle_load(xmm2,xmm3,xptr(src_rbx+16),xptr(src_rbx+d1+16)); /* R3,R4 */ \
 	xptr(srcreg) = xmm1;		/* Save R1 */ \
 	xptr(srcreg+16) = xmm0;	/* Save R2 */ \
 	xptr(srcreg+32) = xmm2;	/* Save R3 */ \
@@ -2297,7 +2311,7 @@ dst2w(dst2 = xmm2); \
 	xptr(srcreg+d1+32) = xmm4;	/* Save R7 */ \
 	xptr(srcreg+d1+48) = xmm6;	/* Save R8 */ \
 	srcreg += srcinc; \
-\
+}
 
 #define x4r_fft(r1, r2, t3, t4, r5, r6, r7, r8) \
 	t3 = r1; \
@@ -2786,16 +2800,17 @@ dst2w(dst2 = xmm2); \
 /* a four_complex_with_mulf_2 on 8 doubles */ \
 
 #define s2cl_eight_reals_with_mulf_2(srcreg,srcinc,d1) \
-	xmult7(srcreg+rbx, srcreg+rbp); \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmult7(src_rbx, srcreg+rbp); \
 \
-	xmm3[0] = f64ptr(srcreg+rbx);	/* R1 */ \
-	xmm2[0] = f64ptr(srcreg+8+rbx);	/* R2 */ \
-	xmm0[0] = f64ptr(srcreg+16+rbx);/* R3 */ \
-	xmm1[0] = f64ptr(srcreg+24+rbx);/* R4 */ \
-	xmm5[0] = f64ptr(srcreg+32+rbx);/* R5 */ \
-	xmm7[0] = f64ptr(srcreg+40+rbx);/* R6 */ \
-	xmm4[0] = f64ptr(srcreg+48+rbx);/* R7 */ \
-	xmm6[0] = f64ptr(srcreg+56+rbx);/* R8 */ \
+	xmm3[0] = f64ptr(src_rbx);	/* R1 */ \
+	xmm2[0] = f64ptr(src_rbx+8);	/* R2 */ \
+	xmm0[0] = f64ptr(src_rbx+16);/* R3 */ \
+	xmm1[0] = f64ptr(src_rbx+24);/* R4 */ \
+	xmm5[0] = f64ptr(src_rbx+32);/* R5 */ \
+	xmm7[0] = f64ptr(src_rbx+40);/* R6 */ \
+	xmm4[0] = f64ptr(src_rbx+48);/* R7 */ \
+	xmm6[0] = f64ptr(src_rbx+56);/* R8 */ \
 \
 	xs8r_mulf(xmm3[0], xmm2[0], xmm0[0], xmm1[0], xmm5[0], xmm7[0], xmm4[0], xmm6[0], (srcreg), (srcreg+8), (srcreg+16), (srcreg+24), (srcreg+32), (srcreg+40), (srcreg+48), (srcreg+56)); \
 \
@@ -2810,14 +2825,14 @@ dst2w(dst2 = xmm2); \
 	f64ptr(srcreg+48) = xmm6[0];	/* Save R7 */ \
 	f64ptr(srcreg+56) = xmm7[0];	/* Save R8 */ \
 \
-	xmm5[0] = f64ptr(srcreg+d1+rbx);/* R1 */ \
-	xmm7[0] = f64ptr(srcreg+d1+8+rbx);/* R2 */ \
-	xmm4[0] = f64ptr(srcreg+d1+16+rbx);/* R5 */ \
-	xmm6[0] = f64ptr(srcreg+d1+24+rbx);/* R6 */ \
-	xmm0[0] = f64ptr(srcreg+d1+32+rbx);/* R3 */ \
-	xmm1[0] = f64ptr(srcreg+d1+40+rbx);/* R4 */ \
-	xmm3[0] = f64ptr(srcreg+d1+48+rbx);/* R7 */ \
-	xmm2[0] = f64ptr(srcreg+d1+56+rbx);/* R8 */ \
+	xmm5[0] = f64ptr(src_rbx+d1);/* R1 */ \
+	xmm7[0] = f64ptr(src_rbx+d1+8);/* R2 */ \
+	xmm4[0] = f64ptr(src_rbx+d1+16);/* R5 */ \
+	xmm6[0] = f64ptr(src_rbx+d1+24);/* R6 */ \
+	xmm0[0] = f64ptr(src_rbx+d1+32);/* R3 */ \
+	xmm1[0] = f64ptr(src_rbx+d1+40);/* R4 */ \
+	xmm3[0] = f64ptr(src_rbx+d1+48);/* R7 */ \
+	xmm2[0] = f64ptr(src_rbx+d1+56);/* R8 */ \
 \
 	xs4c_mulf(xmm5[0], xmm7[0], xmm4[0], xmm6[0], xmm0[0], xmm1[0], xmm3[0], xmm2[0], (srcreg+d1), (srcreg+d1+8), (srcreg+d1+16), (srcreg+d1+24), (srcreg+d1+32), (srcreg+d1+40), (srcreg+d1+48), (srcreg+d1+56)); \
 \
@@ -3093,15 +3108,16 @@ dst2w(dst2 = xmm2); \
 }
 
 
-#define s2cl_four_complex_with_mulf(srcreg,srcinc,d1) \
-	xmm3 = xptr(srcreg+rbx);	/* R1 */ \
-	xmm7 = xptr(srcreg+16+rbx);	/* R2 */ \
-	xmm2 = xptr(srcreg+32+rbx);	/* R3 */ \
-	xmm6 = xptr(srcreg+48+rbx);	/* R4 */ \
-	xmm0 = xptr(srcreg+d1+rbx);	/* R5 */ \
-	xmm1 = xptr(srcreg+d1+16+rbx);/* R6 */ \
-	xmm5 = xptr(srcreg+d1+32+rbx);/* R7 */ \
-	xmm4 = xptr(srcreg+d1+48+rbx);/* R8 */ \
+#define s2cl_four_complex_with_mulf(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmm3 = xptr(src_rbx);	/* R1 */ \
+	xmm7 = xptr(src_rbx+16);	/* R2 */ \
+	xmm2 = xptr(src_rbx+32);	/* R3 */ \
+	xmm6 = xptr(src_rbx+48);	/* R4 */ \
+	xmm0 = xptr(src_rbx+d1);	/* R5 */ \
+	xmm1 = xptr(src_rbx+d1+16);/* R6 */ \
+	xmm5 = xptr(src_rbx+d1+32);/* R7 */ \
+	xmm4 = xptr(src_rbx+d1+48);/* R8 */ \
 \
 	xp4c_mulf(xmm3, xmm7, xmm2, xmm6, xmm0, xmm1, xmm5, xmm4, (srcreg), (srcreg+16), (srcreg+32), (srcreg+48), (srcreg+d1), (srcreg+d1+16), (srcreg+d1+32), (srcreg+d1+48)); \
 \
@@ -3113,8 +3129,8 @@ dst2w(dst2 = xmm2); \
 	shuffle_store(xptr(srcreg+48), xptr(srcreg+d1+48), xmm6, xmm7); /* Save R7 and R8 */ \
 \
 	srcreg += srcinc; \
-\
-\
+}
+
 /* These macros are used in the complex sections of two pass FFTs. */ \
 /* These macros process four cache lines containing 32 FFT values. */ \
 /* This data represents 16 complex numbers. */ \
@@ -3227,15 +3243,16 @@ dst2w(dst2 = xmm2); \
 \
 \
 
-#define x4cl_four_complex_with_mulf(srcreg,srcinc,d1,d2) \
-	xmm5 = xptr(srcreg+rbx);	/* R1 */ \
-	xmm7 = xptr(srcreg+16+rbx);	/* R2 */ \
-	xmm1 = xptr(srcreg+32+rbx);	/* R3 */ \
-	xmm3 = xptr(srcreg+48+rbx);	/* R4 */ \
-	xmm2 = xptr(srcreg+d1+rbx);	/* R5 */ \
-	xmm4 = xptr(srcreg+d1+16+rbx);/* R6 */ \
-	xmm6 = xptr(srcreg+d1+32+rbx);/* R7 */ \
-	xmm0 = xptr(srcreg+d1+48+rbx);/* R8 */ \
+#define x4cl_four_complex_with_mulf(srcreg,srcinc,d1,d2) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmm5 = xptr(src_rbx);	/* R1 */ \
+	xmm7 = xptr(src_rbx+16);	/* R2 */ \
+	xmm1 = xptr(src_rbx+32);	/* R3 */ \
+	xmm3 = xptr(src_rbx+48);	/* R4 */ \
+	xmm2 = xptr(src_rbx+d1);	/* R5 */ \
+	xmm4 = xptr(src_rbx+d1+16);/* R6 */ \
+	xmm6 = xptr(src_rbx+d1+32);/* R7 */ \
+	xmm0 = xptr(src_rbx+d1+48);/* R8 */ \
 \
 	xp4c_mulf(xmm5, xmm7, xmm1, xmm3, xmm2, xmm4, xmm6, xmm0, (srcreg), (srcreg+16), (srcreg+32), (srcreg+48), (srcreg+d1), (srcreg+d1+16), (srcreg+d1+32), (srcreg+d1+48)); \
 \
@@ -3248,14 +3265,14 @@ dst2w(dst2 = xmm2); \
 	xptr(srcreg+48) = xmm3;	/* Save R7 */ \
 	xptr(srcreg+d1+48) = xmm2;	/* Save R8 */ \
 \
-	xmm3 = xptr(srcreg+d2+rbx);	/* R1 */ \
-	xmm4 = xptr(srcreg+d2+16+rbx);/* R2 */ \
-	xmm2 = xptr(srcreg+d2+32+rbx);/* R3 */ \
-	xmm6 = xptr(srcreg+d2+48+rbx);/* R4 */ \
-	xmm1 = xptr(srcreg+d2+d1+rbx);/* R5 */ \
-	xmm0 = xptr(srcreg+d2+d1+16+rbx);/* R6 */ \
-	xmm5 = xptr(srcreg+d2+d1+32+rbx);/* R7 */ \
-	xmm7 = xptr(srcreg+d2+d1+48+rbx);/* R8 */ \
+	xmm3 = xptr(src_rbx+d2);	/* R1 */ \
+	xmm4 = xptr(src_rbx+d2+16);/* R2 */ \
+	xmm2 = xptr(src_rbx+d2+32);/* R3 */ \
+	xmm6 = xptr(src_rbx+d2+48);/* R4 */ \
+	xmm1 = xptr(src_rbx+d2+d1);/* R5 */ \
+	xmm0 = xptr(src_rbx+d2+d1+16);/* R6 */ \
+	xmm5 = xptr(src_rbx+d2+d1+32);/* R7 */ \
+	xmm7 = xptr(src_rbx+d2+d1+48);/* R8 */ \
 \
 	xp4c_mulf(xmm3, xmm4, xmm2, xmm6, xmm1, xmm0, xmm5, xmm7, (srcreg+d2), (srcreg+d2+16), (srcreg+d2+32), (srcreg+d2+48), (srcreg+d2+d1), (srcreg+d2+d1+16), (srcreg+d2+d1+32), (srcreg+d2+d1+48)); \
 \
@@ -3269,24 +3286,25 @@ dst2w(dst2 = xmm2); \
 	xptr(srcreg+d2+48) = xmm6;	/* Save R7 */ \
 	xptr(srcreg+d2+d1+48) = xmm1;	/* Save R8 */ \
 	srcreg += srcinc; \
-\
-\
-\
+}
+
+
 /******************************************************************** */ \
 /* These macros are used in the premultiplier step of two pass FFTs */ \
 /******************************************************************** */ \
 \
 /* 84 clocks */ \
 
-#define s2cl_four_complex_gpm_fft(srcreg,srcinc,d1) \
-	shuffle_load(xmm0, xmm1, xptr(srcreg+rbx), xptr(srcreg+32+rbx)); /* R1,R3 */ \
+#define s2cl_four_complex_gpm_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	shuffle_load(xmm0, xmm1, xptr(src_rbx), xptr(src_rbx+32)); /* R1,R3 */ \
 	xmm6 = xmm0;		/* Save R1 */ \
 	xmm0 *= xptr(rdi+16);		/* A1 = R1 * premul_real/premul_imag */ \
 	xmm7 = xmm1;		/* Save R3 */ \
 	xmm1 *= xptr(rdi+80);		/* A3 = R3 * premul_real/premul_imag */ \
 \
-	shuffle_load(xmm2, xmm3, xptr(srcreg+16+rbx), xptr(srcreg+48+rbx)); /* R5,R7 */ \
-	xprefetch(u8ptr(srcreg+srcinc+rbx)); \
+	shuffle_load(xmm2, xmm3, xptr(src_rbx+16), xptr(src_rbx+48)); /* R5,R7 */ \
+	xprefetch(u8ptr(src_rbx+srcinc)); \
 	xmm0 -= xmm2;		/* A1 = A1 - I1 */ \
 	xmm2 *= xptr(rdi+16);		/* B1 = I1 * premul_real/premul_imag */ \
 	xmm1 -= xmm3;		/* A3 = A3 - I3 */ \
@@ -3296,15 +3314,15 @@ dst2w(dst2 = xmm2); \
 	xmm3 += xmm7;		/* B3 = B3 + R3 */ \
 	xmm2 *= xptr(rdi);		/* B1 = B1 * premul_imag (new I1) */ \
 \
-	shuffle_load(xmm4, xmm5, xptr(srcreg+d1+rbx), xptr(srcreg+d1+32+rbx)); /* R2,R4 */ \
-	xprefetch(u8ptr(srcreg+srcinc+d1+rbx)); \
+	shuffle_load(xmm4, xmm5, xptr(src_rbx+d1), xptr(src_rbx+d1+32)); /* R2,R4 */ \
+	xprefetch(u8ptr(src_rbx+srcinc+d1)); \
 	xptr(srcreg) = xmm0;		/* Save new R1 */ \
 	xmm0 = xmm4;		/* Save R2 */ \
 	xmm4 *= xptr(rdi+48);		/* A2 = R2 * premul_real/premul_imag */ \
 	xmm1 *= xptr(rdi+64);		/* A3 = A3 * premul_imag (new R3) */ \
 	xmm3 *= xptr(rdi+64);		/* B3 = B3 * premul_imag (new I3) */ \
 \
-	shuffle_load(xmm6,xmm7,xptr(srcreg+d1+16+rbx),xptr(srcreg+d1+48+rbx)); /* R6,R8 */ \
+	shuffle_load(xmm6,xmm7,xptr(src_rbx+d1+16),xptr(src_rbx+d1+48)); /* R6,R8 */ \
 	xprefetchw(u8ptr(srcreg+srcinc)); \
 	xmm4 -= xmm6;		/* A2 = A2 - I2 */ \
 	xmm6 *= xptr(rdi+48);		/* B2 = I2 * premul_real/premul_imag */ \
@@ -3353,15 +3371,16 @@ dst2w(dst2 = xmm2); \
 	xptr(srcreg+16) = xmm7; \
 	xptr(srcreg+32) = xmm1; \
 	srcreg += srcinc; \
-\
-\
+}
+
 /* This code is identical to the above except it is used in the single pass negacyclic FFTs and has a somewhat different memory layout. */ \
 
-#define s2cl_four_complex_first_fft(srcreg,srcinc,d1) \
-	shuffle_load(xmm0,xmm1,xptr(srcreg+rbx),xptr(srcreg+16+rbx)); /* R1,R3 */ \
-	shuffle_load(xmm2,xmm3,xptr(srcreg+32+rbx),xptr(srcreg+48+rbx)); /* R5,R7 */ \
-	shuffle_load(xmm4,xmm5,xptr(srcreg+d1+rbx),xptr(srcreg+d1+16+rbx)); /* R2,R4 */ \
-	shuffle_load(xmm6,xmm7,xptr(srcreg+d1+32+rbx),xptr(srcreg+d1+48+rbx)); /* R6,R8 */ \
+#define s2cl_four_complex_first_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	shuffle_load(xmm0,xmm1,xptr(src_rbx),xptr(src_rbx+16)); /* R1,R3 */ \
+	shuffle_load(xmm2,xmm3,xptr(src_rbx+32),xptr(src_rbx+48)); /* R5,R7 */ \
+	shuffle_load(xmm4,xmm5,xptr(src_rbx+d1),xptr(src_rbx+d1+16)); /* R2,R4 */ \
+	shuffle_load(xmm6,xmm7,xptr(src_rbx+d1+32),xptr(src_rbx+d1+48)); /* R6,R8 */ \
 \
 	xptr(srcreg) = xmm5;		/* Save R4 */ \
 \
@@ -3432,7 +3451,7 @@ dst2w(dst2 = xmm2); \
 	xptr(srcreg+32) = xmm1; \
 	xptr(srcreg+48) = xmm3; \
 	srcreg += srcinc; \
-\
+}
 /* This code is identical to the above except it is used in the two pass negacyclic FFTs and has a somewhat different memory layout. */ \
 
 #define x2cl_four_complex_first_fft(srcreg,srcinc,d1) \
@@ -3796,27 +3815,28 @@ dst2w(dst2 = xmm2); \
 \
 \
 
-#define x3cl_three_complex_first_fft(srcreg,srcinc,d1) \
-	xmm0 = xptr(srcreg+rbx);		/* R1 */ \
-	xmm3 = xptr(srcreg+32+rbx);		/* R4 */ \
-	xmm2 = xptr(srcreg+d1+16+rbx);	/* R3 */ \
-	xmm5 = xptr(srcreg+d1+48+rbx);	/* R6 */ \
-	xmm1 = xptr(srcreg+2*d1+rbx);	/* R2 */ \
-	xmm4 = xptr(srcreg+2*d1+32+rbx);	/* R5 */ \
+#define x3cl_three_complex_first_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	xmm0 = xptr(src_rbx);		/* R1 */ \
+	xmm3 = xptr(src_rbx+32);		/* R4 */ \
+	xmm2 = xptr(src_rbx+d1+16);	/* R3 */ \
+	xmm5 = xptr(src_rbx+d1+48);	/* R6 */ \
+	xmm1 = xptr(src_rbx+2*d1);	/* R2 */ \
+	xmm4 = xptr(src_rbx+2*d1+32);	/* R5 */ \
 	x3c_premult(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, 0); \
 	x3c_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
-	xmm6 = xptr(srcreg+d1+rbx);		/* R1 */ \
-	xmm7 = xptr(srcreg+d1+32+rbx);	/* R4 */ \
+	xmm6 = xptr(src_rbx+d1);		/* R1 */ \
+	xmm7 = xptr(src_rbx+d1+32);	/* R4 */ \
 	xptr(srcreg) = xmm2;			/* Save R1 */ \
 	xptr(srcreg+32) = xmm5;		/* Save R2 */ \
 	xptr(srcreg+d1) = xmm0;		/* Save R3 */ \
 	xptr(srcreg+d1+16) = xmm1;		/* Save R4 */ \
 	xptr(srcreg+d1+32) = xmm4;		/* Save R5 */ \
 	xptr(srcreg+d1+48) = xmm3;		/* Save R6 */ \
-	xmm1 = xptr(srcreg+16+rbx);		/* R2 */ \
-	xmm4 = xptr(srcreg+48+rbx);		/* R5 */ \
-	xmm2 = xptr(srcreg+2*d1+16+rbx);	/* R3 */ \
-	xmm5 = xptr(srcreg+2*d1+48+rbx);	/* R6 */ \
+	xmm1 = xptr(src_rbx+16);		/* R2 */ \
+	xmm4 = xptr(src_rbx+48);		/* R5 */ \
+	xmm2 = xptr(src_rbx+2*d1+16);	/* R3 */ \
+	xmm5 = xptr(src_rbx+2*d1+48);	/* R6 */ \
 	x3c_premult(xmm6, xmm1, xmm2, xmm7, xmm4, xmm5, xmm0, xmm3, 96); \
 	x3c_fft(xmm6, xmm1, xmm2, xmm7, xmm4, xmm5, xmm0, xmm3); \
 	xptr(srcreg+16) = xmm2;		/* Save R1 */ \
@@ -3826,8 +3846,8 @@ dst2w(dst2 = xmm2); \
 	xptr(srcreg+2*d1+32) = xmm4;		/* Save R5 */ \
 	xptr(srcreg+2*d1+48) = xmm7;		/* Save R6 */ \
 	srcreg += srcinc; \
-\
-\
+}
+
 /* Same as above except we don't use the rbx offset as the FFT data has */ \
 /* already been copied to the scratch area using the rbx offset. */ \
 
@@ -3865,27 +3885,28 @@ dst2w(dst2 = xmm2); \
 \
 /* This code is identical to the above except it is used in the single pass negacyclic FFTs and swizzles the inputs. */ \
 
-#define s3cl_three_complex_first_fft(srcreg,srcinc,d1) \
-	low_load(xmm0, xptr(srcreg+rbx), xptr(srcreg+16+rbx)); /* R1 */ \
-	low_load(xmm3, xptr(srcreg+32+rbx), xptr(srcreg+48+rbx)); /* R4 */ \
-	high_load(xmm2, xptr(srcreg+d1+rbx), xptr(srcreg+d1+16+rbx)); /* R3 */ \
-	high_load(xmm5, xptr(srcreg+d1+32+rbx), xptr(srcreg+d1+48+rbx)); /* R6 */ \
-	low_load(xmm1, xptr(srcreg+2*d1+rbx), xptr(srcreg+2*d1+16+rbx)); /* R2 */ \
-	low_load(xmm4, xptr(srcreg+2*d1+32+rbx), xptr(srcreg+2*d1+48+rbx)); /* R5 */ \
+#define s3cl_three_complex_first_fft(srcreg,srcinc,d1) { \
+	uintptr_t src_rbx = srcreg+rbx; \
+	low_load(xmm0, xptr(src_rbx), xptr(src_rbx+16)); /* R1 */ \
+	low_load(xmm3, xptr(src_rbx+32), xptr(src_rbx+48)); /* R4 */ \
+	high_load(xmm2, xptr(src_rbx+d1), xptr(src_rbx+d1+16)); /* R3 */ \
+	high_load(xmm5, xptr(src_rbx+d1+32), xptr(src_rbx+d1+48)); /* R6 */ \
+	low_load(xmm1, xptr(src_rbx+2*d1), xptr(src_rbx+2*d1+16)); /* R2 */ \
+	low_load(xmm4, xptr(src_rbx+2*d1+32), xptr(src_rbx+2*d1+48)); /* R5 */ \
 	x3c_premult(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, 0); \
 	x3c_fft(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7); \
-	high_load(xmm6, xptr(srcreg+rbx), xptr(srcreg+16+rbx)); /* R2 */ \
-	high_load(xmm7, xptr(srcreg+32+rbx), xptr(srcreg+48+rbx)); /* R5 */ \
+	high_load(xmm6, xptr(src_rbx), xptr(src_rbx+16)); /* R2 */ \
+	high_load(xmm7, xptr(src_rbx+32), xptr(src_rbx+48)); /* R5 */ \
 	xptr(srcreg) = xmm2;			/* Save R1 */ \
 	xptr(srcreg+32) = xmm5;		/* Save R2 */ \
-	low_load(xmm2, xptr(srcreg+d1+rbx), xptr(srcreg+d1+16+rbx)); /* R1 */ \
-	low_load(xmm5, xptr(srcreg+d1+32+rbx), xptr(srcreg+d1+48+rbx));	/* R4 */ \
+	low_load(xmm2, xptr(src_rbx+d1), xptr(src_rbx+d1+16)); /* R1 */ \
+	low_load(xmm5, xptr(src_rbx+d1+32), xptr(src_rbx+d1+48));	/* R4 */ \
 	xptr(srcreg+d1) = xmm0;		/* Save R3 */ \
 	xptr(srcreg+d1+16) = xmm1;		/* Save R4 */ \
 	xptr(srcreg+d1+32) = xmm4;		/* Save R5 */ \
 	xptr(srcreg+d1+48) = xmm3;		/* Save R6 */ \
-	high_load(xmm0, xptr(srcreg+2*d1+rbx), xptr(srcreg+2*d1+16+rbx)); /* R3 */ \
-	high_load(xmm1, xptr(srcreg+2*d1+32+rbx), xptr(srcreg+2*d1+48+rbx)); /* R6 */ \
+	high_load(xmm0, xptr(src_rbx+2*d1), xptr(src_rbx+2*d1+16)); /* R3 */ \
+	high_load(xmm1, xptr(src_rbx+2*d1+32), xptr(src_rbx+2*d1+48)); /* R6 */ \
 	x3c_premult(xmm2, xmm6, xmm0, xmm5, xmm7, xmm1, xmm3, xmm4, 96); \
 	x3c_fft(xmm2, xmm6, xmm0, xmm5, xmm7, xmm1, xmm3, xmm4); \
 	xptr(srcreg+16) = xmm0;		/* Save R1 */ \
@@ -3895,8 +3916,8 @@ dst2w(dst2 = xmm2); \
 	xptr(srcreg+2*d1+32) = xmm7;		/* Save R5 */ \
 	xptr(srcreg+2*d1+48) = xmm5;		/* Save R6 */ \
 	srcreg += srcinc; \
-\
-\
+}
+
 
 #define x3c_premult(r1, r2, r3, r4, r5, r6, t1, t2, off) \
 	t1 = r3;			/* Copy R3 */ \

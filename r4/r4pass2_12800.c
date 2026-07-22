@@ -11,6 +11,8 @@
 #include "../gwnum_func.h"
 
 #include "r4.h"
+#include "r5.h"
+#include "r8.h"
 
 /* *************** radix4-pass2-12800-levels-real macro ****************** */
 /* This macro takes 25600 real values and performs the final 14.644 levels of */
@@ -642,7 +644,7 @@ r4_pass2_12800_levels_complex(g);
 
 void r4_pass2_12800_levels_complex(struct gwasm_data *__restrict g){
 do{
-	uintptr_t rdx,rbx,rbp,rsi,rdi;
+	uintptr_t rbx,rbp,rsi,rdi;
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
 	/* Type 4 FFTs skip the forward FFT process */

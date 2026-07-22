@@ -86,17 +86,10 @@ hg/hgpass2_12.c
 #hg/hgpass2_13.c
 
 x/xmult1a.c
-x/xmult1a_sse41.c
 x/xmult2.c
 x/xmult2a.c
-x/xmult2a_sse41.c
-x/xmult2a_k8.c
-x/xmult2a_k8_sse41.c
 x/xmult3.c
 x/xmult3a.c
-x/xmult3a_sse41.c
-x/xmult3a_k8.c
-x/xmult3a_k8_sse41.c
 
 x/xmult1ax.c
 x/xmult2ax.c
@@ -106,6 +99,17 @@ x/xnormal.c
 
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|i386|i686|x86")
+target_sources(gwnum_c1_lib PRIVATE
+x/xmult2a_k8.c
+x/xmult1a_sse41.c
+x/xmult2a_sse41.c
+x/xmult2a_k8_sse41.c
+x/xmult3a_k8.c
+x/xmult3a_sse41.c
+x/xmult3a_k8_sse41.c
+cpuid_xsave.c
+)
+
 set_source_files_properties(cpuid_xsave.c PROPERTIES COMPILE_FLAGS "-mxsave")
 set_source_files_properties(xmult1ax.c PROPERTIES COMPILE_FLAGS "-march=x86-64-v2 -fmacro-backtrace-limit=0")
 set_source_files_properties(xmult1a_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
@@ -115,21 +119,28 @@ set_source_files_properties(xmult2a_k8_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.
 set_source_files_properties(xmult3a_k8_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
 #set_source_files_properties(main.c PROPERTIES COMPILE_FLAGS "-msse4.1")
 #set_source_files_properties(gianthlp.c PROPERTIES COMPILE_FLAGS "-Os")
-
-target_sources(gwnum_c1_lib PRIVATE cpuid_xsave.c )
 endif()
 
 # -fno-fast-math -frounding-math -fsignaling-nans -ffp-contract=off
-# -f
 # -mcmodel=small or large
 # -fdirect-access-external-data
 
-target_compile_options(gwnum_c1_lib PRIVATE
-"-ffp-contract=off"
-"-frounding-math"
-"-fno-fast-math"
+# -ffp-contract=fast have a chance of round problem due to extra precision.
+
+#target_compile_options(gwnum_c1_lib PRIVATE
+#"-ffp-contract=on"
+#"-ftrapping-math"
+#"-frounding-math"
+#"-fno-fast-math"
 # "-fno-pie"
-)
+#)
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	#message(STATUS "Using Clang compiler")
+	target_compile_options(gwnum_c1_lib PRIVATE "-ffp-exception-behavior=maytrap")
+endif()
+
+
 #target_link_options(gwnum_c1_lib PRIVATE "-no-pie")
 #target_link_libraries(gwnum_c1_lib PRIVATE /mnt/2/1/code/linux64/gwnum.a)
 

@@ -10,7 +10,9 @@
 #include "../xmult.h"
 #include "../gwnum_func.h"
 
+#include "r3.h"
 #include "r4.h"
+#include "r8.h"
 
 /********************************************************************************************** */
 /*			Macros derived from pass2-13-levels */

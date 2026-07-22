@@ -135,7 +135,7 @@ static const vec2f64 XMM_SQRTHALF2 = {
 #endif
 
 
-
+// Const numbers from gwdbldblc.cpp, gwasm_constants
 
 static const double CONST_P951 = 0x1.e6f0e134454ffp-1;   // 0.95105651629515353
 static const double CONST_P618 = 0x1.3c6ef372fe95p-1;    // 0.61803398874989490

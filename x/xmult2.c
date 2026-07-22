@@ -16,12 +16,12 @@
 #include <xmmintrin.h>
 #endif
 
-typedef void (*funcasm)(struct gwasm_data *__restrict g);
+typedef void (*func_gwasm_data)(struct gwasm_data *__restrict g);
 //void xpass2_r4_8_levels_t(struct gwasm_data *__restrict g);
 //void xpass2_hg_8_levels_t_P4(struct gwasm_data *__restrict g);
 //void xpass2_r4_8_levels(struct gwasm_data *__restrict g);
 
-#if 1
+#if 0
 void pass1_aux_entry_point(struct gwasm_data *__restrict g) {
 	//__sync_synchronize(); // ARM64 may need this to avoid multithread errors.
 #if 0
@@ -34,10 +34,10 @@ void pass1_aux_entry_point(struct gwasm_data *__restrict g) {
 	//	p = g->thread_work_routine;
 	//	printf("pass1_aux_entry_point %p\n", p);
 	//}
-	((funcasm)g->thread_work_routine)(g);
+	((func_gwasm_data)g->thread_work_routine)(g);
 }
 #endif
-#if 1
+#if 0
 void pass2_aux_entry_point(struct gwasm_data *__restrict g) {
 	//__sync_synchronize(); // ARM64 may need this to avoid multithread errors.
 #if 0
@@ -53,7 +53,7 @@ void pass2_aux_entry_point(struct gwasm_data *__restrict g) {
 
 	//xpass2_r4_8_levels_t(g);
 	//xpass2_hg_8_levels_t_P4(g);
-	((funcasm)g->thread_work_routine)(g);
+	((func_gwasm_data)g->thread_work_routine)(g);
 }
 #endif
 

@@ -10,7 +10,11 @@
 #include "../xmult.h"
 #include "../gwnum_func.h"
 
+#include "r3.h"
 #include "r4.h"
+#include "r5.h"
+#include "r7.h"
+#include "r8.h"
 #include "r4pass2.h"
 #include "r4dwpnpass1sc.h"
 
@@ -36,8 +40,6 @@ void xpass2_r4_14_levels_asm(struct gwasm_data *__restrict g) {
 }
 #endif
 
-
-#if 1
 r4dwpn_pass1sc896(xfft_r4dwpn_8960K_10240_4_CORE, xpass2_r4_10240_levels, 10240, 4);
 r4dwpn_pass1sc1024(xfft_r4dwpn_9M_9216_4_CORE, xpass2_r4_9216_levels, 9216, 4);
 r4dwpn_pass1sc768(xfft_r4dwpn_9600K_12800_4_CORE, xpass2_r4_12800_levels, 12800, 4);
@@ -70,4 +72,3 @@ r4dwpn_pass1sc3584(xfft_r4dwpn_28M_13_4_CORE, xpass2_r4_13_levels, 13, 4);
 r4dwpn_pass1sc4096(xfft_r4dwpn_30M_7680_4_CORE, xpass2_r4_7680_levels, 7680, 4);
 r4dwpn_pass1sc1280(xfft_r4dwpn_32000K_25600_4_CORE, xpass2_r4_25600_levels, 25600, 4);
 r4dwpn_pass1sc4096(xfft_r4dwpn_32M_13_4_CORE, xpass2_r4_13_levels, 13, 4);
-#endif

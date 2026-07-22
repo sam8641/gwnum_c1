@@ -11,9 +11,7 @@
 #include "../gwnum_func.h"
 
 #include "r4.h"
-
-
-
+#include "r5.h"
 
 /* *************** radix4-pass2-20480-levels-real macro ****************** */
 /* This macro takes 40960 real values and performs the final 15.322 levels of */
@@ -164,7 +162,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 		for(unsigned int loopA = 2; loopA; loopA--) {
 			for(unsigned int loopB = 128; loopB; loopB--) {
 				xtouch(xptr(rcx+4096-64));		/* Preload the TLB */
-				b2b:	r4_h4cl_eight_reals_four_complex_djbfft(rsi, 64, 2*dist128, 4*dist128, rdi, rdx);
+				r4_h4cl_eight_reals_four_complex_djbfft(rsi, 64, 2*dist128, 4*dist128, rdi, rdx);
 				rdi += 20*XMM_SCD2;	/* Next sin/cos data */
 				rdx += 4*XMM_HSCD2;	/* Next sin/cos data */
 			}
@@ -184,7 +182,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 			for(unsigned int loopB = 2; loopB; loopB--) {
 				for(unsigned int loopC = 128; loopC; loopC--) {
 					xtouch(xptr(rcx+4096-64));		/* Preload the TLB */
-					b3b:	r4_x4cl_four_complex_djbfft(rsi, 64, 2*dist128, 4*dist128, rdi);
+					r4_x4cl_four_complex_djbfft(rsi, 64, 2*dist128, 4*dist128, rdi);
 					rdi += 20*XMM_SCD2;	/* Next sin/cos data */
 				}
 				rsi += -128*64+dist128;	/* Next source pointer */
@@ -739,7 +737,7 @@ r4_pass2_20480_levels_complex(g);
 
 void r4_pass2_20480_levels_complex(struct gwasm_data *__restrict g) {
 do{
-	uintptr_t rdx,rbx,rbp,rsi,rdi;
+	uintptr_t rbx,rbp,rsi,rdi;
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
 	/* Type 4 FFTs skip the forward FFT process */

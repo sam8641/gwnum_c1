@@ -10,11 +10,14 @@
 #include "../xmult.h"
 #include "../gwnum_func.h"
 
+#include "r3.h"
 #include "r4.h"
+#include "r5.h"
+#include "r7.h"
+#include "r8.h"
 #include "r4pass2.h"
 #include "r4dwpnpass1sc.h"
 
-#if 1
 r4dwpn_pass1sc640(xfft_r4dwpn_3200K_5120_4_K10, xpass2_r4_5120_levels, 5120, 4);
 r4dwpn_pass1sc768(xfft_r4dwpn_3456K_4608_4_K10, xpass2_r4_4608_levels, 4608, 4);
 r4dwpn_pass1sc896(xfft_r4dwpn_3584K_12_4_K10, xpass2_r4_12_levels, 12, 4);
@@ -35,4 +38,3 @@ r4dwpn_pass1sc1792(xfft_r4dwpn_7M_12_4_K10, xpass2_r4_12_levels, 12, 4);
 r4dwpn_pass1sc1280(xfft_r4dwpn_7680K_6144_4_K10, xpass2_r4_6144_levels, 6144, 4);
 r4dwpn_pass1sc1536(xfft_r4dwpn_18M_12288_4_K10, xpass2_r4_12288_levels, 12288, 4);
 r4dwpn_pass1sc1280(xfft_r4dwpn_19200K_15360_4_K10, xpass2_r4_15360_levels, 15360, 4);
-#endif

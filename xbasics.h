@@ -15,23 +15,35 @@
 #define L2prefetch128(A)
 
 
-#define xs_complex_mult xp_complex_mult
 #define xs_complex_square xp_complex_square
 #if 0
+#define xs_complex_mult xp_complex_mult
 #define xp_complex_mult(real1, imag1, real2, imag2, tmp1, tmp2) \
 	tmp1 = real1*real2-imag1*imag2; \
 	tmp2 = real1*imag2+real2*imag1; \
 	real1 = tmp1; \
 	imag1 = tmp2;
 #else
-#define xp_complex_mult(real1, imag1, real2, imag2, tmp1, tmp2) \
+#define xs_complex_mult(real1, imag1, real2m, imag2m, tmp1, tmp2) { \
+	double real2 = real2m, imag2 = imag2m; \
 	tmp1 = real1; \
 	real1 *= real2;		/* real1 * real2 */ \
 	tmp2 = imag1 * imag2; /* imag1 * imag2 */ \
 	tmp1 *= imag2; /* real1 * imag2 */ \
 	imag1 *= real2;		/* real2 * imag1 */ \
 	real1 -= tmp2;		/* real1*real2-imag1*imag2 (new real) */ \
-	imag1 += tmp1;		/* real1*imag2+real2*imag1 (new imag) */
+	imag1 += tmp1;		/* real1*imag2+real2*imag1 (new imag) */ \
+}
+#define xp_complex_mult(real1, imag1, real2m, imag2m, tmp1, tmp2) { \
+	vec2f64 real2 = real2m, imag2 = imag2m; \
+	tmp1 = real1; \
+	real1 *= real2;		/* real1 * real2 */ \
+	tmp2 = imag1 * imag2; /* imag1 * imag2 */ \
+	tmp1 *= imag2; /* real1 * imag2 */ \
+	imag1 *= real2;		/* real2 * imag1 */ \
+	real1 -= tmp2;		/* real1*real2-imag1*imag2 (new real) */ \
+	imag1 += tmp1;		/* real1*imag2+real2*imag1 (new imag) */ \
+}
 #endif
 #if 0
 #define xp_complex_square(real, imag, tmp) \
