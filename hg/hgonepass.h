@@ -1,5 +1,4 @@
 #pragma once
-extern volatile int test123;
 void hgonepass_xmiddle_1(struct gwasm_data *__restrict g);
 void hgonepass_xmiddle_1p(struct gwasm_data *__restrict g);
 void hgonepass_xmiddle_2(struct gwasm_data *__restrict g);
@@ -554,9 +553,7 @@ xfft_3_ret; \
 /* Do a multiply with pre-FFTed inputs */ \
 /* printf("ffttype %i\n", (int)g->ffttype); */ \
 if(g->ffttype == 4) { \
-	test123 += 4; \
 	xmiddle_4p(g); \
-	test123 += 4; \
 }else{ \
 	\
 	/* Do FFT levels 1,2,3 */ \
@@ -577,7 +574,6 @@ if(g->ffttype == 4) { \
 	/* Do 8 four_complex_first_fft macros */ \
 	/*	distance between fft data elements is 8 */ \
 	/*	do 4 macros each processing 16 data values */ \
-	test123 += 2; \
 	\
 	rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
 	for(unsigned int loop=4; loop != 0; loop--){ \
@@ -605,7 +601,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 4 */ \
 	/*	do 4 macros each processing 16 data values */ \
 	\
-	test123 += 2; \
 	rdi = (uintptr_t)g->sincos2;/* Load sin/cos pointer */ \
 	for(unsigned int loop=2; loop != 0; loop--){ \
 		for(unsigned int loopB=2; loopB != 0; loopB--){ \
@@ -618,9 +613,7 @@ if(g->ffttype == 4) { \
 	\
 	/* End common FFT code */ \
 	\
-	test123 += 3; \
 	xmiddle_123p(g); \
-	test123 += 3; \
 } \
 \
 /* Do FFT levels 5,6 */ \
@@ -642,7 +635,6 @@ if(g->ffttype == 4) { \
 /*	distance between fft data elements is 4 */ \
 /*	do 4 macros each processing 16 data values */ \
 \
-test123 += 5; \
 rdi = (uintptr_t)g->sincos2;/* Load sin/cos pointer */ \
 for(unsigned int loop=4; loop != 0; loop--){ \
 	x2cl_two_complex_unfft(rsi, 2*64, 64); \
@@ -666,14 +658,12 @@ rsi += -8*64;		/* Restore source pointer */ \
 /*	distance between fft data elements is 8 */ \
 /*	do 2 macros each processing 32 data values */ \
 \
-test123 += 6; \
 rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
 for(unsigned int loop=2; loop != 0; loop--){ \
 	x4cl_four_complex_last_unfft(rsi, 64, 2*64, 4*64, 2*128); \
 	rdi += 128;		/* Next premultiplier pointer */ \
 } \
 \
-test123 += 7; \
 xfft_3_ret; \
 \
 \
