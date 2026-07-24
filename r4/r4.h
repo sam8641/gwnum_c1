@@ -1598,6 +1598,7 @@
 	xmm3 += mem2;		/* I2 = I1 + I2 (new I1) */ \
 	xprefetchw(u8ptr(pre1+pre2)); \
 
+#if 0 // unused
 #define r4_x4c_2sc_djbunfft_mem_nodst3(mem1,mem2,mem3,mem4,mem5,mem6,mem7,mem8,screg1,screg2,pre1,pre2) \
 	r4_x4c_2sc_djbunfft_mem_PART1(mem1,mem2,mem3,mem4,mem5,mem6,mem7,mem8,screg1,screg2,pre1,pre2); \
 	xmm0 -= xmm5;		/* R2 = R2 - R4 (final R4) */ \
@@ -1610,7 +1611,8 @@
 \
 	xmm3 -= xmm4;		/* I1 = I1 - I3 (final I3) */ \
 	xmm4 += xmm4; /* multwo */;			/* I3 = I3 * 2 */ \
-	xmm4 += xmm3;		/* I3 = I1 + I3 (final I1) */ \
+	xmm4 += xmm3;		/* I3 = I1 + I3 (final I1) */
+#endif
 
 #define r4_x4c_2sc_djbunfft_mem(mem1,mem2,mem3,mem4,mem5,mem6,mem7,mem8,dst3,screg1,screg2,pre1,pre2) \
 	r4_x4c_2sc_djbunfft_mem_PART1(mem1,mem2,mem3,mem4,mem5,mem6,mem7,mem8,screg1,screg2,pre1,pre2); \
@@ -1699,6 +1701,7 @@
 \
 	xprefetchw(u8ptr(pre1+pre2)); \
 
+#if 0 // unused
 #define r4_x4c_2sc_djbunfft_partial_mem_nodst1(r1,r2,r3,r4,r5,r6,r7,r8,mem1,mem2,mem5,mem6,screg1,screg2,pre1,pre2) \
 	r4_x4c_2sc_djbunfft_partial_mem_PART1(r1,r2,r3,r4,r5,r6,r7,r8,mem1,mem2,mem5,mem6,screg1,screg2,pre1,pre2) \
 	r6 -= r4;			/* R2 = R2 - R4 (final R4) */ \
@@ -1711,7 +1714,8 @@
 \
 	r1 -= r5;			/* I1 = I1 - I3 (final I3) */ \
 	r5 += r5; /* multwo */			/* I3 = I3 * 2 */ \
-	r5 += r1;			/* I3 = I1 + I3 (final I1) */ \
+	r5 += r1;			/* I3 = I1 + I3 (final I1) */
+#endif
 
 #define r4_x4c_2sc_djbunfft_partial_mem(r1,r2,r3,r4,r5,r6,r7,r8, mem1,mem2,mem5,mem6, dst1,screg1,screg2,pre1,pre2) \
 	r4_x4c_2sc_djbunfft_partial_mem_PART1( r1,r2,r3,r4,r5,r6,r7,r8, mem1,mem2,mem5,mem6, screg1,screg2,pre1,pre2) \
@@ -2614,6 +2618,7 @@
 \
 
 #define r4_x2cl_four_complex_first_fft4_cmn(srcreg,off,srcinc,d1,screg) { \
+	vec2f64 temp2; \
 	xmm7 = CONST2_P924; \
 	xmm1 = CONST2_P383; \
 	vec2f64 s0 = xptr(srcreg+off+d1), s1 = xptr(srcreg+off+d1+16), s2 = xptr(srcreg+off+d1+32), s3 = xptr(srcreg+off+d1+48); \
@@ -2669,18 +2674,18 @@
 	xmm2 -= xmm3;			/* I1 = I1 - I3 (new I3) */ \
 	xmm3 += s2;		/* I3 = I1 + I3 (new I1) */ \
 \
+	temp2 = xmm0; \
 	xmm0 -= xmm6;			/* R3 = R3 - I4 (new R3) */ \
-	xmm6 += xmm6; /* multwo */;				/* I4 = I4 * 2 */ \
+	xmm6 += temp2;			/* I4 = R3 + I4 (new R4) */ \
+	temp2 = xmm2; \
 	xmm2 -= xmm4;			/* I3 = I3 - R4 (new I4) */ \
-	xmm4 += xmm4; /* multwo */;				/* R4 = R4 * 2 */ \
+	xmm4 += temp2;			/* R4 = I3 + R4 (new I3) */ \
+	temp2 = xmm1; \
 	xmm1 -= xmm5;			/* R1 = R1 - R2 (new R2) */ \
-	xmm5 += xmm5; /* multwo */;				/* R2 = R2 * 2 */ \
+	xmm5 += temp2;			/* R2 = R1 + R2 (new R1) */ \
+	temp2 = xmm3; \
 	xmm3 -= xmm7;			/* I1 = I1 - I2 (new I2) */ \
-	xmm7 += xmm7; /* multwo */;				/* I2 = I2 * 2 */ \
-	xmm6 += xmm0;			/* I4 = R3 + I4 (new R4) */ \
-	xmm4 += xmm2;			/* R4 = I3 + R4 (new I3) */ \
-	xmm5 += xmm1;			/* R2 = R1 + R2 (new R1) */ \
-	xmm7 += xmm3;			/* I2 = I1 + I2 (new I1) */ \
+	xmm7 += temp2;			/* I2 = I1 + I2 (new I1) */ \
 \
 	vec2f64 saved_R1 = xmm5;			/* Save R1 */ \
 	vec2f64 saved_I1 = xmm7;		/* Save I1 */ \
@@ -2751,7 +2756,7 @@
 \
 
 #define r4_x2cl_four_complex_first_djbfft_cmn(srcreg,off,srcinc,d1,screg,pmreg) { \
-	vec2f64 s1, s2; \
+	vec2f64 s1, s2, temp2; \
 	s1 = xmm7 = xptr(pmreg+0+16);		/* cosine/sine */ \
 	xmm1 = xptr(srcreg+off);		/* R1 */ \
 	xmm7 *= xmm1;			/* A1 = R1 * cosine/sine */ \
@@ -2799,34 +2804,34 @@
 	xprefetchw(u8ptr(srcreg+srcinc)); \
 	xprefetchw(u8ptr(srcreg+srcinc+d1)); \
 \
+	temp2 = xmm6; \
 	xmm6 -= xmm3;			/* R2 = R2 - R4 (new R4) */ \
-	xmm3 += xmm3; /* multwo */;				/* R4 = R4 * 2 */ \
-	xmm3 += xmm6;			/* R4 = R2 + R4 (new R2) */ \
+	xmm3 += temp2;			/* R4 = R2 + R4 (new R2) */ \
 \
+	temp2 = xmm4; \
 	xmm4 -= xmm0;			/* I2 = I2 - I4 (new I4) */ \
-	xmm0 += xmm0; /* multwo */;				/* I4 = I4 * 2 */ \
-	xmm0 += xmm4;			/* I4 = I2 + I4 (new I2) */ \
+	xmm0 += temp2;			/* I4 = I2 + I4 (new I2) */ \
 \
+	temp2 = xmm7; \
 	xmm7 -= xmm5;			/* R1 = R1 - R3 (new R3) */ \
-	xmm5 += xmm5; /* multwo */;				/* R3 = R3 * 2 */ \
-	xmm5 += xmm7;			/* R3 = R1 + R3 (new R1) */ \
+	xmm5 += temp2;			/* R3 = R1 + R3 (new R1) */ \
 \
+	temp2 = xmm2; \
 	xmm2 -= xmm1;			/* I1 = I1 - I3 (new I3) */ \
-	xmm1 += xmm1; /* multwo */;				/* I3 = I3 * 2 */ \
-	xmm1 += xmm2;			/* I3 = I1 + I3 (new I1) */ \
+	xmm1 += temp2;			/* I3 = I1 + I3 (new I1) */ \
 \
+	temp2 = xmm7; \
 	xmm7 -= xmm4;			/* R3 = R3 - I4 (new R3) */ \
-	xmm4 += xmm4; /* multwo */;				/* I4 = I4 * 2 */ \
+	xmm4 += temp2;			/* I4 = R3 + I4 (new R4) */ \
+	temp2 = xmm2; \
 	xmm2 -= xmm6;			/* I3 = I3 - R4 (new I4) */ \
-	xmm6 += xmm6; /* multwo */;				/* R4 = R4 * 2 */ \
+	xmm6 += temp2;			/* R4 = I3 + R4 (new I3) */ \
+	temp2 = xmm5; \
 	xmm5 -= xmm3;			/* R1 = R1 - R2 (new R2) */ \
-	xmm3 += xmm3; /* multwo */;				/* R2 = R2 * 2 */ \
+	xmm3 += temp2;			/* R2 = R1 + R2 (new R1) */ \
+	temp2 = xmm1; \
 	xmm1 -= xmm0;			/* I1 = I1 - I2 (new I2) */ \
-	xmm0 += xmm0; /* multwo */;				/* I2 = I2 * 2 */ \
-	xmm4 += xmm7;			/* I4 = R3 + I4 (new R4) */ \
-	xmm6 += xmm2;			/* R4 = I3 + R4 (new I3) */ \
-	xmm3 += xmm5;			/* R2 = R1 + R2 (new R1) */ \
-	xmm0 += xmm1;			/* I2 = I1 + I2 (new I1) */ \
+	xmm0 += temp2;			/* I2 = I1 + I2 (new I1) */ \
 \
 	xptr(srcreg) = xmm3;			/* Save R1 */ \
 	xptr(srcreg+16) = xmm0;		/* Save I1 */ \
@@ -3074,7 +3079,7 @@
 \
 
 #define r4_x4c_unfft_postmult(r1, r2, r3, r4, r5, r6, r7, r8, mem3, mem4, mem7, mem8, dest1, dest2, screg, off, pre1, pre2) { \
-	vec2f64 s1, m1; \
+	vec2f64 s1, m1, temp; \
 	s1 = r7 = xptr(screg+off+0+16);	/* cosine/sine */ \
 	r7 *= r1;			/* A1 = R1 * cosine/sine */ \
 	r7 += r2;			/* A1 = A1 + I1 */ \
@@ -3121,39 +3126,39 @@
 \
 	xprefetchw(u8ptr(pre1)); \
 \
+	temp = r7; \
 	r7 -= r3;			/* R1 = R1 - R2 (new R2) */ \
-	r3 += r3; /* multwo */			/* R2 = R2 * 2 */ \
-	r3 += r7;			/* R2 = R1 + R2 (new R1) */ \
+	r3 += temp;			/* R2 = R1 + R2 (new R1) */ \
 \
+	temp = r2; \
 	r2 -= r4;			/* I1 = I1 - I2 (new I2) */ \
-	r4 += r4; /* multwo */			/* I2 = I2 * 2 */ \
-	r4 += r2;			/* I2 = I1 + I2 (new I1) */ \
+	r4 += temp;			/* I2 = I1 + I2 (new I1) */ \
 \
+	temp = r1; \
 	r1 -= r8;			/* R4 = R4 - R3 (new I4) */ \
-	r8 += r8; /* multwo */			/* R3 = R3 * 2 */ \
-	r8 += r1;			/* R3 = R4 + R3 (new R3) */ \
+	r8 += temp;			/* R3 = R4 + R3 (new R3) */ \
 \
+	temp = r6; \
 	r6 -= r5;			/* I3 = I3 - I4 (new R4) */ \
-	r5 += r5; /* multwo */			/* I4 = I4 * 2 */ \
-	r5 += r6;			/* I4 = I3 + I4 (new I3) */ \
+	r5 += temp;			/* I4 = I3 + I4 (new I3) */ \
 \
 	xprefetchw(u8ptr(pre1+pre2)); \
 \
+	temp = r7; \
 	r7 -= r6;			/* R2 = R2 - R4 (new R4) */ \
-	r6 += r6; /* multwo */			/* R4 = R4 * 2 */ \
-	r6 += r7;			/* R4 = R2 + R4 (new R2) */ \
+	r6 += temp;			/* R4 = R2 + R4 (new R2) */ \
 \
+	temp = r2; \
 	r2 -= r1;			/* I2 = I2 - I4 (new I4) */ \
-	r1 += r1; /* multwo */			/* I4 = I4 * 2 */ \
-	r1 += r2;			/* I4 = I2 + I4 (new I2) */ \
+	r1 += temp;			/* I4 = I2 + I4 (new I2) */ \
 \
+	temp = r3; \
 	r3 -= r8;			/* R1 = R1 - R3 (new R3) */ \
-	r8 += r8; /* multwo */			/* R3 = R3 * 2 */ \
-	r8 += r3;			/* R3 = R1 + R3 (final R1) */ \
+	r8 += temp;			/* R3 = R1 + R3 (final R1) */ \
 \
+	temp = r4; \
 	r4 -= r5;			/* I1 = I1 - I3 (new I3) */ \
-	r5 += r5; /* multwo */			/* I3 = I3 * 2 */ \
-	r5 += r4;			/* I3 = I1 + I3 (final I1) */ \
+	r5 += temp;			/* I3 = I1 + I3 (final I1) */ \
 \
 	dest1 = r8;			/* Save R1 */ \
 	dest2 = r5;			/* Save I1 */ \
@@ -5390,7 +5395,8 @@
 
 
 
-#define r4_x4c_simple_fft_mem(R1,R2,R3,R4,R5,R6,R7,R8,pre1,pre2) \
+#define r4_x4c_simple_fft_mem(R1,R2,R3,R4,R5,R6,R7,R8,pre1,pre2) { \
+	vec2f64 temp2; \
 	xmm0 = R1;		/* R1 */ \
 	xmm2 = R3;		/* R3 */ \
 	xmm5 = xmm0;		/* Copy R1 */ \
@@ -5418,25 +5424,26 @@
 \
 	xprefetchw(u8ptr(pre1+pre2)); \
 \
+	temp2 = xmm4; \
 	xmm4 -= xmm1;		/* I3 = I3 - R4 (final I4) */ \
-	xmm1 += xmm1; /* multwo */;			/* R4 = R4 * 2 */ \
-	xmm1 += xmm4;		/* R4 = I3 + R4 (final I3) */ \
+	xmm1 += temp2;		/* R4 = I3 + R4 (final I3) */ \
 \
+	temp2 = xmm0; \
 	xmm0 -= xmm5;		/* R3 = R3 - I4 (final R3) */ \
-	xmm5 += xmm5; /* multwo */;			/* I4 = I4 * 2 */ \
-	xmm5 += xmm0;		/* I4 = R3 + I4 (final R4) */ \
+	xmm5 += temp2;		/* I4 = R3 + I4 (final R4) */ \
 \
+	temp2 = xmm2; \
 	xmm2 -= xmm3;		/* R1 = R1 - R2 (final R2) */ \
-	xmm3 += xmm3; /* multwo */;			/* R2 = R2 * 2 */ \
-	xmm3 += xmm2;		/* R2 = R1 + R2 (final R1) */ \
+	xmm3 += temp2;		/* R2 = R1 + R2 (final R1) */ \
 \
+	temp2 = xmm6; \
 	xmm6 -= xmm7;		/* I1 = I1 - I2 (final I2) */ \
-	xmm7 += xmm7; /* multwo */;			/* I2 = I2 * 2 */ \
-	xmm7 += xmm6;		/* I2 = I1 + I2 (final I1) */ \
-\
-\
+	xmm7 += temp2;		/* I2 = I1 + I2 (final I1) */ \
+}
+
 
 #define r4_x4c_simple_fft_partial_mem(r1, r2, r3, r4, r5, r6, r7, r8, mem3, mem4, mem7, mem8, pre1, pre2) { \
+	vec2f64 temp; \
 	r3 = mem3;		/* R3 */ \
 	r8 = r3;			/* Copy R3 */ \
 	r3 += r1;			/* R3 = R1 + R3 (new R1) */ \
@@ -5459,23 +5466,23 @@
 	r8 += r6;			/* I4 = I2 + I4 (new I2) */ \
 	r6 -= m8;		/* I2 = I2 - I4 (new I4) */ \
 \
+	temp = r5; \
 	r5 -= r2;			/* I3 = I3 - R4 (final I4) */ \
-	r2 += r2; /* multwo */			/* R4 = R4 * 2 */ \
-	r2 += r5;			/* R4 = I3 + R4 (final I3) */ \
+	r2 += temp;			/* R4 = I3 + R4 (final I3) */ \
 \
 	xprefetchw(u8ptr(pre1+pre2)); \
 \
+	temp = r1; \
 	r1 -= r6;			/* R3 = R3 - I4 (final R3) */ \
-	r6 += r6; /* multwo */			/* I4 = I4 * 2 */ \
-	r6 += r1;			/* I4 = R3 + I4 (final R4) */ \
+	r6 += temp;			/* I4 = R3 + I4 (final R4) */ \
 \
+	temp = r3; \
 	r3 -= r4;			/* R1 = R1 - R2 (final R2) */ \
-	r4 += r4; /* multwo */			/* R2 = R2 * 2 */ \
-	r4 += r3;			/* R2 = R1 + R2 (final R1) */ \
+	r4 += temp;			/* R2 = R1 + R2 (final R1) */ \
 \
+	temp = r7; \
 	r7 -= r8;			/* I1 = I1 - I2 (final I2) */ \
-	r8 += r8; /* multwo */			/* I2 = I2 * 2 */ \
-	r8 += r7;			/* I2 = I1 + I2 (final I1) */ \
+	r8 += temp;			/* I2 = I1 + I2 (final I1) */ \
 }
 
 
@@ -11843,6 +11850,7 @@ vec2f64 M1=mem1, M2=mem2, M3=mem3, M4=mem4, M5=mem5, M6=mem6, M7=mem7, M8=mem8; 
 \
 
 #define r4_x4c_fft_mem(R1,R2,R3,R4,R5,R6,R7,R8,screg1,screg2,screg3,pre1,pre2,dst1,dst2) \
+	vec2f64 temp2; \
 	xmm0 = R1;		/* R1 */ \
 	xmm2 = R3;		/* R3 */ \
 	xmm0 -= xmm2;		/* R1 = R1 - R3 (new R3) */ \
@@ -11863,23 +11871,23 @@ vec2f64 M1=mem1, M2=mem2, M3=mem3, M4=mem4, M5=mem5, M6=mem6, M7=mem7, M8=mem8; 
 	xmm5 -= xmm7;		/* I2 = I2 - I4 (new I4) */ \
 	xmm7 += R6;		/* I4 = I2 + I4 (new I2) */ \
 \
+	temp2 = xmm4; \
 	xmm4 -= xmm1;		/* I3 = I3 - R4 (final I4) */ \
-	xmm1 += xmm1; /* multwo */;			/* R4 = R4 * 2 */ \
-	xmm1 += xmm4;		/* R4 = I3 + R4 (final I3) */ \
+	xmm1 += temp2;		/* R4 = I3 + R4 (final I3) */ \
 \
+	temp2 = xmm0; \
 	xmm0 -= xmm5;		/* R3 = R3 - I4 (final R3) */ \
-	xmm5 += xmm5; /* multwo */;			/* I4 = I4 * 2 */ \
-	xmm5 += xmm0;		/* I4 = R3 + I4 (final R4) */ \
+	xmm5 += temp2;		/* I4 = R3 + I4 (final R4) */ \
 \
 	xprefetchw(u8ptr(pre1)); \
 \
+	temp2 = xmm2; \
 	xmm2 -= xmm3;		/* R1 = R1 - R2 (final R2) */ \
-	xmm3 += xmm3; /* multwo */;			/* R2 = R2 * 2 */ \
-	xmm3 += xmm2;		/* R2 = R1 + R2 (final R1) */ \
+	xmm3 += temp2;		/* R2 = R1 + R2 (final R1) */ \
 \
+	temp2 = xmm6; \
 	xmm6 -= xmm7;		/* I1 = I1 - I2 (final I2) */ \
-	xmm7 += xmm7; /* multwo */;			/* I2 = I2 * 2 */ \
-	xmm7 += xmm6;		/* I2 = I1 + I2 (final I1) */ \
+	xmm7 += temp2;		/* I2 = I1 + I2 (final I1) */ \
 \
 	dst1 = xmm3;		/* Save R1 */ \
 	dst2 = xmm7;		/* Save I1 */ \

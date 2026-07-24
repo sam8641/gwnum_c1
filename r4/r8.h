@@ -3216,13 +3216,14 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 
 #endif
 
-#if 1 // best for ARM64, with 32 vector registers. Mot as good on x86_64
+#if 1 // best for ARM64, with 32 vector registers. Not as good on x86_64
 #define r8_h16r_simple_fft_part1(srcreg,d1,d2,d4,dst) { \
 	vec2f64 s00,s01,s20,s21,s40,s41,s60,s61; \
 	s00 = xptr(srcreg   ); s01 = xptr(srcreg+16   ); \
 	s40 = xptr(srcreg+d4); s41 = xptr(srcreg+d4+16); \
 	s20 = xptr(srcreg+d2); s21 = xptr(srcreg+d2+16); \
 	s60 = xptr(srcreg+d4+d2); s61 = xptr(srcreg+d4+d2+16); \
+	double temp1; \
 \
 	/* Do the 16-reals part */ \
 \
@@ -3253,22 +3254,22 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 	/* Odd level 2 */ \
 \
+	temp1 = xmm1[0]; \
 	xmm1[0] -= xmm3[0];			/* R1 = R1 - R5 (newer R5 & final R5) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm1[0];			/* R5 = R1 + R5 (newer R1) */ \
+	xmm3[0] += temp1;			/* R5 = R1 + R5 (newer R1) */ \
 \
+	temp1 = xmm5[0]; \
 	xmm5[0] -= xmm7[0];			/* R3 = R3 - R7 (newer R7 & final I5) */ \
-	xmm7[0] += xmm7[0]; /* multwo */ \
-	xmm7[0] += xmm5[0];			/* R7 = R3 + R7 (newer R3) */ \
+	xmm7[0] += temp1;			/* R7 = R3 + R7 (newer R3) */ \
 \
 						/* R9/R13 morphs into newer R9/I9 */ \
 						/* R11/R15 morphs into newer R11/I11 */ \
 \
 	/* Odd level 3 */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm7[0];			/* R1 = R1 - R3 (final R3) */ \
-	xmm7[0] += xmm7[0]; /* multwo */ \
-	xmm7[0] += xmm3[0];			/* R3 = R1 + R3 (final R1) */ \
+	xmm7[0] += temp1;			/* R3 = R1 + R3 (final R1) */ \
 \
 						/* R5/R7 morphs into final R5/I5 */ \
 \
@@ -3320,19 +3321,19 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	/* Premultipliers for odd level 3 */ \
 \
 						/* mul R11/I11 by SQRTHALF + i*SQRTHALF */ \
+	temp1 = xmm4[0]; \
 	xmm4[0] -= xmm6[0];			/* R11 = R11 - I11 */ \
-	xmm6[0] += xmm6[0]; /* multwo */ \
-	xmm6[0] += xmm4[0];			/* I11 = R11 + I11 */ \
+	xmm6[0] += temp1;			/* I11 = R11 + I11 */ \
 	xmm4[0] *= XMM_SQRTHALF1;		/* R11 = R11 * SQRTHALF */ \
 	xmm6[0] *= XMM_SQRTHALF1;		/* I11 = I11 * SQRTHALF */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm4[0];			/* R9 = R9 - R11 (final R11) */ \
-	xmm4[0] += xmm4[0]; /* multwo */ \
-	xmm4[0] += xmm0[0];			/* R9 = R9 + R11 (final R9) */ \
+	xmm4[0] += temp1;			/* R9 = R9 + R11 (final R9) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm6[0];			/* I9 = I9 - I11 (final I11) */ \
-	xmm6[0] += xmm6[0]; /* multwo */ \
-	xmm6[0] += xmm2[0];			/* I9 = I9 + I11 (final I9) */ \
+	xmm6[0] += temp1;			/* I9 = I9 + I11 (final I9) */ \
 \
 	xptr2(dst,d2) = xmm4;			/* Save R9 R5 */ \
 	xptr2(dst,d2+32) = xmm6;		/* Save I9 I5 */ \
@@ -3371,13 +3372,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 	/* Even level 2 */ \
 \
+	temp1 = xmm1[0]; \
 	xmm1[0] -= xmm3[0];			/* R2 = R2 - R6 (newer R6) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm1[0];			/* R6 = R2 + R6 (newer R2) */ \
+	xmm3[0] += temp1;			/* R6 = R2 + R6 (newer R2) */ \
 \
+	temp1 = xmm5[0]; \
 	xmm5[0] -= xmm7[0];			/* R4 = R4 - R8 (newer R8) */ \
-	xmm7[0] += xmm7[0]; /* multwo */ \
-	xmm7[0] += xmm5[0];			/* R8 = R4 + R8 (newer R4) */ \
+	xmm7[0] += temp1;			/* R8 = R4 + R8 (newer R4) */ \
 \
 						/* R10/R14 morphs into newer R10/I10 */ \
 						/* R12/R16 morphs into newer R12/I12 */ \
@@ -3412,9 +3413,9 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 	/* Even level 3 */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm7[0];			/* R2 = R2 - R4 (final R4) */ \
-	xmm7[0] += xmm7[0]; /* multwo */ \
-	xmm7[0] += xmm3[0];			/* R4 = R2 + R4 (final R2) */ \
+	xmm7[0] += temp1;			/* R4 = R2 + R4 (final R2) */ \
 \
 						/* R6/R8 morph into newer R6/I6 */ \
 \
@@ -3446,9 +3447,9 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	/* Premultipliers for even level 4 */ \
 \
 						/* mul R6/I6 by w^2 = .707 + .707i */ \
+	temp1 = xmm1[0]; \
 	xmm1[0] -= xmm5[0];			/* R6 = R6 - I6 */ \
-	xmm5[0] += xmm5[0]; /* multwo */ \
-	xmm5[0] += xmm1[0];			/* I6 = R6 + I6 */ \
+	xmm5[0] += temp1;			/* I6 = R6 + I6 */ \
 	xmm1[0] *= XMM_SQRTHALF1;		/* R6 = R6 * SQRTHALF (final R6) */ \
 	xmm5[0] *= XMM_SQRTHALF1;		/* I6 = I6 * SQRTHALF (final I6) */ \
 \
@@ -3487,13 +3488,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xmm0[1] *= xmm7[1];			/* R8 = R8 * SQRTHALF (final R8) */ \
 	xmm2[1] *= xmm7[1];			/* I8 = I8 * SQRTHALF (final I8) */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm4[0];			/* R10 = R10 - R12 (final R12) */ \
-	xmm4[0] += xmm4[0]; /* multwo */ \
-	xmm4[0] += xmm0[0];			/* R10 = R10 + R12 (final R10) */ \
+	xmm4[0] += temp1;			/* R10 = R10 + R12 (final R10) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm6[0];			/* I10 = I10 - I12 (final I12) */ \
-	xmm6[0] += xmm6[0]; /* multwo */ \
-	xmm6[0] += xmm2[0];			/* I10 = I10 + I12 (final I10) */ \
+	xmm6[0] += temp1;			/* I10 = I10 + I12 (final I10) */ \
 \
 	xptr2(dst,d2+16) = xmm4;		/* Save R10 R6 */ \
 	xptr2(dst,d2+48) = xmm6;		/* Save I10 I6 */ \
@@ -3814,13 +3815,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 ;	/* Odd level 2 */ \
 \
+	temp1 = xmm1[0]; \
 	xmm1[0] -= xmm3[0];			/* R1 = R1 - R5 (newer R5 & final R5) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm1[0];			/* R5 = R1 + R5 (newer R1) */ \
+	xmm3[0] += tmp1;			/* R5 = R1 + R5 (newer R1) */ \
 \
+	temp1 = xmm5[0]; \
 	xmm5[0] -= xmm7[0];			/* R3 = R3 - R7 (newer R7 & final I5) */ \
-	xmm7[0] += xmm7[0]; /* multwo */ \
-	xmm7[0] += xmm5[0];			/* R7 = R3 + R7 (newer R3) */ \
+	xmm7[0] += tmp1;			/* R7 = R3 + R7 (newer R3) */ \
 \
 ;						/* R9/R13 morphs into newer R9/I9 */ \
 ;						/* R11/R15 morphs into newer R11/I11 */ \
@@ -3828,27 +3829,27 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 ;	/* Premultipliers for odd level 3 */ \
 \
 ;						/* mul R11/I11 by SQRTHALF + i*SQRTHALF */ \
+	temp1 = xmm4[0]; \
 	xmm4[0] -= xmm6[0];			/* R11 = R11 - I11 */ \
-	xmm6[0] += xmm6[0]; /* multwo */ \
-	xmm6[0] += xmm4[0];			/* I11 = R11 + I11 */ \
+	xmm6[0] += tmp1;			/* I11 = R11 + I11 */ \
 	xmm4[0] *= XMM_SQRTHALF1;		/* R11 = R11 * SQRTHALF */ \
 	xmm6[0] *= XMM_SQRTHALF1;		/* I11 = I11 * SQRTHALF */ \
 \
 ;	/* Odd level 3 */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm7[0];			/* R1 = R1 - R3 (final R3) */ \
-	xmm7[0] += xmm7[0]; /* multwo */ \
-	xmm7[0] += xmm3[0];			/* R3 = R1 + R3 (final R1) */ \
+	xmm7[0] += tmp1;			/* R3 = R1 + R3 (final R1) */ \
 \
 ;						/* R5/R7 morphs into final R5/I5 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm4[0];			/* R9 = R9 - R11 (final R11) */ \
-	xmm4[0] += xmm4[0]; /* multwo */ \
-	xmm4[0] += xmm0[0];			/* R9 = R9 + R11 (final R9) */ \
+	xmm4[0] += tmp1;			/* R9 = R9 + R11 (final R9) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm6[0];			/* I9 = I9 - I11 (final I11) */ \
-	xmm6[0] += xmm6[0]; /* multwo */ \
-	xmm6[0] += xmm2[0];			/* I9 = I9 + I11 (final I9) */ \
+	xmm6[0] += tmp1;			/* I9 = I9 + I11 (final I9) */ \
 \
 	f64ptr2(dst,0) = xmm7[0];			/* Save R1 */ \
 	f64ptr2(dst,32) = xmm3[0];			/* Save R3 */ \
@@ -3887,13 +3888,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 ;	/* Even level 2 */ \
 \
+	temp1 = xmm1[0]; \
 	xmm1[0] -= xmm3[0];			/* R2 = R2 - R6 (newer R6) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm1[0];			/* R6 = R2 + R6 (newer R2) */ \
+	xmm3[0] += tmp1;			/* R6 = R2 + R6 (newer R2) */ \
 \
+	temp1 = xmm5[0]; \
 	xmm5[0] -= xmm7[0];			/* R4 = R4 - R8 (newer R8) */ \
-	xmm7[0] += xmm7[0]; /* multwo */ \
-	xmm7[0] += xmm5[0];			/* R8 = R4 + R8 (newer R4) */ \
+	xmm7[0] += tmp1;			/* R8 = R4 + R8 (newer R4) */ \
 \
 ;						/* R10/R14 morphs into newer R10/I10 */ \
 ;						/* R12/R16 morphs into newer R12/I12 */ \
@@ -3928,26 +3929,26 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 ;	/* Even level 3 */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm7[0];			/* R2 = R2 - R4 (final R4) */ \
-	xmm7[0] += xmm7[0]; /* multwo */ \
-	xmm7[0] += xmm3[0];			/* R4 = R2 + R4 (final R2) */ \
+	xmm7[0] += tmp1;			/* R4 = R2 + R4 (final R2) */ \
 \
 ;						/* R6/R8 morph into newer R6/I6 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm4[0];			/* R10 = R10 - R12 (final R12) */ \
-	xmm4[0] += xmm4[0]; /* multwo */ \
-	xmm4[0] += xmm0[0];			/* R10 = R10 + R12 (final R10) */ \
+	xmm4[0] += tmp1;			/* R10 = R10 + R12 (final R10) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm6[0];			/* I10 = I10 - I12 (final I12) */ \
-	xmm6[0] += xmm6[0]; /* multwo */ \
-	xmm6[0] += xmm2[0];			/* I10 = I10 + I12 (final I10) */ \
+	xmm6[0] += tmp1;			/* I10 = I10 + I12 (final I10) */ \
 \
 ;	/* Premultipliers for even level 4 */ \
 \
 ;						/* mul R6/I6 by w^2 = .707 + .707i */ \
+	temp1 = xmm1[0]; \
 	xmm1[0] -= xmm5[0];			/* R6 = R6 - I6 */ \
-	xmm5[0] += xmm5[0]; /* multwo */ \
-	xmm5[0] += xmm1[0];			/* I6 = R6 + I6 */ \
+	xmm5[0] += tmp1;			/* I6 = R6 + I6 */ \
 	xmm1[0] *= XMM_SQRTHALF1;		/* R6 = R6 * SQRTHALF (final R6) */ \
 	xmm5[0] *= XMM_SQRTHALF1;		/* I6 = I6 * SQRTHALF (final I6) */ \
 \
@@ -4348,7 +4349,8 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 #endif
 
 #if 1
-#define r8_h16r_simple_fft_with_square(src,d1,d2,origsrc) \
+#define r8_h16r_simple_fft_with_square(src,d1,d2,origsrc) { \
+	double temp1; \
 ;	/* Do the 16-reals part */ \
 \
 	xmm0 = xptr2(src,0);		/* R1 R1 */ \
@@ -4413,24 +4415,15 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xp_complex_square(xmm1, xmm3, xmm7);	/* Square R5/I5 R4/I4 */ \
 	xp_complex_square(xmm0, xmm2, xmm7);	/* Square R6/I6 R3/I3 */ \
 \
-	xmm1[0] -= xmm0[0];			/* R6 = R5 - R6 (new R6) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm1[0];			/* R5 = R5 + R6 (new R5) */ \
+	xmm7 = xmm1;			/* Copy R6R4 */ \
+	xmm1 -= xmm0;			/* R6R4 = R6R4 - R5R3 (new R6I4) */ \
+	xmm0 += xmm7;			/* R5R3 = R6R4 + R5R3 (new R5R3) */ \
 \
+	xmm7 = xmm3; \
+	xmm7 += xmm2;			/* I6I4 = I5I3 + I6I4 (new I5I3) */ \
 	xmm3[0] -= xmm2[0];			/* I5 = I5 - I6 (new I6) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm3[0];			/* I6 = I5 + I6 (new I5) */ \
-\
-\
-	xmm6[1] = xmm1[1];			/* Copy R4 */ \
-	xmm1[1] -= xmm0[1];			/* R4 = R4 - R3 (new I4) */ \
-	xmm0[1] += xmm6[1];			/* R3 = R4 + R3 (new R3) */ \
-\
-	xmm7[1] = xmm2[1];			/* Copy I3 */ \
 	xmm2[1] -= xmm3[1];			/* I3 = I3 - I4 (new R4) */ \
-	xmm7[1] += xmm3[1];			/* I4 = I3 + I4 (new I3) */ \
 \
-	xmm7[0] = xmm2[0]; \
 	xmm2[0] = xmm1[0]; \
 	xmm1[0] = xmm3[0]; \
 	xptr2(src,d1) = xmm0;			/* Save R5 */ \
@@ -4453,22 +4446,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xp_complex_square(xmm1, xmm3, xmm7);	/* Square R9/I9 Square R5/I5 */ \
 	xp_complex_square(xmm0, xmm2, xmm7);	/* Square R10/I10 Square R6/I6 */ \
 \
-	xmm1[0] -= xmm0[0];			/* R10 = R9 - R10 (new R10) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm1[0];			/* R9 = R9 + R10 (new R9) */ \
+	xmm7 = xmm1;			/* Copy R5 */ \
+	xmm1 -= xmm0;			/* R9R5 = R9R5 - R10R6 (new R10R6) */ \
+	xmm0 += xmm7;			/* R10R6 = R9R5 + R10R6 (new R9R5) */ \
 \
-	xmm3[0] -= xmm2[0];			/* I9 = I9 - I10 (new I10) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm3[0];			/* I10 = I9 + I10 (new I9) */ \
-\
-\
-	xmm7[1] = xmm1[1];			/* Copy R5 */ \
-	xmm1[1] -= xmm0[1];			/* R5 = R5 - R6 (new R6) */ \
-	xmm0[1] += xmm7[1];			/* R6 = R5 + R6 (new R5) */ \
-\
-	xmm7[1] = xmm3[1];			/* Copy I5 */ \
-	xmm3[1] -= xmm2[1];			/* I5 = I5 - I6 (new I6) */ \
-	xmm2[1] += xmm7[1];			/* I6 = I5 + I6 (new I5) */ \
+	xmm7 = xmm3;			/* Copy I9I5 */ \
+	xmm3 -= xmm2;			/* I9I5 = I9I5 - I10I6 (new I10I6) */ \
+	xmm2 += xmm7;			/* I10I6 = I9I5 + I10I6 (new I9I5) */ \
 \
 	xptr2(src,d2) = xmm0;		/* Save R9 R5 */ \
 	xptr2(src,d2+16) = xmm1;		/* Save R10 R6 */ \
@@ -4490,34 +4474,27 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xp_complex_square(xmm0, xmm1, xmm7);	/* Square R11/I11 Square R7/I7 */ \
 	xp_complex_square(xmm3, xmm2, xmm7);	/* Square R12/I12 Square R8/I8 */ \
 \
-	xmm3[0] -= xmm0[0];			/* R12 = R12 - R11 (new I12) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm3[0];			/* R11 = R12 + R11 (new R11) */ \
+	xmm7 = xmm3;			/* Copy R8 */ \
+	xmm3 -= xmm0;			/* R12R8 = R12R8 - R11R7 (new I12I8) */ \
+	xmm0 += xmm7;			/* R11R7 = R12R8 + R11R7 (new R11R7) */ \
 \
-	xmm1[0] -= xmm2[0];			/* I11 = I11 - I12 (new R12) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm1[0];			/* I12 = I11 + I12 (new I11) */ \
-\
-	xmm7[1] = xmm3[1];			/* Copy R8 */ \
-	xmm3[1] -= xmm0[1];			/* R8 = R8 - R7 (new I8) */ \
-	xmm0[1] += xmm7[1];			/* R7 = R8 + R7 (new R7) */ \
-\
-	xmm7[1] = xmm1[1];			/* Copy I7 */ \
-	xmm1[1] -= xmm2[1];			/* I7 = I7 - I8 (new R8) */ \
-	xmm2[1] += xmm7[1];			/* I8 = I7 + I8 (new I7) */ \
+	xmm7 = xmm1;			/* Copy I7 */ \
+	xmm1 -= xmm2;			/* I11I7 = I11I7 - I12I8 (new R12R8) */ \
+	xmm2 += xmm7;			/* I12I8 = I11I7 + I12I8 (new I11I7) */ \
 \
 	xptr2(src,d2+d1) = xmm0;		/* Save R11 R7 */ \
 	xptr2(src,d2+d1+16) = xmm1;		/* Save R12 R8 */ \
 	xptr2(src,d2+d1+32) = xmm2;		/* Save I11 I7 */ \
 	xptr2(src,d2+d1+48) = xmm3;		/* Save I12 I8 */ \
-
+}
 #else
 #define r8_h16r_simple_fft_with_square(src,d1,d2,origsrc) \
 	r8_h16r_simple_fft_with_square_16r(src,d1,d2,origsrc) \
 	r8_h16r_simple_fft_with_square_8c(src,d1,d2,origsrc)
 #endif
 
-#define r8_h16r_simple_fft_with_square_16r(src,d1,d2,origsrc) \
+#define r8_h16r_simple_fft_with_square_16r(src,d1,d2,origsrc) { \
+	double temp1; \
 ;	/* Do the 16-reals part */ \
 \
 	xmm1[0] = f64ptr2(src,0);			/* R1 */ \
@@ -4561,13 +4538,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xs_complex_square(xmm0[0], xmm2[0], xmm7[0]);	/* Square R5/I5 */ \
 	xs_complex_square(xmm1[0], xmm3[0], xmm7[0]);	/* Square R6/I6 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm1[0];			/* R6 = R5 - R6 (new R6) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm0[0];			/* R5 = R5 + R6 (new R5) */ \
+	xmm1[0] += temp1;			/* R5 = R5 + R6 (new R5) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm3[0];			/* I5 = I5 - I6 (new I6) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm2[0];			/* I6 = I5 + I6 (new I5) */ \
+	xmm3[0] += temp1;			/* I6 = I5 + I6 (new I5) */ \
 \
 	f64ptr2(src,d1) = xmm1[0];			/* Save R5 */ \
 	f64ptr2(src,d1+32) = xmm3[0];		/* Save I5 */ \
@@ -4589,13 +4566,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xs_complex_square(xmm0[0], xmm2[0], xmm7[0]);	/* Square R9/I9 */ \
 	xs_complex_square(xmm1[0], xmm3[0], xmm7[0]);	/* Square R10/I10 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm1[0];			/* R10 = R9 - R10 (new R10) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm0[0];			/* R9 = R9 + R10 (new R9) */ \
+	xmm1[0] += temp1;			/* R9 = R9 + R10 (new R9) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm3[0];			/* I9 = I9 - I10 (new I10) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm2[0];			/* I10 = I9 + I10 (new I9) */ \
+	xmm3[0] += temp1;			/* I10 = I9 + I10 (new I9) */ \
 \
 	f64ptr2(src,d2) = xmm1[0];			/* Save R9 */ \
 	f64ptr2(src,d2+32) = xmm3[0];		/* Save I9 */ \
@@ -4617,19 +4594,19 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xs_complex_square(xmm1[0], xmm2[0], xmm7[0]);	/* Square R11/I11 */ \
 	xs_complex_square(xmm0[0], xmm3[0], xmm7[0]);	/* Square R12/I12 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm1[0];			/* R12 = R12 - R11 (new I12) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm0[0];			/* R11 = R12 + R11 (new R11) */ \
+	xmm1[0] += temp1;			/* R11 = R12 + R11 (new R11) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm3[0];			/* I11 = I11 - I12 (new R12) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm2[0];			/* I12 = I11 + I12 (new I11) */ \
+	xmm3[0] += temp1;			/* I12 = I11 + I12 (new I11) */ \
 \
 	f64ptr2(src,d2+d1) = xmm1[0];		/* Save R11 */ \
 	f64ptr2(src,d2+d1+32) = xmm3[0];		/* Save I11 */ \
 	f64ptr2(src,d2+d1+16) = xmm2[0];		/* Save R12 */ \
 	f64ptr2(src,d2+d1+48) = xmm0[0];		/* Save I12 */ \
-
+}
 #define r8_h16r_simple_fft_with_square_8c(src,d1,d2,origsrc) \
 ;	/* Do the eight-complex part */ \
 \
@@ -4749,7 +4726,7 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 
 #if 1
 #define r8_h16r_simple_unfft(src,dstreg,d1,d2) { \
-\
+	double temp1; \
 	vec2f64 m0,m1,m2,m3,m4,m5,m6,m7; \
 	m0 = xptr2(src,0); 			/* R1 R1 */ \
 	m1 = xptr2(src,32); 		/* R3 I1 */ \
@@ -4769,59 +4746,59 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xmm0[0] = m6[0]; 		/* R11 */ \
 	xmm2[0] = m7[0]; 		/* I11 */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm3[0];			/* R1 = R1 - R3 (new R3) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm7[0];			/* R3 = R1 + R3 (new R1) */ \
+	xmm3[0] += temp1;			/* R3 = R1 + R3 (new R1) */ \
 \
 ;						/* R5/I5 morphs into new R5/R7 */ \
 \
+	temp1 = xmm4[0]; \
 	xmm4[0] -= xmm0[0];			/* R9 = R9 - R11 (new R11) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm4[0];			/* R9 = R9 + R11 (new R9) */ \
+	xmm0[0] += temp1;			/* R9 = R9 + R11 (new R9) */ \
 \
+	temp1 = xmm6[0]; \
 	xmm6[0] -= xmm2[0];			/* I9 = I9 - I11 (new I11) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm6[0];			/* I9 = I9 + I11 (new I9) */ \
+	xmm2[0] += temp1;			/* I9 = I9 + I11 (new I9) */ \
 \
 ;	/* Premultipliers for odd level 3 */ \
 \
 ;						/* mul R11/I11 by SQRTHALF - i*SQRTHALF */ \
+	temp1 = xmm6[0]; \
 	xmm6[0] -= xmm4[0];			/* I11 = I11 - R11 */ \
-	xmm4[0] += xmm4[0]; /* multwo */ \
-	xmm4[0] += xmm6[0];			/* R11 = I11 + R11 */ \
+	xmm4[0] += temp1;			/* R11 = I11 + R11 */ \
 	xmm6[0] *= XMM_SQRTHALF1;		/* I11 = I11 * SQRTHALF */ \
 	xmm4[0] *= XMM_SQRTHALF1;		/* R11 = R11 * SQRTHALF */ \
 \
 ;	/* Odd level 2 */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm1[0];			/* R1 = R1 - R5 (newer R5) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm3[0];			/* R5 = R1 + R5 (newer R1) */ \
+	xmm1[0] += temp1;			/* R5 = R1 + R5 (newer R1) */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm5[0];			/* R3 = R3 - R7 (newer R7) */ \
-	xmm5[0] += xmm5[0]; /* multwo */ \
-	xmm5[0] += xmm7[0];			/* R7 = R3 + R7 (newer R3) */ \
+	xmm5[0] += temp1;			/* R7 = R3 + R7 (newer R3) */ \
 \
 ;						/* R9/I9 morphs into newer R9/R13 */ \
 ;						/* R11/I11 morphs into newer R11/R15 */ \
 \
 ;	/* Odd level 1 */ \
 \
+	temp1 = xmm1[0]; \
 	xmm1[0] -= xmm0[0];			/* R1 = R1 - R9 (new R9) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm1[0];			/* R9 = R1 + R9 (new R1) */ \
+	xmm0[0] += temp1;			/* R9 = R1 + R9 (new R1) */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm2[0];			/* R5 = R5 - R13 (new R13) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm3[0];			/* R13 = R5 + R13 (new R5) */ \
+	xmm2[0] += temp1;			/* R13 = R5 + R13 (new R5) */ \
 \
+	temp1 = xmm5[0]; \
 	xmm5[0] -= xmm4[0];			/* R3 = R3 - R11 (new R11) */ \
-	xmm4[0] += xmm4[0]; /* multwo */ \
-	xmm4[0] += xmm5[0];			/* R11 = R3 + R11 (new R3) */ \
+	xmm4[0] += temp1;			/* R11 = R3 + R11 (new R3) */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm6[0];			/* R7 = R7 - R15 (new R15) */ \
-	xmm6[0] += xmm6[0]; /* multwo */ \
-	xmm6[0] += xmm7[0];			/* R15 = R7 + R15 (new R7) */ \
+	xmm6[0] += temp1;			/* R15 = R7 + R15 (new R7) */ \
 \
 	xmm6[1] = m0[1];		/* R1 */ \
 	xmm2[1] = m2[1];		/* R3 */ \
@@ -4889,9 +4866,9 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 				/* mul R6/I6 by w^2 = .707 - .707i */ \
 	xmm1[0] = m2[0]; 		/* R6 */ \
 	xmm5[0] = m3[0]; 		/* I6 */ \
+	temp1 = xmm5[0]; \
 	xmm5[0] -= xmm1[0];			/* I6 = I6 - R6 */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm5[0];			/* R6 = I6 + R6 */ \
+	xmm1[0] += temp1;			/* R6 = I6 + R6 */ \
 	xmm5[0] *= XMM_SQRTHALF1;		/* I6 = I6 * SQRTHALF */ \
 	xmm1[0] *= XMM_SQRTHALF1;		/* R6 = R6 * SQRTHALF */ \
 \
@@ -4904,19 +4881,19 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xmm0[0] = m6[0]; 		/* R12 */ \
 	xmm2[0] = m7[0]; 		/* I12 */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm3[0];			/* R2 = R2 - R4 (new R4) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm7[0];			/* R4 = R2 + R4 (new R2) */ \
+	xmm3[0] += temp1;			/* R4 = R2 + R4 (new R2) */ \
 \
 ;						/* R6/I6 morph into new R6/R8 */ \
 \
+	temp1 = xmm4[0]; \
 	xmm4[0] -= xmm0[0];			/* R10 = R10 - R12 (new R12) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm4[0];			/* R10 = R10 + R12 (new R10) */ \
+	xmm0[0] += temp1;			/* R10 = R10 + R12 (new R10) */ \
 \
+	temp1 = xmm6[0]; \
 	xmm6[0] -= xmm2[0];			/* I10 = I10 - I12 (new I12) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm6[0];			/* I10 = I10 + I12 (new I10) */ \
+	xmm2[0] += temp1;			/* I10 = I10 + I12 (new I10) */ \
 \
 ;	/* Premultipliers for even level 3 */ \
 \
@@ -4948,34 +4925,34 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 ;	/* Even level 2 */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm1[0];			/* R2 = R2 - R6 (newer R6) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm3[0];			/* R6 = R2 + R6 (newer R2) */ \
+	xmm1[0] += temp1;			/* R6 = R2 + R6 (newer R2) */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm5[0];			/* R4 = R4 - R8 (newer R8) */ \
-	xmm5[0] += xmm5[0]; /* multwo */ \
-	xmm5[0] += xmm7[0];			/* R8 = R4 + R8 (newer R4) */ \
+	xmm5[0] += temp1;			/* R8 = R4 + R8 (newer R4) */ \
 \
 ;						/* R10/I10 morphs into newer R10/R14 */ \
 ;						/* R12/I12 morphs into newer R12/R16 */ \
 \
 ;	/* Even level 1 */ \
 \
+	temp1 = xmm1[0]; \
 	xmm1[0] -= xmm0[0];			/* R2 = R2 - R10 (new R10) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm1[0];			/* R10 = R2 + R10 (new R2) */ \
+	xmm0[0] += temp1;			/* R10 = R2 + R10 (new R2) */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm2[0];			/* R6 = R6 - R14 (new R14) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm3[0];			/* R14 = R6 + R14 (new R6) */ \
+	xmm2[0] += temp1;			/* R14 = R6 + R14 (new R6) */ \
 \
+	temp1 = xmm5[0]; \
 	xmm5[0] -= xmm4[0];			/* R4 = R4 - R12 (new R12) */ \
-	xmm4[0] += xmm4[0]; /* multwo */ \
-	xmm4[0] += xmm5[0];			/* R12 = R4 + R12 (new R4) */ \
+	xmm4[0] += temp1;			/* R12 = R4 + R12 (new R4) */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm6[0];			/* R8 = R8 - R16 (new R16) */ \
-	xmm6[0] += xmm6[0]; /* multwo */ \
-	xmm6[0] += xmm7[0];			/* R16 = R8 + R16 (new R8) */ \
+	xmm6[0] += temp1;			/* R16 = R8 + R16 (new R8) */ \
 \
 \
 ;	/* multiply R6/I6 by SQRTHALF - i*SQRTHALF */ \
@@ -5053,6 +5030,7 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 #endif
 
 #define r8_h16r_simple_unfft_16r(src,dstreg,d1,d2) { \
+	double temp1; \
 	/* Do the 16-reals part */ \
 \
 	/* Premultipliers for even level 4 */ \
@@ -5060,9 +5038,9 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 						/* mul R6/I6 by w^2 = .707 - .707i */ \
 	xmm1[0] = f64ptr2(src,d1+16); 		/* R6 */ \
 	xmm5[0] = f64ptr2(src,d1+48); 		/* I6 */ \
+	temp1 = xmm5[0]; \
 	xmm5[0] -= xmm1[0];			/* I6 = I6 - R6 */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm5[0];			/* R6 = I6 + R6 */ \
+	xmm1[0] += temp1;			/* R6 = I6 + R6 */ \
 	xmm5[0] *= XMM_SQRTHALF1;		/* I6 = I6 * SQRTHALF */ \
 	xmm1[0] *= XMM_SQRTHALF1;		/* R6 = R6 * SQRTHALF */ \
 \
@@ -5075,19 +5053,19 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xmm0[0] = f64ptr2(src,d2+d1+16); 		/* R12 */ \
 	xmm2[0] = f64ptr2(src,d2+d1+48); 		/* I12 */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm3[0];			/* R2 = R2 - R4 (new R4) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm7[0];			/* R4 = R2 + R4 (new R2) */ \
+	xmm3[0] += temp1;			/* R4 = R2 + R4 (new R2) */ \
 \
 ;						/* R6/I6 morph into new R6/R8 */ \
 \
+	temp1 = xmm4[0]; \
 	xmm4[0] -= xmm0[0];			/* R10 = R10 - R12 (new R12) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm4[0];			/* R10 = R10 + R12 (new R10) */ \
+	xmm0[0] += temp1;			/* R10 = R10 + R12 (new R10) */ \
 \
+	temp1 = xmm6[0]; \
 	xmm6[0] -= xmm2[0];			/* I10 = I10 - I12 (new I12) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm6[0];			/* I10 = I10 + I12 (new I10) */ \
+	xmm2[0] += temp1;			/* I10 = I10 + I12 (new I10) */ \
 \
 ;	/* Premultipliers for even level 3 */ \
 \
@@ -5119,34 +5097,34 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 ;	/* Even level 2 */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm1[0];			/* R2 = R2 - R6 (newer R6) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm3[0];			/* R6 = R2 + R6 (newer R2) */ \
+	xmm1[0] += temp1;			/* R6 = R2 + R6 (newer R2) */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm5[0];			/* R4 = R4 - R8 (newer R8) */ \
-	xmm5[0] += xmm5[0]; /* multwo */ \
-	xmm5[0] += xmm7[0];			/* R8 = R4 + R8 (newer R4) */ \
+	xmm5[0] += temp1;			/* R8 = R4 + R8 (newer R4) */ \
 \
 ;						/* R10/I10 morphs into newer R10/R14 */ \
 ;						/* R12/I12 morphs into newer R12/R16 */ \
 \
 ;	/* Even level 1 */ \
 \
+	temp1 = xmm1[0]; \
 	xmm1[0] -= xmm0[0];			/* R2 = R2 - R10 (new R10) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm1[0];			/* R10 = R2 + R10 (new R2) */ \
+	xmm0[0] += temp1;			/* R10 = R2 + R10 (new R2) */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm2[0];			/* R6 = R6 - R14 (new R14) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm3[0];			/* R14 = R6 + R14 (new R6) */ \
+	xmm2[0] += temp1;			/* R14 = R6 + R14 (new R6) */ \
 \
+	temp1 = xmm5[0]; \
 	xmm5[0] -= xmm4[0];			/* R4 = R4 - R12 (new R12) */ \
-	xmm4[0] += xmm4[0]; /* multwo */ \
-	xmm4[0] += xmm5[0];			/* R12 = R4 + R12 (new R4) */ \
+	xmm4[0] += temp1;			/* R12 = R4 + R12 (new R4) */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm6[0];			/* R8 = R8 - R16 (new R16) */ \
-	xmm6[0] += xmm6[0]; /* multwo */ \
-	xmm6[0] += xmm7[0];			/* R16 = R8 + R16 (new R8) */ \
+	xmm6[0] += temp1;			/* R16 = R8 + R16 (new R8) */ \
 \
 	f64ptr(dstreg+d1+32) = xmm1[0];		/* R10 */ \
 	f64ptr(dstreg+d1) = xmm0[0];		/* R2 */ \
@@ -5168,59 +5146,59 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xmm0[0] = f64ptr2(src,d2+d1); 		/* R11 */ \
 	xmm2[0] = f64ptr2(src,d2+d1+32); 		/* I11 */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm3[0];			/* R1 = R1 - R3 (new R3) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm7[0];			/* R3 = R1 + R3 (new R1) */ \
+	xmm3[0] += temp1;			/* R3 = R1 + R3 (new R1) */ \
 \
 ;						/* R5/I5 morphs into new R5/R7 */ \
 \
+	temp1 = xmm4[0]; \
 	xmm4[0] -= xmm0[0];			/* R9 = R9 - R11 (new R11) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm4[0];			/* R9 = R9 + R11 (new R9) */ \
+	xmm0[0] += temp1;			/* R9 = R9 + R11 (new R9) */ \
 \
+	temp1 = xmm6[0]; \
 	xmm6[0] -= xmm2[0];			/* I9 = I9 - I11 (new I11) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm6[0];			/* I9 = I9 + I11 (new I9) */ \
+	xmm2[0] += temp1;			/* I9 = I9 + I11 (new I9) */ \
 \
 ;	/* Premultipliers for odd level 3 */ \
 \
 ;						/* mul R11/I11 by SQRTHALF - i*SQRTHALF */ \
+	temp1 = xmm6[0]; \
 	xmm6[0] -= xmm4[0];			/* I11 = I11 - R11 */ \
-	xmm4[0] += xmm4[0]; /* multwo */ \
-	xmm4[0] += xmm6[0];			/* R11 = I11 + R11 */ \
+	xmm4[0] += temp1;			/* R11 = I11 + R11 */ \
 	xmm6[0] *= XMM_SQRTHALF1;		/* I11 = I11 * SQRTHALF */ \
 	xmm4[0] *= XMM_SQRTHALF1;		/* R11 = R11 * SQRTHALF */ \
 \
 ;	/* Odd level 2 */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm1[0];			/* R1 = R1 - R5 (newer R5) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm3[0];			/* R5 = R1 + R5 (newer R1) */ \
+	xmm1[0] += temp1;			/* R5 = R1 + R5 (newer R1) */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm5[0];			/* R3 = R3 - R7 (newer R7) */ \
-	xmm5[0] += xmm5[0]; /* multwo */ \
-	xmm5[0] += xmm7[0];			/* R7 = R3 + R7 (newer R3) */ \
+	xmm5[0] += temp1;			/* R7 = R3 + R7 (newer R3) */ \
 \
 ;						/* R9/I9 morphs into newer R9/R13 */ \
 ;						/* R11/I11 morphs into newer R11/R15 */ \
 \
 ;	/* Odd level 1 */ \
 \
+	temp1 = xmm1[0]; \
 	xmm1[0] -= xmm0[0];			/* R1 = R1 - R9 (new R9) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm1[0];			/* R9 = R1 + R9 (new R1) */ \
+	xmm0[0] += temp1;			/* R9 = R1 + R9 (new R1) */ \
 \
+	temp1 = xmm3[0]; \
 	xmm3[0] -= xmm2[0];			/* R5 = R5 - R13 (new R13) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm3[0];			/* R13 = R5 + R13 (new R5) */ \
+	xmm2[0] += temp1;			/* R13 = R5 + R13 (new R5) */ \
 \
+	temp1 = xmm5[0]; \
 	xmm5[0] -= xmm4[0];			/* R3 = R3 - R11 (new R11) */ \
-	xmm4[0] += xmm4[0]; /* multwo */ \
-	xmm4[0] += xmm5[0];			/* R11 = R3 + R11 (new R3) */ \
+	xmm4[0] += temp1;			/* R11 = R3 + R11 (new R3) */ \
 \
+	temp1 = xmm7[0]; \
 	xmm7[0] -= xmm6[0];			/* R7 = R7 - R15 (new R15) */ \
-	xmm6[0] += xmm6[0]; /* multwo */ \
-	xmm6[0] += xmm7[0];			/* R15 = R7 + R15 (new R7) */ \
+	xmm6[0] += temp1;			/* R15 = R7 + R15 (new R7) */ \
 \
 	f64ptr(dstreg+32) = xmm1[0];		/* R9 */ \
 	f64ptr(dstreg) = xmm0[0];		/* R1 */ \
@@ -5475,16 +5453,16 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xmm1[0] = xmm4[0]; xmm0[1] = xmm4[1]; \
 	xmm3[0] = xmm5[0]; xmm1[1] = xmm5[1]; \
 \
+	xmm7[0] = xmm1[0]; \
 	xmm1[0] -= xmm0[0];			/* R6 = R5 - R6 (new R6) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm0[0] += xmm1[0];			/* R5 = R5 + R6 (new R5) */ \
+	xmm0[0] += xmm7[0];			/* R5 = R5 + R6 (new R5) */ \
 	xmm7[1] = xmm3[1];			/* Copy R4 */ \
 	xmm3[1] -= xmm0[1];			/* R4 = R4 - R3 (new I4) */ \
 	xmm0[1] += xmm7[1];			/* R3 = R4 + R3 (new R3) */ \
 \
+	xmm7[0] = xmm3[0]; \
 	xmm3[0] -= xmm2[0];			/* I5 = I5 - I6 (new I6) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm2[0] += xmm3[0];			/* I6 = I5 + I6 (new I5) */ \
+	xmm2[0] += xmm7[0];			/* I6 = I5 + I6 (new I5) */ \
 	xmm7[1] = xmm1[1];			/* Copy I3 */ \
 	xmm1[1] -= xmm2[1];			/* I3 = I3 - I4 (new R4) */ \
 	xmm2[1] += xmm7[1];			/* I4 = I3 + I4 (new I3) */ \
@@ -5511,14 +5489,10 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 	xmm7 = xmm1;			/* Copy R5 */ \
 	xmm1 -= xmm0;			/* R10R5 = R9R5 - R10R6 (new R10 R6) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm7[0] = xmm1[0]; \
 	xmm0 += xmm7;			/* R9R6 = R9R5 + R10R6 (new R9 R5) */ \
 \
 	xmm7 = xmm3;			/* Copy I5 */ \
 	xmm3 -= xmm2;			/* I9I5 = I9I5 - I10I6 (new I10 I6) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm7[0] = xmm3[0]; \
 	xmm2 += xmm7;			/* I10I6 = I9I5 + I10I6 (new I9 I5) */ \
 \
 	xptr2(src,d2   ) = xmm0;		/* Save R9 */ \
@@ -5543,14 +5517,10 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 	xmm7 = xmm3;			/* Copy R8 */ \
 	xmm3 -= xmm0;			/* R12R8 = R12R8 - R11R7 (new I12 I7) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm7[0] = xmm3[0]; \
 	xmm0 += xmm7;			/* R11R7 = R12R8 + R11R7 (new R11 R7) */ \
 \
 	xmm7 = xmm1;			/* Copy I7 */ \
 	xmm1 -= xmm2;			/* I11I7 = I11I7 - I12I8 (new R12 R8) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm7[0] = xmm1[0]; \
 	xmm2 += xmm7;			/* I12I8 = I11I7 + I12I8 (new I11 I7) */ \
 \
 	xptr2(src,d2+d1) = xmm0;		/* Save R11 R7 */ \
@@ -5565,7 +5535,8 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	r8_h16r_simple_fft_with_mult_8c(src,altsrc,d1,d2,origsrc)
 #endif
 
-#define r8_h16r_simple_fft_with_mult_16r(src,altsrc,d1,d2,origsrc) \
+#define r8_h16r_simple_fft_with_mult_16r(src,altsrc,d1,d2,origsrc) { \
+	double temp1; \
 ;	/* Do the 16-reals part */ \
 \
 	xmm1[0] = f64ptr2(src,0);			/* R1 */ \
@@ -5609,13 +5580,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xs_complex_mult(xmm0[0], xmm2[0], f64ptr(altsrc+d1), f64ptr(altsrc+d1+32), xmm6[0], xmm7[0]); /* Mult R5/I5 */ \
 	xs_complex_mult(xmm1[0], xmm3[0], f64ptr(altsrc+d1+16), f64ptr(altsrc+d1+48), xmm6[0], xmm7[0]); /* Mult R6/I6 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm1[0];			/* R6 = R5 - R6 (new R6) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm0[0];			/* R5 = R5 + R6 (new R5) */ \
+	xmm1[0] += temp1;			/* R5 = R5 + R6 (new R5) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm3[0];			/* I5 = I5 - I6 (new I6) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm2[0];			/* I6 = I5 + I6 (new I5) */ \
+	xmm3[0] += temp1;			/* I6 = I5 + I6 (new I5) */ \
 \
 	f64ptr2(src,d1) = xmm1[0];			/* Save R5 */ \
 	f64ptr2(src,d1+32) = xmm3[0];		/* Save I5 */ \
@@ -5637,13 +5608,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xs_complex_mult(xmm0[0], xmm2[0], f64ptr(altsrc+d2), f64ptr(altsrc+d2+32), xmm6[0], xmm7[0]); /* Mult R9/I9 */ \
 	xs_complex_mult(xmm1[0], xmm3[0], f64ptr(altsrc+d2+16), f64ptr(altsrc+d2+48), xmm6[0], xmm7[0]); /* Mult R10/I10 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm1[0];			/* R10 = R9 - R10 (new R10) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm0[0];			/* R9 = R9 + R10 (new R9) */ \
+	xmm1[0] += temp1;			/* R9 = R9 + R10 (new R9) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm3[0];			/* I9 = I9 - I10 (new I10) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm2[0];			/* I10 = I9 + I10 (new I9) */ \
+	xmm3[0] += temp1;			/* I10 = I9 + I10 (new I9) */ \
 \
 	f64ptr2(src,d2) = xmm1[0];			/* Save R9 */ \
 	f64ptr2(src,d2+32) = xmm3[0];		/* Save I9 */ \
@@ -5665,19 +5636,19 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xs_complex_mult(xmm1[0], xmm2[0], f64ptr(altsrc+d2+d1), f64ptr(altsrc+d2+d1+32), xmm6[0], xmm7[0]); /* Mult R11/I11 */ \
 	xs_complex_mult(xmm0[0], xmm3[0], f64ptr(altsrc+d2+d1+16), f64ptr(altsrc+d2+d1+48), xmm6[0], xmm7[0]); /* Mult R12/I12 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm1[0];			/* R12 = R12 - R11 (new I12) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm0[0];			/* R11 = R12 + R11 (new R11) */ \
+	xmm1[0] += temp1;			/* R11 = R12 + R11 (new R11) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm3[0];			/* I11 = I11 - I12 (new R12) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm2[0];			/* I12 = I11 + I12 (new I11) */ \
+	xmm3[0] += temp1;			/* I12 = I11 + I12 (new I11) */ \
 \
 	f64ptr2(src,d2+d1) = xmm1[0];		/* Save R11 */ \
 	f64ptr2(src,d2+d1+32) = xmm3[0];		/* Save I11 */ \
 	f64ptr2(src,d2+d1+16) = xmm2[0];		/* Save R12 */ \
 	f64ptr2(src,d2+d1+48) = xmm0[0];		/* Save I12 */ \
-
+}
 #define r8_h16r_simple_fft_with_mult_8c(src,altsrc,d1,d2,origsrc) \
 ;	/* Do the eight-complex part */ \
 \
@@ -5833,6 +5804,7 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 
 #if 1
 #define r8_h16r_simple_fft_with_mulf(srcreg,d1,d2,dst) { \
+	double temp1; \
 	/*uintptr_t src_rbx = srcreg+rbx;*/ \
 	/*uintptr_t src_rbp = srcreg+rbp;*/ \
 	xmm1 = xptr(src_rbx);	/* R1 R1 */ \
@@ -5880,13 +5852,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xp_complex_mult(xmm0, xmm2, xptr(src_rbp+d1), xptr(src_rbp+d1+32), xmm6, xmm7); /* Mult R5/I5 Mult R3/I3 */ \
 	xp_complex_mult(xmm1, xmm3, xptr(src_rbp+d1+16), xptr(src_rbp+d1+48), xmm6, xmm7); /* Mult R6/I6 Mult R4/I4 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm1[0];			/* R6 = R5 - R6 (new R6) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm0[0];			/* R5 = R5 + R6 (new R5) */ \
+	xmm1[0] += temp1;			/* R5 = R5 + R6 (new R5) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm3[0];			/* I5 = I5 - I6 (new I6) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm2[0];			/* I6 = I5 + I6 (new I5) */ \
+	xmm3[0] += temp1;			/* I6 = I5 + I6 (new I5) */ \
 \
 	xmm6[1] = xmm1[1];			/* Copy R4 */ \
 	xmm1[1] -= xmm0[1];			/* R4 = R4 - R3 (new I4) */ \
@@ -5913,14 +5885,10 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 	xmm7 = xmm1;			/* Copy R5 */ \
 	xmm1 -= xmm0;			/* R10R5 = R9R5 - R10R6 (new R10 R6) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm7[0] = xmm1[0]; \
 	xmm0 += xmm7;			/* R9R6 = R9R5 + R10R6 (new R9 R5) */ \
 \
 	xmm7 = xmm3;			/* Copy I5 */ \
 	xmm3 -= xmm2;			/* I9I5 = I9I5 - I10I6 (new I10 I6) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm7[0] = xmm3[0]; \
 	xmm2 += xmm7;			/* I10I6 = I9I5 + I10I6 (new I9 I5) */ \
 \
 	xptr2(dst,d2   ) = xmm0;		/* Save R9 R5 */ \
@@ -5938,14 +5906,10 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 	xmm7 = xmm3;			/* Copy R8 */ \
 	xmm3 -= xmm0;			/* R12R8 = R12R8 - R11R7 (new I12 I7) */ \
-	xmm0[0] += xmm0[0]; /* multwo */ \
-	xmm7[0] = xmm3[0]; \
 	xmm0 += xmm7;			/* R11R7 = R12R8 + R11R7 (new R11 R7) */ \
 \
 	xmm7 = xmm1;			/* Copy I7 */ \
 	xmm1 -= xmm2;			/* I11I7 = I11I7 - I12I8 (new R12 R8) */ \
-	xmm2[0] += xmm2[0]; /* multwo */ \
-	xmm7[0] = xmm1[0]; \
 	xmm2 += xmm7;			/* I12I8 = I11I7 + I12I8 (new I11 I7) */ \
 \
 	xptr2(dst,d2+d1   ) = xmm0;		/* Save R11 R7 */ \
@@ -5993,13 +5957,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xs_complex_mult(xmm0[0], xmm2[0], f64ptr(srcreg+d1+rbp), f64ptr(srcreg+d1+32+rbp), xmm6[0], xmm7[0]); /* Mult R5/I5 */ \
 	xs_complex_mult(xmm1[0], xmm3[0], f64ptr(srcreg+d1+16+rbp), f64ptr(srcreg+d1+48+rbp), xmm6[0], xmm7[0]); /* Mult R6/I6 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm1[0];			/* R6 = R5 - R6 (new R6) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm0[0];			/* R5 = R5 + R6 (new R5) */ \
+	xmm1[0] += temp1;			/* R5 = R5 + R6 (new R5) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm3[0];			/* I5 = I5 - I6 (new I6) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm2[0];			/* I6 = I5 + I6 (new I5) */ \
+	xmm3[0] += temp1;			/* I6 = I5 + I6 (new I5) */ \
 \
 	f64ptr2(dst,d1) = xmm1[0];			/* Save R5 */ \
 	f64ptr2(dst,d1+32) = xmm3[0];		/* Save I5 */ \
@@ -6014,13 +5978,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xs_complex_mult(xmm0[0], xmm2[0], f64ptr(srcreg+d2+rbp), f64ptr(srcreg+d2+32+rbp), xmm6[0], xmm7[0]); /* Mult R9/I9 */ \
 	xs_complex_mult(xmm1[0], xmm3[0], f64ptr(srcreg+d2+16+rbp), f64ptr(srcreg+d2+48+rbp), xmm6[0], xmm7[0]); /* Mult R10/I10 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm1[0];			/* R10 = R9 - R10 (new R10) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm0[0];			/* R9 = R9 + R10 (new R9) */ \
+	xmm1[0] += temp1;			/* R9 = R9 + R10 (new R9) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm3[0];			/* I9 = I9 - I10 (new I10) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm2[0];			/* I10 = I9 + I10 (new I9) */ \
+	xmm3[0] += temp1;			/* I10 = I9 + I10 (new I9) */ \
 \
 	f64ptr2(dst,d2) = xmm1[0];			/* Save R9 */ \
 	f64ptr2(dst,d2+32) = xmm3[0];		/* Save I9 */ \
@@ -6035,13 +5999,13 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	xs_complex_mult(xmm1[0], xmm2[0], f64ptr(srcreg+d2+d1+rbp), f64ptr(srcreg+d2+d1+32+rbp), xmm6[0], xmm7[0]); /* Mult R11/I11 */ \
 	xs_complex_mult(xmm0[0], xmm3[0], f64ptr(srcreg+d2+d1+16+rbp), f64ptr(srcreg+d2+d1+48+rbp), xmm6[0], xmm7[0]); /* Mult R12/I12 */ \
 \
+	temp1 = xmm0[0]; \
 	xmm0[0] -= xmm1[0];			/* R12 = R12 - R11 (new I12) */ \
-	xmm1[0] += xmm1[0]; /* multwo */ \
-	xmm1[0] += xmm0[0];			/* R11 = R12 + R11 (new R11) */ \
+	xmm1[0] += temp1;			/* R11 = R12 + R11 (new R11) */ \
 \
+	temp1 = xmm2[0]; \
 	xmm2[0] -= xmm3[0];			/* I11 = I11 - I12 (new R12) */ \
-	xmm3[0] += xmm3[0]; /* multwo */ \
-	xmm3[0] += xmm2[0];			/* I12 = I11 + I12 (new I11) */ \
+	xmm3[0] += temp1;			/* I12 = I11 + I12 (new I11) */ \
 \
 	f64ptr2(dst,d2+d1) = xmm1[0];		/* Save R11 */ \
 	f64ptr2(dst,d2+d1+32) = xmm3[0];		/* Save I11 */ \
