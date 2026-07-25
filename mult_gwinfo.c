@@ -4,12 +4,13 @@
 static const unsigned int VERSION_NUMBER1 =
 	GWNUM_MAJOR_VERSION * 100 + GWNUM_MINOR_VERSION;
 
-extern int xjmptable[];
-extern int xjmptablep[];
-extern int yjmptable[];
-extern int yjmptablep[];
-extern int zjmptable[];
-extern int zjmptablep[];
+#define VIS_INTERN __attribute__((visibility("internal")))
+VIS_INTERN extern int xjmptable[];
+VIS_INTERN extern int xjmptablep[];
+VIS_INTERN extern int yjmptable[];
+VIS_INTERN extern int yjmptablep[];
+VIS_INTERN extern int zjmptable[];
+VIS_INTERN extern int zjmptablep[];
 
 struct gwinfo1s {
 	void *d0,*d1,*d2,*d3,*d4,*d5,*d6,*d7;

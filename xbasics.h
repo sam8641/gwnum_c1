@@ -233,5 +233,19 @@ if(g->ZERO_PADDED_FFT != 0) {	/* Is this a zero-padded FFT? */ \
 	xp_complex_mult(r7, r8, xptr(m7+rbp), xptr(m8+rbp), tmp8, tmp9); \
 }
 
+#define xs4c_mulf_r(r1,r2,r3,r4,r5,r6,r7,r8,m1,m2,m3,m4,m5,m6,m7,m8) { \
+	double tmp8, tmp9; \
+	xs_complex_mult(r1, r2, m1, m2, tmp8, tmp9); \
+	xs_complex_mult(r3, r4, m3, m4, tmp8, tmp9); \
+	xs_complex_mult(r5, r6, m5, m6, tmp8, tmp9); \
+	xs_complex_mult(r7, r8, m7, m8, tmp8, tmp9); \
+}
+#define xp4c_mulf_r(r1,r2,r3,r4,r5,r6,r7,r8,m1,m2,m3,m4,m5,m6,m7,m8) { \
+	vec2f64 tmp8, tmp9; \
+	xp_complex_mult(r1, r2, m1, m2, tmp8, tmp9); \
+	xp_complex_mult(r3, r4, m3, m4, tmp8, tmp9); \
+	xp_complex_mult(r5, r6, m5, m6, tmp8, tmp9); \
+	xp_complex_mult(r7, r8, m7, m8, tmp8, tmp9); \
+}
 
 
