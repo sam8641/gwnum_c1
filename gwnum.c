@@ -63,7 +63,11 @@ int	gwclone_lock_initialized = FALSE;	/* Whether clone mutex is initialized */
 /* giants library.  Prime95 will set this routine pointer so that gwnum */
 /* code can cheat while keeping the gwnum library interface clean. */
 
-void (*OutputBothRoutine)(int, const char *) = NULL;
+void OutputBothRoutine_default(int a, const char *c) {
+	(void)a;
+	fputs(c, stderr);
+}
+void (*OutputBothRoutine)(int, const char *) = OutputBothRoutine_default;
 #define OutputBoth(t,x)	(*OutputBothRoutine)(t,x)
 
 /* Assembly helper routines */
