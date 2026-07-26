@@ -19,6 +19,7 @@
 /* performs the final 14.322 levels of the FFT.  The results are squared, and */
 /* the first 14.322/15.322 levels of the inverse FFT are done. */
 
+// unused, not tested if this works.
 
 void r4_pass2_20480_levels_complex(struct gwasm_data *__restrict g);
 void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
@@ -26,7 +27,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 	pass2_wake_up_threads(g);
 	if(g->NEGACYCLIC_FFT == 0) {
 //void r4_pass2_20480_levels_real(struct gwasm_data *__restrict g)
-	uintptr_t rdx,rbx,rbp,rsi,rdi;
+	uintptr_t rdx,rbx,rbp,rsi,rdi,daddr;
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
 	/* We switch to the same format used in one-pass FFTs (that is, the */
@@ -35,7 +36,8 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 	/* Type 4 FFTs skip the forward FFT process */
 
 	start_timer(2);
-	rsi = (uintptr_t)g->data_addr;/* Load source address */
+	daddr = (uintptr_t)g->data_addr;/* Load source address */
+	rsi = daddr;
 	rbx = g->DIST_TO_FFTSRCARG;
 	if(g->ffttype != 4) { //xpass2_20480_levels_real_4;
 
@@ -75,7 +77,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 			}
 			rsi += -128*64+dist128;	/* Next source pointer */
 		}
-		rsi += -16*dist128;	/* Restore source pointer */
+		rsi = daddr; //rsi += -16*dist128;	/* Restore source pointer */
 		rdi += -2048*XMM_SCD2;	/* Restore sin/cos ptr */
 		rdx += -2048*XMM_HSCD2+4096*XMM_HSCD2; /* Next sin/cos ptr */
 
@@ -133,7 +135,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 			rsi += -8*dist128+16*dist128; /* Next source pointer */
 			rdi += -1024*5*XMM_SCD2;	/* Restore sin/cos ptr */
 		}
-		rsi += -5*16*dist128;	/* Restore source pointer */
+		rsi = daddr; //rsi += -5*16*dist128;	/* Restore source pointer */
 
 		/* Do FFT levels 5,6 */
 		/* */
@@ -190,7 +192,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 			rsi += -2*dist128+8*dist128; /* Next source pointer */
 			rdi += -256*20*XMM_SCD2;	/* Restore sin/cos ptr */
 		}
-		rsi += -10*8*dist128;	/* Restore source pointer */
+		rsi = daddr; //rsi += -10*8*dist128;	/* Restore source pointer */
 
 		/* Do FFT levels 7,8 */
 		/* */
@@ -242,7 +244,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 			rsi += -64*64+2*dist128;	/* Next source pointer */
 			rdi += -64*XMM_SCD2;	/* Restore sin/cos ptr */
 		}
-		rsi += -40*2*dist128;	/* Restore source pointer */
+		rsi = daddr; //rsi += -40*2*dist128;	/* Restore source pointer */
 
 		/* Do FFT levels 9,10 */
 		/* */
@@ -294,7 +296,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 			}while(--loopA & 1);
 			rsi += -2*64*64+dist128;	/* Next source pointer */
 		}
-		rsi += -80*dist128;	/* Next source pointer */
+		rsi = daddr; //rsi += -80*dist128;	/* Next source pointer */
 
 		/* Do FFT levels 11,12 */
 		/* */
@@ -346,7 +348,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 			}while(--loopA & 7);
 			rsi += -8*16*64+dist128;	/* Next source pointer */
 		}
-		rsi += -80*dist128;	/* Restore source pointer */
+		rsi = daddr; //rsi += -80*dist128;	/* Restore source pointer */
 
 		/* Do FFT levels 13,14 */
 		/* */
@@ -384,7 +386,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 					}while(--loopA & 31);
 					rsi += -32*4*64+dist128;	/* Next source pointer */
 				}
-				rsi += -80*dist128;	/* Restore source pointer */
+				//rsi += -80*dist128;	/* Restore source pointer */
 			}else{ // xpass2_20480_levels_real_1:;
 				r4_h4cl_eight_reals_four_complex_fft_final(rsi, 4*64, 64, 2*64);
 				L2prefetch128(u8ptr(rcx));
@@ -409,7 +411,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 				}while(--loopA & 31);
 				rsi += -32*4*64+dist128;	/* Next source pointer */
 			}
-			rsi += -80*dist128;	/* Restore source pointer */
+			//rsi += -80*dist128;	/* Restore source pointer */
 		}
 	}else{ // xpass2_20480_levels_real_4:;
 		rbp = g->DIST_TO_MULSRCARG;
@@ -426,8 +428,10 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 			}while(--loopA & 31);
 			rsi += -32*4*64+dist128;	/* Next source pointer */
 		}
-		rsi += -80*dist128;	/* Restore source pointer */
+		//rsi += -80*dist128;	/* Restore source pointer */
 	}
+	rsi = daddr;
+
 	/* Do inverse FFT levels 11,12 */
 	/* On input the 64-byte cache lines hold these data values: */
 	/*	0	+40K	2	+40K	4	+40K	6	+40K */
@@ -478,7 +482,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 		}while(--loopA & 15);
 		rsi += -16*8*64+dist128;	/* Next source pointer */
 	}
-	rsi += -80*dist128;	/* Restore source pointer */
+	rsi = daddr; //rsi += -80*dist128;	/* Restore source pointer */
 
 	/* Do inverse FFT levels 9,10 */
 	/* On input the 64-byte cache lines hold these data values: */
@@ -530,7 +534,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 		}while(--loopA & 3);
 		rsi += -4*32*64+dist128;	/* Next source pointer */
 	}
-	rsi += -80*dist128;	/* Restore source pointer */
+	rsi = daddr; //rsi += -80*dist128;	/* Restore source pointer */
 
 	/* Do inverse FFT levels 7,8 */
 	/* On input the 64-byte cache lines hold these data values: */
@@ -579,7 +583,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 		rsi += -32*64+dist128;	/* Next source pointer */
 		rdi += -32*XMM_SCD2;	/* Restore sin/cos ptr */
 	}
-	rsi += -80*dist128;	/* Next source pointer */
+	rsi = daddr; //rsi += -80*dist128;	/* Next source pointer */
 
 	/* Do inverse FFT levels 5,6 */
 	/* On input the 64-byte cache lines hold these data values: */
@@ -632,7 +636,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 		rsi += -128*64+4*dist128;	/* Next source pointer */
 		rdi += -128*20*XMM_SCD2;	/* Restore sin/cos ptr */
 	}
-	rsi += -20*4*dist128;	/* Next source pointer */
+	rsi = daddr; //rsi += -20*4*dist128;	/* Next source pointer */
 
 	/* Do inverse FFT levels 3,4 */
 	/* On input the 64-byte cache lines hold these data values: */
@@ -685,7 +689,7 @@ void xpass2_r4_20480_levels(struct gwasm_data *__restrict g) {
 		rsi += -4*dist128+16*dist128; /* Next source pointer */
 		rdi += -512*5*XMM_SCD2;	/* Restore sin/cos ptr */
 	}
-	rsi += -5*16*dist128;	/* Restore source pointer */
+	rsi = daddr; //rsi += -5*16*dist128;	/* Restore source pointer */
 
 	/* Do inverse FFT levels 1,2 (actually 2.322 FFT levels) */
 	/* On input the 64-byte cache lines hold these data values: */
@@ -737,12 +741,13 @@ r4_pass2_20480_levels_complex(g);
 
 void r4_pass2_20480_levels_complex(struct gwasm_data *__restrict g) {
 do{
-	uintptr_t rbx,rbp,rsi,rdi;
+	uintptr_t rbx,rbp,rsi,rdi,daddr;
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
 	/* Type 4 FFTs skip the forward FFT process */
 
-	rsi = (uintptr_t)g->data_addr;/* Load address of FFT data */
+	daddr = (uintptr_t)g->data_addr;/* Load address of FFT data */
+	rsi = daddr;
 	rbx = g->DIST_TO_FFTSRCARG;
 	if(g->ffttype != 4) { //xpass2_20480_levels_complex_4;
 
@@ -787,7 +792,7 @@ do{
 			}
 			rsi += -128*64+dist128;	/* Next source pointer */
 		}
-		rsi += -16*dist128;	/* Restore source pointer */
+		rsi = daddr; //rsi += -16*dist128;	/* Restore source pointer */
 		end_timer(3);
 
 		/* Do FFT levels 3,4 */
@@ -829,7 +834,7 @@ do{
 			rsi += -8*dist128+16*dist128; /* Next source pointer */
 			rdi += -1024*5*XMM_SCD2;	/* Restore sin/cos ptr */
 		}
-		rsi += -5*16*dist128;	/* Restore source pointer */
+		rsi = daddr; //rsi += -5*16*dist128;	/* Restore source pointer */
 		end_timer(4);
 
 		/* Do FFT levels 5,6 */
@@ -868,7 +873,7 @@ do{
 			rsi += -2*dist128+8*dist128; /* Next source pointer */
 			rdi += -256*20*XMM_SCD2;	/* Restore sin/cos ptr */
 		}
-		rsi += -10*8*dist128;	/* Restore source pointer */
+		rsi = daddr; //rsi += -10*8*dist128;	/* Restore source pointer */
 		end_timer(5);
 
 		/* Do FFT levels 7,8 */
@@ -988,7 +993,7 @@ do{
 			rbx += -4*4*XMM_SCD2;	/* Restore sine/cosine pointer */
 			rbp += -4*16*XMM_SCD2;	/* Restore sine/cosine pointer */
 		}
-		rsi += -40*2*dist128;	/* Restore source pointer */
+		rsi = daddr; //rsi += -40*2*dist128;	/* Restore source pointer */
 		end_timer(6);
 
 		/* Do FFT levels 13,14 as well as inverse FFT levels 13,14 */
@@ -1023,7 +1028,7 @@ do{
 					}
 					rsi += -32*4*64+dist128;	/* Next source pointer */
 				}
-				rsi += -80*dist128;	/* Restore source pointer */
+				//rsi += -80*dist128;	/* Restore source pointer */
 				end_timer(9);
 			}else{ // xpass2_20480_levels_complex_1:;
 				start_timer(9);
@@ -1048,7 +1053,7 @@ do{
 				}
 				rsi += -32*4*64+dist128;	/* Next source pointer */
 			}
-			rsi += -80*dist128;	/* Restore source pointer */
+			//rsi += -80*dist128;	/* Restore source pointer */
 			end_timer(9);
 		}
 	}else{ // xpass2_20480_levels_complex_4:;
@@ -1064,9 +1069,11 @@ do{
 			}
 			rsi += -32*4*64+dist128;	/* Next source pointer */
 		}
-		rsi += -80*dist128;	/* Restore source pointer */
+		//rsi += -80*dist128;	/* Restore source pointer */
 		end_timer(9);
 	}
+	rsi = daddr;
+
 	/* Do inverse FFT levels 11,12 */
 	/* On input the 64-byte cache lines hold these data values: */
 	/*	0	+40K	2	+40K	4	+40K	6	+40K */
@@ -1174,7 +1181,7 @@ do{
 		rbx += -2*4*XMM_SCD2;	/* Restore sine/cosine pointer */
 		rbp += -2*16*XMM_SCD2;	/* Restore sine/cosine pointer */
 	}
-	rsi += -80*dist128;	/* Restore source pointer */
+	rsi = daddr; //rsi += -80*dist128;	/* Restore source pointer */
 	end_timer(10);
 
 	/* Do inverse FFT levels 5,6 */
@@ -1210,7 +1217,7 @@ do{
 		rsi += -128*64+4*dist128;	/* Next source pointer */
 		rdi += -128*20*XMM_SCD2;	/* Restore sin/cos ptr */
 	}
-	rsi += -20*4*dist128;	/* Restore source pointer */
+	rsi = daddr; //rsi += -20*4*dist128;	/* Restore source pointer */
 	end_timer(13);
 
 	/* Do inverse FFT levels 3,4 */
@@ -1251,7 +1258,7 @@ do{
 		rsi += -4*dist128+16*dist128; /* Next source pointer */
 		rdi += -512*5*XMM_SCD2;	/* Restore sin/cos ptr */
 	}
-	rsi += -5*16*dist128;	/* Restore source pointer */
+	rsi = daddr; //rsi += -5*16*dist128;	/* Restore source pointer */
 	end_timer(14);
 
 	/* Do inverse FFT levels 1,2 (actually 2.322 FFT levels) */

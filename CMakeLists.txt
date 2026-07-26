@@ -69,7 +69,7 @@ r4/r4pass2_12288.c
 r4/r4pass2_12800.c
 r4/r4pass2_15360.c
 r4/r4pass2_14.c
-r4/r4pass2_20480.c
+#r4/r4pass2_20480.c
 r4/r4pass2_25600.c
 
 
