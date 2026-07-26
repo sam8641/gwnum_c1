@@ -378,7 +378,7 @@ b0b:	copy_fft_data_to_scratch(40, clm); \
 \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 20*blkdst);		/* Create prefetching pointer */ \
@@ -796,7 +796,7 @@ b0b:	copy_fft_data_to_scratch(48, clm); \
 \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 24*blkdst);		/* Create prefetch pointer */ \
@@ -1117,7 +1117,7 @@ b0b:	copy_fft_data_to_scratch(48, clm); \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
 rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 26*blkdst);		/* Create prefetching pointer */ \
@@ -1583,7 +1583,7 @@ b0b:	copy_fft_data_to_scratch(56, clm); \
 \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += +28*blkdst);		/* Create prefetching pointer */ \
@@ -2008,7 +2008,7 @@ b0b:	copy_fft_data_to_scratch(64, clm); \
 \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += +32*blkdst);		/* Create prefetching pointer */ \
@@ -2330,7 +2330,7 @@ b0b:	copy_fft_data_to_scratch(64, clm); \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
 rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 32*blkdst);		/* Create prefetching pointer */ \
@@ -2771,7 +2771,7 @@ b0b:	copy_fft_data_to_scratch(80, clm); \
 \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 40*blkdst);		/* Create prefetching pointer */ \
@@ -3198,7 +3198,7 @@ b0b:	copy_fft_data_to_scratch(96, clm); \
 \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 44*blkdst);		/* Create prefetching pointer */ \
@@ -3524,7 +3524,7 @@ b0b:	copy_fft_data_to_scratch(96, clm); \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
 rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 56*blkdst);		/* Create prefetching pointer */ \
@@ -3984,7 +3984,7 @@ b0b:	copy_fft_data_to_scratch(112, clm); \
 \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 56*blkdst);		/* Create prefetching pointer */ \
@@ -4412,7 +4412,7 @@ b0b:	copy_fft_data_to_scratch(128, clm); \
 \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 64*blkdst);		/* Create prefetching pointer */ \
@@ -4739,7 +4739,7 @@ b0b:	copy_fft_data_to_scratch(128, clm); \
 yes_fft:start_timer(21); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
 rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 64*blkdst);		/* Create prefetching pointer */ \
@@ -5220,7 +5220,7 @@ b0b:	copy_fft_data_to_scratch(160, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 60*blkdst);		/* Create prefetching pointer */ \
@@ -5736,7 +5736,7 @@ b0b:	copy_fft_data_to_scratch(192, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 116*blkdst);		/* Create prefetch pointer */ \
@@ -6148,7 +6148,7 @@ b0b:	copy_fft_data_to_scratch(192, clm); \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
 rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 104*blkdst);		/* Create prefetching pointer */ \
@@ -6691,7 +6691,7 @@ b0b:	copy_fft_data_to_scratch(224, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 72*blkdst);		/* Create prefetching pointer */ \
@@ -7208,7 +7208,7 @@ b0b:	copy_fft_data_to_scratch(256, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 128*blkdst);		/* Create prefetching pointer */ \
@@ -7613,7 +7613,7 @@ b0b:	copy_fft_data_to_scratch(256, clm); \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
 rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 128*blkdst);		/* Create prefetching pointer */ \
@@ -8140,7 +8140,7 @@ b0b:	copy_fft_data_to_scratch(320, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 170*blkdst);		/* Create prefetching pointer */ \
@@ -8620,7 +8620,7 @@ b0b:	copy_fft_data_to_scratch(384, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 186*blkdst);		/* Create prefetching pointer */ \
@@ -9095,7 +9095,7 @@ b0b:	copy_fft_data_to_scratch(384, clm); \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
 rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 208*blkdst);		/* Create prefetching pointer */ \
@@ -9584,7 +9584,7 @@ b0b:	copy_fft_data_to_scratch(448, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 162*blkdst);		/* Create prefetching pointer */ \
@@ -10133,7 +10133,7 @@ b0b:	copy_fft_data_to_scratch(512, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 256*blkdst);		/* Create prefetching pointer */ \
@@ -10600,7 +10600,7 @@ b0b:	copy_fft_data_to_scratch(512, clm); \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
 rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 256*blkdst);		/* Create prefetching pointer */ \
@@ -11166,7 +11166,7 @@ b0b:	copy_fft_data_to_scratch(640, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 337*blkdst);		/* Create prefetching pointer */ \
@@ -11781,7 +11781,7 @@ b0b:	copy_fft_data_to_scratch(768, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 394*blkdst);		/* Create prefetch pointer */ \
@@ -12282,7 +12282,7 @@ b0b:	copy_fft_data_to_scratch(768, clm); \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
 rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 400*blkdst);		/* Create prefetching pointer */ \
@@ -12906,7 +12906,7 @@ b0b:	copy_fft_data_to_scratch(896, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 426*blkdst);		/* Create prefetching pointer */ \
@@ -13531,7 +13531,7 @@ b0b:	copy_fft_data_to_scratch(1024, clm); \
 \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 522*blkdst);		/* Create prefetching pointer */ \
@@ -14030,7 +14030,7 @@ b0b:	copy_fft_data_to_scratch(1024, clm); \
 yes_fft:start_timer(22); \
 rsi = (uintptr_t)g->scratch_area;	/* Get address of scratch area */ \
 rdi = (uintptr_t)g->plus1_premults;/* Address of premultiplier table */ \
-pfing(rcx = (uintptr_t)g->data_addr); /* Load source address for prefetching */ \
+rcx = (uintptr_t)g->data_addr; /* Load source address for prefetching */ \
 pfing(rbp = (uintptr_t)g->data_prefetch);/* Set prefetch distance */ \
 pfing(rbp -= rcx); \
 pfing(rcx += 512*blkdst);		/* Create prefetching pointer */ \
