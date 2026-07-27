@@ -58,17 +58,19 @@
 gwmutex	gwclone_lock;				/* This mutex lets parent and cloned gwdatas atomicly change a set of values */
 int	gwclone_lock_initialized = FALSE;	/* Whether clone mutex is initialized */
 
+#if defined(GDEBUG) || defined(GDEBUG_MEM)
 /* When debugging gwnum and giants, I sometimes write code that "cheats" */
 /* by calling a routine that is part of prime95 rather than the gwnum and */
 /* giants library.  Prime95 will set this routine pointer so that gwnum */
 /* code can cheat while keeping the gwnum library interface clean. */
 
 void OutputBothRoutine_default(int a, const char *c) {
-	(void)a;
+	(void)a; // unused parameter
 	fputs(c, stderr);
 }
 void (*OutputBothRoutine)(int, const char *) = OutputBothRoutine_default;
 #define OutputBoth(t,x)	(*OutputBothRoutine)(t,x)
+#endif
 
 /* Assembly helper routines */
 

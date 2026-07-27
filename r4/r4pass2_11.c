@@ -37,7 +37,7 @@ void xpass2_r4_11_levels(struct gwasm_data *__restrict g) {
 	start_timer(2);
 	daddr = rsi = (uintptr_t)g->data_addr;/* Load source address */
 	rbx = g->DIST_TO_FFTSRCARG;
-	if(g->ffttype != 4) {
+	if likely(!(g->ffttype & 4)) {
 
 		/* Do FFT level 1,2 */
 		/* */
@@ -266,8 +266,8 @@ void xpass2_r4_11_levels(struct gwasm_data *__restrict g) {
 
 		/* Execute the proper middle step */
 
-		if(g->ffttype <= 2) {
-			if(g->ffttype == 2) { //xpass2_11_levels_real_2:;
+		if likely(g->ffttype & 2) {
+			if likely(!(g->ffttype & 1)) { //xpass2_11_levels_real_2:;
 				r8_h8cl_sixteen_reals_eight_complex_with_square(rsi, 8*64, 64, 2*64, 4*64);
 				loops_init_prefetch(128, 64, 1, rcx, 1, 16);
 				r8_x8cl_eight_complex_with_square_preload;
@@ -281,34 +281,34 @@ void xpass2_r4_11_levels(struct gwasm_data *__restrict g) {
 				}
 				//rsi += -8*dist128;		/* Next source pointer */
 				pfing(rcx += 128+128);		/* Skip pad bytes and the one missed prefetch */
-			}else{ //xpass2_11_levels_real_1:;
-				r8_h8cl_sixteen_reals_eight_complex_fft_final(rsi, 8*64, 64, 2*64, 4*64);
-				loops_init_prefetch(128, 128, 1, rcx, 1, 16);
-				r8_x8cl_eight_complex_fft_final_preload;
+			}else{ //xpass2_11_levels_real_3:;
+				rbp = g->DIST_TO_MULSRCARG;
+				r8_h8cl_sixteen_reals_eight_complex_with_mult(rsi, 8*64, 64, 2*64, 4*64);
+				loops_init_prefetch(128, 64, 1, rcx, 1, 16);
+				r8_x8cl_eight_complex_with_mult_preload;
+				xtouch(xptr(rcx+4096-64));		/* Preload the TLBs */
+				xtouch(xptr(rcx+2*4096-64));
 				for(unsigned int loopA = 8*16-1; loopA; ) {
-					xtouch(xptr(rcx+4096-64));		/* Load prefetch TLBs */
 					do{
-						r8_x8cl_eight_complex_fft_final(rsi, 8*64, 64, 2*64, 4*64);
+						r8_x8cl_eight_complex_with_mult(rsi, 8*64, 64, 2*64, 4*64);
 					}while(--loopA & 15);
 					rsi += -16*8*64+dist128;	/* Next source pointer */
 				}
-				goto	xpass2_11_real_done;
+				//rsi += -8*dist128;		/* Next source pointer */
+				pfing(rcx += 128+128);		/* Skip pad bytes and the one missed prefetch */
 			}
-		}else{ //xpass2_11_levels_real_3:;
-			rbp = g->DIST_TO_MULSRCARG;
-			r8_h8cl_sixteen_reals_eight_complex_with_mult(rsi, 8*64, 64, 2*64, 4*64);
-			loops_init_prefetch(128, 64, 1, rcx, 1, 16);
-			r8_x8cl_eight_complex_with_mult_preload;
-			xtouch(xptr(rcx+4096-64));		/* Preload the TLBs */
-			xtouch(xptr(rcx+2*4096-64));
+		}else{ //xpass2_11_levels_real_1:;
+			r8_h8cl_sixteen_reals_eight_complex_fft_final(rsi, 8*64, 64, 2*64, 4*64);
+			loops_init_prefetch(128, 128, 1, rcx, 1, 16);
+			r8_x8cl_eight_complex_fft_final_preload;
 			for(unsigned int loopA = 8*16-1; loopA; ) {
+				xtouch(xptr(rcx+4096-64));		/* Load prefetch TLBs */
 				do{
-					r8_x8cl_eight_complex_with_mult(rsi, 8*64, 64, 2*64, 4*64);
+					r8_x8cl_eight_complex_fft_final(rsi, 8*64, 64, 2*64, 4*64);
 				}while(--loopA & 15);
 				rsi += -16*8*64+dist128;	/* Next source pointer */
 			}
-			//rsi += -8*dist128;		/* Next source pointer */
-			pfing(rcx += 128+128);		/* Skip pad bytes and the one missed prefetch */
+			goto	xpass2_11_real_done;
 		}
 	}else{ //xpass2_11_levels_real_4:;
 		rbp = g->DIST_TO_MULSRCARG;
@@ -549,7 +549,7 @@ do{
 
 	daddr = rsi = (uintptr_t)g->data_addr;/* Load address of FFT data */
 	rbx = g->DIST_TO_FFTSRCARG;
-	if(g->ffttype != 4) {
+	if likely(!(g->ffttype & 4)) {
 
 		/* Do FFT levels 1,2 */
 		/* */
@@ -745,8 +745,8 @@ do{
 
 		/* Execute the right middle step */
 
-		if(g->ffttype <= 2) {
-			if(g->ffttype == 2) { //xpass2_11_levels_complex_2:;
+		if likely(g->ffttype & 2) {
+			if likely(!(g->ffttype & 1)) { //xpass2_11_levels_complex_2:;
 				start_timer(9);
 				loops_init_prefetch(128, 64, 1, rcx);
 				r8_x8cl_eight_complex_with_square_preload;
@@ -761,36 +761,36 @@ do{
 				//rsi += -8*dist128;		/* Restore source pointer */
 				pfing(rcx += 128);		/* Skip pad bytes */
 				end_timer(9);
-			}else{ //xpass2_11_levels_complex_1:;
+			}else{ //xpass2_11_levels_complex_3:;
 				start_timer(9);
-				loops_init_prefetch(128, 128, 1, rcx);
-				r8_x8cl_eight_complex_fft_final_preload;
+				rbp = g->DIST_TO_MULSRCARG;
+				loops_init_prefetch(128, 64, 1, rcx);
+				r8_x8cl_eight_complex_with_mult_preload;
+				xtouch(xptr(rcx+4096-64));		/* Load prefetch TLBs */
+				xtouch(xptr(rcx+2*4096-64));
 				for(unsigned int loopA = 8; loopA; loopA--) {
-					xtouch(xptr(rcx+4096-64));		/* Load prefetch TLBs */
 					for(unsigned int loopB = 16; loopB; loopB--) {
-						r8_x8cl_eight_complex_fft_final(rsi, 8*64, 64, 2*64, 4*64);
+						r8_x8cl_eight_complex_with_mult(rsi, 8*64, 64, 2*64, 4*64);
 					}
 					rsi += -16*8*64+dist128;	/* Next source pointer */
 				}
+				//rsi += -8*dist128;		/* Restore source pointer */
+				pfing(rcx += 128);		/* Skip pad bytes */
 				end_timer(9);
-				goto	xpass2_11_levels_complex_done;
 			}
-		}else{ //xpass2_11_levels_complex_3:;
+		}else{ //xpass2_11_levels_complex_1:;
 			start_timer(9);
-			rbp = g->DIST_TO_MULSRCARG;
-			loops_init_prefetch(128, 64, 1, rcx);
-			r8_x8cl_eight_complex_with_mult_preload;
-			xtouch(xptr(rcx+4096-64));		/* Load prefetch TLBs */
-			xtouch(xptr(rcx+2*4096-64));
+			loops_init_prefetch(128, 128, 1, rcx);
+			r8_x8cl_eight_complex_fft_final_preload;
 			for(unsigned int loopA = 8; loopA; loopA--) {
+				xtouch(xptr(rcx+4096-64));		/* Load prefetch TLBs */
 				for(unsigned int loopB = 16; loopB; loopB--) {
-					r8_x8cl_eight_complex_with_mult(rsi, 8*64, 64, 2*64, 4*64);
+					r8_x8cl_eight_complex_fft_final(rsi, 8*64, 64, 2*64, 4*64);
 				}
 				rsi += -16*8*64+dist128;	/* Next source pointer */
 			}
-			//rsi += -8*dist128;		/* Restore source pointer */
-			pfing(rcx += 128);		/* Skip pad bytes */
 			end_timer(9);
+			goto	xpass2_11_levels_complex_done;
 		}
 	}else{ //xpass2_11_levels_complex_4:;
 		start_timer(9);
@@ -979,4 +979,3 @@ do{
 	xpass2_11_levels_complex_done:;
 }while(g->pass2_get_next_block(g) == 0);
 }
-

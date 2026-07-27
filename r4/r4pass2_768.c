@@ -43,7 +43,7 @@ void xpass2_r4_768_levels(struct gwasm_data *__restrict g) {
 	daddr = (uintptr_t)g->data_addr;/* Load source address */
 	rsi = daddr;
 	rbx = g->DIST_TO_FFTSRCARG;
-	if(g->ffttype != 4) {
+	if likely(!(g->ffttype & 4)) {
 
 		/* Do FFT level 1,2 (actually 1.585 levels) */
 		/* */
@@ -264,8 +264,8 @@ void xpass2_r4_768_levels(struct gwasm_data *__restrict g) {
 
 		/* Execute the proper middle step */
 
-		if(g->ffttype <= 2) {
-			if(g->ffttype == 2) { //xpass2_768_levels_real_2:;
+		if likely(g->ffttype & 2) {
+			if likely(!(g->ffttype & 1)) { //xpass2_768_levels_real_2:;
 				r4_h4cl_eight_reals_four_complex_with_square(rsi, 4*64, 64, 2*64);
 				loops_init_prefetch(96, 64, 2, rcx, 1, 32);
 				r4_x4cl_four_complex_with_square_preload;
@@ -276,29 +276,29 @@ void xpass2_r4_768_levels(struct gwasm_data *__restrict g) {
 					rsi += -32*4*64+dist128;	/* Next source pointer */
 				}
 				//rsi += -3*dist128;		/* Next source pointer */
-			}else{ //xpass2_768_levels_real_1:;
-				r4_h4cl_eight_reals_four_complex_fft_final(rsi, 4*64, 64, 2*64);
-				loops_init_prefetch(96, 128, 1, rcx, 1, 32);
+			}else{ //xpass2_768_levels_real_3:;
+				rbp = g->DIST_TO_MULSRCARG;
+				r4_h4cl_eight_reals_four_complex_with_mult(rsi, 4*64, 64, 2*64);
+				loops_init_prefetch(96, 64, 2, rcx, 1, 32);
 				for(unsigned int loopA = 3*32-1; loopA; ) {
-					xtouch(xptr(rcx+4096-64));		/* Preload the TLBs */
 					do{
-						r4_x4cl_four_complex_fft_final(rsi, 4*64, 64, 2*64);
+						r4_x4cl_four_complex_with_mult(rsi, 4*64, 64, 2*64);
 					}while(--loopA & 31);
 					rsi += -32*4*64+dist128;	/* Next source pointer */
 				}
-				goto	xpass2_768_real_done;
+				//rsi += -3*dist128;		/* Next source pointer */
 			}
-		}else{ //xpass2_768_levels_real_3:;
-			rbp = g->DIST_TO_MULSRCARG;
-			r4_h4cl_eight_reals_four_complex_with_mult(rsi, 4*64, 64, 2*64);
-			loops_init_prefetch(96, 64, 2, rcx, 1, 32);
+		}else{ //xpass2_768_levels_real_1:;
+			r4_h4cl_eight_reals_four_complex_fft_final(rsi, 4*64, 64, 2*64);
+			loops_init_prefetch(96, 128, 1, rcx, 1, 32);
 			for(unsigned int loopA = 3*32-1; loopA; ) {
+				xtouch(xptr(rcx+4096-64));		/* Preload the TLBs */
 				do{
-					r4_x4cl_four_complex_with_mult(rsi, 4*64, 64, 2*64);
+					r4_x4cl_four_complex_fft_final(rsi, 4*64, 64, 2*64);
 				}while(--loopA & 31);
 				rsi += -32*4*64+dist128;	/* Next source pointer */
 			}
-			//rsi += -3*dist128;		/* Next source pointer */
+			goto	xpass2_768_real_done;
 		}
 	}else{ // xpass2_768_levels_real_4:;
 		rbp = g->DIST_TO_MULSRCARG;
@@ -527,7 +527,7 @@ do{
 	daddr = (uintptr_t)g->data_addr;/* Load address of FFT data */
 	rsi = daddr;
 	rbx = g->DIST_TO_FFTSRCARG;
-	if(g->ffttype != 4) {
+	if likely(!(g->ffttype & 4)) {
 
 		/* Do FFT levels 1,2 (actually 1.585 levels) */
 		/* */
@@ -710,8 +710,8 @@ do{
 
 		/* Execute the right middle step */
 
-		if(g->ffttype <= 2) {
-			if(g->ffttype == 2) { //xpass2_768_levels_complex_2:;
+		if likely(g->ffttype & 2) {
+			if likely(!(g->ffttype & 1)) { //xpass2_768_levels_complex_2:;
 				start_timer(9);
 				loops_init_prefetch(96, 64, 2, rcx);
 				r4_x4cl_four_complex_with_square_preload;
@@ -723,32 +723,31 @@ do{
 				}
 				//rsi += -3*dist128;		/* Restore source pointer */
 				end_timer(9);
-
-			}else{ //xpass2_768_levels_complex_1:;
+			}else{ //xpass2_768_levels_complex_3:;
 				start_timer(9);
-				loops_init_prefetch(96, 128, 1, rcx);
+				rbp = g->DIST_TO_MULSRCARG;
+				loops_init_prefetch(96, 64, 2, rcx);
 				for(unsigned int loopA = 3; loopA; loopA--) {
-					xtouch(xptr(rcx+4096-64));		/* Load next 3 prefetch TLBs */
 					for(unsigned int loopB = 32; loopB; loopB--) {
-						r4_x4cl_four_complex_fft_final(rsi, 4*64, 64, 2*64);
+						r4_x4cl_four_complex_with_mult(rsi, 4*64, 64, 2*64);
 					}
 					rsi += -32*4*64+dist128;	/* Next source pointer */
 				}
+				//rsi += -3*dist128;		/* Restore source pointer */
 				end_timer(9);
-				goto	xpass2_768_levels_complex_done;
 			}
-		}else{ //xpass2_768_levels_complex_3:;
+		}else{ //xpass2_768_levels_complex_1:;
 			start_timer(9);
-			rbp = g->DIST_TO_MULSRCARG;
-			loops_init_prefetch(96, 64, 2, rcx);
+			loops_init_prefetch(96, 128, 1, rcx);
 			for(unsigned int loopA = 3; loopA; loopA--) {
+				xtouch(xptr(rcx+4096-64));		/* Load next 3 prefetch TLBs */
 				for(unsigned int loopB = 32; loopB; loopB--) {
-					r4_x4cl_four_complex_with_mult(rsi, 4*64, 64, 2*64);
+					r4_x4cl_four_complex_fft_final(rsi, 4*64, 64, 2*64);
 				}
 				rsi += -32*4*64+dist128;	/* Next source pointer */
 			}
-			//rsi += -3*dist128;		/* Restore source pointer */
 			end_timer(9);
+			goto	xpass2_768_levels_complex_done;
 		}
 	}else{ //xpass2_768_levels_complex_4:;
 		start_timer(9);

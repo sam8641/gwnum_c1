@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include <stdio.h>
+
 #include "../gwnum.h"
 #include "../gwcommon.h"
 #include "../unravel.h"
@@ -34,7 +36,7 @@ if(g->NEGACYCLIC_FFT == 0) {
 	start_timer(2);
 	rsi = (uintptr_t)g->data_addr;/* Load source address */
 	rbx = g->DIST_TO_FFTSRCARG;
-	if(g->ffttype != 4){
+	if likely(!(g->ffttype & 4)){
 
 		/* Do FFT level 1 */
 		/* */
@@ -176,7 +178,7 @@ if(g->NEGACYCLIC_FFT == 0) {
 				};
 				rsi += -2*dist128+4*dist128; /* Next source pointer */
 				rdi += 2*XMM_SCD;		/* Next sine/cosine pointer */
-			}while(--loopA & 1);
+			}while(--loopA & 3);
 			rsi += -4*4*dist128+64;	/* Next source pointer */
 		}
 		rsi += -2*64;		/* Restore source pointer */
@@ -377,8 +379,8 @@ if(g->NEGACYCLIC_FFT == 0) {
 
 		/* Execute the proper middle step */
 
-		if(g->ffttype <= 2){
-			if(g->ffttype == 2){
+		if likely(g->ffttype & 2){
+			if likely(!(g->ffttype & 1)){
 				s2cl_eight_reals_with_square_2(rsi, 4*64, 2*64);
 				rdi += XMM_SCD;		/* Next sine/cosine pointer */
 				loops_init_prefetch(1024, 64, 1, rcx, 1, 32);
@@ -397,7 +399,8 @@ if(g->NEGACYCLIC_FFT == 0) {
 				}
 				rsi += -2*64;		/* Restore source pointer */
 			}else{
-				s2cl_eight_reals_fft_2_final(rsi, 4*64, 2*64);
+				rbp = g->DIST_TO_MULSRCARG;
+				s2cl_eight_reals_with_mult_2(rsi, 4*64, 2*64);
 				rdi += XMM_SCD;		/* Next sine/cosine pointer */
 				loops_init_prefetch(1024, 64, 1, rcx, 1, 32);
 				for(unsigned int loopA = 2*8*2*32-1; loopA; ) {
@@ -405,7 +408,7 @@ if(g->NEGACYCLIC_FFT == 0) {
 						xtouch(xptr(rcx+4096-128));		/* Preload the TLBs */
 						do{
 							do{
-								s2cl_four_complex_fft_final(rsi, 4*64, 2*64);
+								s2cl_four_complex_with_mult(rsi, 4*64, 2*64);
 								rdi += XMM_SCD;		/* Next sine/cosine pointer */
 							}while(--loopA & (32-1));
 							rsi += -32*4*64+dist128;	/* Next source pointer */
@@ -413,11 +416,10 @@ if(g->NEGACYCLIC_FFT == 0) {
 					}while(loopA & (8*2*32-1));
 					rsi += -16*dist128+64;	/* Next source pointer */
 				}
-				goto	xpass2_12_real_done;
+				rsi += -2*64;		/* Restore source pointer */
 			}
 		}else{
-			rbp = g->DIST_TO_MULSRCARG;
-			s2cl_eight_reals_with_mult_2(rsi, 4*64, 2*64);
+			s2cl_eight_reals_fft_2_final(rsi, 4*64, 2*64);
 			rdi += XMM_SCD;		/* Next sine/cosine pointer */
 			loops_init_prefetch(1024, 64, 1, rcx, 1, 32);
 			for(unsigned int loopA = 2*8*2*32-1; loopA; ) {
@@ -425,7 +427,7 @@ if(g->NEGACYCLIC_FFT == 0) {
 					xtouch(xptr(rcx+4096-128));		/* Preload the TLBs */
 					do{
 						do{
-							s2cl_four_complex_with_mult(rsi, 4*64, 2*64);
+							s2cl_four_complex_fft_final(rsi, 4*64, 2*64);
 							rdi += XMM_SCD;		/* Next sine/cosine pointer */
 						}while(--loopA & (32-1));
 						rsi += -32*4*64+dist128;	/* Next source pointer */
@@ -433,7 +435,7 @@ if(g->NEGACYCLIC_FFT == 0) {
 				}while(loopA & (8*2*32-1));
 				rsi += -16*dist128+64;	/* Next source pointer */
 			}
-			rsi += -2*64;		/* Restore source pointer */
+			goto	xpass2_12_real_done;
 		}
 	}else{
 		rbp = g->DIST_TO_MULSRCARG;
@@ -537,7 +539,7 @@ if(g->NEGACYCLIC_FFT == 0) {
 	rdi = (uintptr_t)g->u.xmm.sincos8;/* Load sin/cos pointer */
 	rsi += -4*2*64+32*64;	/* Load source pointer */
 	loops_reset;			/* 2 iters of 16 of 3 or 4 of 4 */
-	for(unsigned int loopA = 2*16*4-1; loopA; loopA--) {
+	for(unsigned int loopA = 2*16*4-1; loopA; ) {
 		do{
 			do{
 				for(unsigned int loopD = 4; loopD; loopD--) {
@@ -759,7 +761,7 @@ do{
 
 	rsi = (uintptr_t)g->data_addr;/* Load address of FFT data */
 	rbx = g->DIST_TO_FFTSRCARG;
-	if(g->ffttype != 4){
+	if likely(!(g->ffttype & 4)){
 
 		/* Do FFT level 1,2 */
 		/* */
@@ -930,7 +932,7 @@ do{
 		loops_init_prefetch(512, 64, 1, rcx); /* 2*2*2 iters of 4 of 64 cache lines */
 
 		xtouch(xptr(rcx));			/* Load first TLB */
-		for(unsigned int loopA = 2; loopA; loopA--) {
+		for(unsigned int loopA = 2*2*2; loopA; ) {
 			xtouch(xptr(rcx+4096-128));		/* Load six prefetch TLBs */
 			xtouch(xptr(rcx+2*4096-128));
 			xtouch(xptr(rcx+3*4096-128));
@@ -938,8 +940,8 @@ do{
 			xtouch(xptr(rcx+5*4096-128));
 			xtouch(xptr(rcx+6*4096-128));
 
-			for(unsigned int loopB = 2; loopB; loopB--) {
-				for(unsigned int loopC = 2; loopC; loopC--) {
+			do{
+				do{
 					for(unsigned int loopD = 4; loopD; loopD--) {
 						for(unsigned int loopE = 16; loopE; loopE--) {
 							x4cl_four_complex_fft(rsi, 4*64, 64*64, dist128, rdi);
@@ -979,9 +981,9 @@ do{
 					rdi += 2*XMM_SCD;		/* Next sine/cosine pointer */
 					rbx += 4*2*XMM_SCD;	/* Next sine/cosine pointer */
 					rbp += 16*2*XMM_SCD;	/* Next sine/cosine pointer */
-				}
+				}while(--loopA & (2-1));
 				xtouch_init(rcx += -64*128);		/* Re-prefetch 3 sections */
-			}
+			}while(loopA & (2*2-1));
 			xtouch_init(rcx += 3*(8192+128));	/* Prefetch next 3 sections */
 		}
 		rsi += -8*2*dist128;	/* Restore source pointer */
@@ -1008,14 +1010,14 @@ do{
 
 		/* Execute the right middle step */
 
-		if(g->ffttype <= 2){
-			if(g->ffttype == 2){
+		if likely(g->ffttype & 2){
+			if likely(!(g->ffttype & 1)){
 				start_timer(9);
 				loops_init_prefetch(512, 64, 1, rcx);
-				for(unsigned int loopA = 2; loopA; loopA--) {
+				for(unsigned int loopA = 2*2; loopA; ) {
 					xtouch(xptr(rcx+4096-128));		/* Load prefetch TLBs */
 					xtouch(xptr(rcx+2*4096-128));
-					for(unsigned int loopB = 2; loopB; loopB--) {
+					do{
 						rdi = (uintptr_t)g->xsincos_complex;	/* Load sin/cos pointer */
 						for(unsigned int loopC = 4; loopC; loopC--) {
 							for(unsigned int loopD = 32; loopD; loopD--) {
@@ -1025,7 +1027,7 @@ do{
 							rsi += -16*2*4*64+dist128;	/* Next source pointer */
 						}
 						xtouch_init(rcx += -64*128);		/* Re-prefetch section */
-					}
+					}while(--loopA & 1);
 					xtouch_init(rcx += (8192+128));		/* Prefetch next section */
 				}
 				rsi += -16*dist128;	/* Restore source pointer */
@@ -1033,44 +1035,44 @@ do{
 			}else{
 				start_timer(9);
 				loops_init_prefetch(512, 64, 1, rcx);
-				for(unsigned int loopA = 4; loopA; loopA--) {
-					rdi = (uintptr_t)g->xsincos_complex;	/* Load sin/cos pointer */
+				rbp = g->DIST_TO_MULSRCARG;
+				for(unsigned int loopA = 2*2; loopA; ) {
 					xtouch(xptr(rcx+4096-128));		/* Load prefetch TLBs */
 					xtouch(xptr(rcx+2*4096-128));
-					for(unsigned int loopB = 4; loopB; loopB--) {
-						for(unsigned int loopC = 32; loopC; loopC--) {
-							x4cl_four_complex_fft_final(rsi, 4*64, 64, 2*64);
-							rdi += 2*XMM_SCD;		/* Next sine/cosine pointer */
+					do{
+						rdi = (uintptr_t)g->xsincos_complex;	/* Load sin/cos pointer */
+						for(unsigned int loopC = 4; loopC; loopC--) {
+							for(unsigned int loopD = 32; loopD; loopD--) {
+								x4cl_four_complex_with_mult(rsi, 4*64, 64, 2*64);
+								rdi += 2*XMM_SCD;		/* Next sine/cosine pointer */
+							}
+							rsi += -16*2*4*64+dist128;	/* Next source pointer */
 						}
-						rsi += -16*2*4*64+dist128;	/* Next source pointer */
-					}
-					xtouch_init(rcx += 128);		/* Prefetch next section */
+						xtouch_init(rcx += -64*128);		/* Re-prefetch section */
+					}while(--loopA & 1);
+					xtouch_init(rcx += (8192+128));		/* Prefetch next section */
 				}
+				rsi += -16*dist128;	/* Restore source pointer */
 				end_timer(9);
-				goto	xpass2_12_levels_complex_done;
 			}
 		}else{
 			start_timer(9);
 			loops_init_prefetch(512, 64, 1, rcx);
-			rbp = g->DIST_TO_MULSRCARG;
-			for(unsigned int loopA = 2; loopA; loopA--) {
+			for(unsigned int loopA = 4; loopA; loopA--) {
+				rdi = (uintptr_t)g->xsincos_complex;	/* Load sin/cos pointer */
 				xtouch(xptr(rcx+4096-128));		/* Load prefetch TLBs */
 				xtouch(xptr(rcx+2*4096-128));
-				for(unsigned int loopB = 2; loopB; loopB--) {
-					rdi = (uintptr_t)g->xsincos_complex;	/* Load sin/cos pointer */
-					for(unsigned int loopC = 4; loopC; loopC--) {
-						for(unsigned int loopD = 32; loopD; loopD--) {
-							x4cl_four_complex_with_mult(rsi, 4*64, 64, 2*64);
-							rdi += 2*XMM_SCD;		/* Next sine/cosine pointer */
-						}
-						rsi += -16*2*4*64+dist128;	/* Next source pointer */
+				for(unsigned int loopB = 4; loopB; loopB--) {
+					for(unsigned int loopC = 32; loopC; loopC--) {
+						x4cl_four_complex_fft_final(rsi, 4*64, 64, 2*64);
+						rdi += 2*XMM_SCD;		/* Next sine/cosine pointer */
 					}
-					xtouch_init(rcx += -64*128);		/* Re-prefetch section */
+					rsi += -16*2*4*64+dist128;	/* Next source pointer */
 				}
-				xtouch_init(rcx += (8192+128));		/* Prefetch next section */
+				xtouch_init(rcx += 128);		/* Prefetch next section */
 			}
-			rsi += -16*dist128;	/* Restore source pointer */
 			end_timer(9);
+			goto	xpass2_12_levels_complex_done;
 		}
 	}else{
 		start_timer(9);
@@ -1162,7 +1164,7 @@ do{
 	rbp = (uintptr_t)g->xsincos_complex;
 	loops_init_prefetch(512, 64, 1, rcx); /* 2*2*4*2 iters of 64 cache lines */
 
-	for(unsigned int loopA = 2; loopA; loopA--) {
+	for(unsigned int loopA = 2*2*4; loopA; ) {
 		xtouch(xptr(rcx+4096-128));		/* Load six prefetch TLBs */
 		xtouch(xptr(rcx+2*4096-128));
 		xtouch(xptr(rcx+3*4096-128));
@@ -1170,8 +1172,8 @@ do{
 		xtouch(xptr(rcx+5*4096-128));
 		xtouch(xptr(rcx+6*4096-128));
 
-		for(unsigned int loopB = 2; loopB; loopB--) {
-			for(unsigned int loopC = 4; loopC; loopC--) {
+		do{
+			do{
 				for(unsigned int loopD = 2; loopD; loopD--) {
 					for(unsigned int loopE = 16; loopE; loopE--) {
 						x4cl_four_complex_unfft(rsi, 8*64, 2*64, 4*64, rbp);
@@ -1205,9 +1207,9 @@ do{
 				rdi += XMM_SCD;		/* Next sine/cosine pointer */
 				rbx += 4*XMM_SCD;		/* Next sine/cosine pointer */
 				rbp += 16*XMM_SCD;		/* Next sine/cosine pointer */
-			}
+			}while(--loopA & (4-1));
 			xtouch_init(rcx += -64*128);		/* Re-prefetch 3 sections */
-		}
+		}while(loopA & (2*4-1));
 		xtouch_init(rcx += 3*(8192+128));	/* Prefetch next 3 sections */
 	}
 	rsi += -16*dist128;	/* Restore source pointer */
@@ -1244,10 +1246,10 @@ do{
 	rdi = (uintptr_t)g->premult_addr;/* Load column multipliers pointer */
 	rdi += 64*XMM_PMD;		/* Load column multipliers pointer */
 	loops_init_prefetch(512, 64, 1, rcx); /* 2 iters of 2 iters of 8 iters of 16 */
-	for(unsigned int loopA = 2; loopA; loopA--) {
+	for(unsigned int loopA = 2*2; loopA; ) {
 		xtouch(xptr(rcx+4096-128));		/* Load prefetch TLBs */
 		xtouch(xptr(rcx+2*4096-128));
-		for(unsigned int loopB = 2; loopB; loopB--) {
+		do{
 			for(unsigned int loopC = 8; loopC; loopC--) {
 				for(unsigned int loopD = 16; loopD; loopD--) {
 					x4cl_four_complex_cpm_unfft(rsi, 64, dist128, 2*dist128);
@@ -1258,7 +1260,7 @@ do{
 			rsi += -128*64+4*dist128;	/* Next source pointer */
 			rdi += 16*XMM_PMD;		/* Next premultiplier pointer */
 			xtouch_init(rcx += -64*128);		/* Reprefetch 8KB section */
-		}
+		}while(--loopA & 1);
 		xtouch_init(rcx += 8192+128);		/* Next 8KB section to prefetch */
 	}
 	rsi += -4*4*dist128;	/* Restore source pointer */

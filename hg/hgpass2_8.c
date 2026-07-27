@@ -56,7 +56,7 @@ void xpass2_hg_8_levels(struct gwasm_data *__restrict g) {
 	/* Type 4 FFTs skip the forward FFT process */
 
 	rbx = g->DIST_TO_FFTSRCARG;
-	if(g->ffttype != 4){
+	if likely(!(g->ffttype & 4)){
 
 		/* Do FFT level 1 */
 		/* */
@@ -264,8 +264,8 @@ void xpass2_hg_8_levels(struct gwasm_data *__restrict g) {
 
 		/* Execute the proper middle step */
 
-		if(g->ffttype <= 2) {
-			if(g->ffttype == 2) {
+		if likely(g->ffttype & 2) {
+			if likely(!(g->ffttype & 1)) {
 				s2cl_eight_reals_with_square_2(rsi, 4*64, 2*64);
 				rdi += XMM_SCD;		/* Next sine/cosine pointer */
 				loops_init(64, 1, 32);		/* 31 then 32 iterations */
@@ -278,31 +278,31 @@ void xpass2_hg_8_levels(struct gwasm_data *__restrict g) {
 				}
 				rsi += -2*64;		/* Restore source pointer */
 			}else{
-				s2cl_eight_reals_fft_2_final(rsi, 4*64, 2*64);
+				rbp = g->DIST_TO_MULSRCARG;
+				s2cl_eight_reals_with_mult_2(rsi, 4*64, 2*64);
 				rdi += XMM_SCD;		/* Next sine/cosine pointer */
 				loops_init(64, 1, 32);		/* 31 then 32 iterations */
 				for(unsigned int loopA = 63; loopA; ) {
 					do{
-						s2cl_four_complex_fft_final(rsi, 4*64, 2*64);
+						s2cl_four_complex_with_mult(rsi, 4*64, 2*64);
 						rdi += XMM_SCD;		/* Next sine/cosine pointer */
 					}while(--loopA & 31);
 					rsi += -32*4*64+64;	/* Next source pointer */
 				}
-				goto	xpass2_8_real_done;
+				rsi += -2*64;		/* Restore source pointer */
 			}
 		}else{
-			rbp = g->DIST_TO_MULSRCARG;
-			s2cl_eight_reals_with_mult_2(rsi, 4*64, 2*64);
+			s2cl_eight_reals_fft_2_final(rsi, 4*64, 2*64);
 			rdi += XMM_SCD;		/* Next sine/cosine pointer */
 			loops_init(64, 1, 32);		/* 31 then 32 iterations */
 			for(unsigned int loopA = 63; loopA; ) {
 				do{
-					s2cl_four_complex_with_mult(rsi, 4*64, 2*64);
+					s2cl_four_complex_fft_final(rsi, 4*64, 2*64);
 					rdi += XMM_SCD;		/* Next sine/cosine pointer */
 				}while(--loopA & 31);
 				rsi += -32*4*64+64;	/* Next source pointer */
 			}
-			rsi += -2*64;		/* Restore source pointer */
+			goto	xpass2_8_real_done;
 		}
 	}else{
 		rbp = g->DIST_TO_MULSRCARG;
@@ -525,7 +525,7 @@ do{
 
 	rsi = (uintptr_t)g->data_addr;/* Load address of FFT data */
 	rbx = g->DIST_TO_FFTSRCARG;
-	if(g->ffttype != 4){
+	if likely(!(g->ffttype & 4)){
 
 		/* Do FFT level 1,2 */
 		/* */
@@ -665,8 +665,8 @@ do{
 
 		/* Execute the right middle step */
 
-		if(g->ffttype <= 2) {
-			if(g->ffttype == 2) {
+		if likely(g->ffttype & 2) {
+			if(!(g->ffttype & 1)) {
 				start_timer(9);
 				loops_init_prefetch(32, 64, 1, rcx);
 				for(unsigned int loopA = 4; loopA; loopA--) {
@@ -680,30 +680,30 @@ do{
 				rsi += -32*4*64;		/* Restore source pointer */
 			}else{
 				start_timer(9);
-				loops_init_prefetch(32, 128, 1, rcx);
+				rbp = g->DIST_TO_MULSRCARG;
+				loops_init_prefetch(32, 64, 1, rcx);
 				for(unsigned int loopA = 4; loopA; loopA--) {
 					rdi = (uintptr_t)g->xsincos_complex;	/* Load sin/cos pointer */
 					for(unsigned int loopB = 8; loopB; loopB--) {
-						x4cl_four_complex_fft_final(rsi, 4*64, 64, 2*64);
+						x4cl_four_complex_with_mult(rsi, 4*64, 64, 2*64);
 						rdi += 2*XMM_SCD;		/* Next sine/cosine pointer */
 					}
 				}
 				end_timer(9);
-				goto	xpass2_8_levels_complex_done;
+				rsi += -32*4*64;		/* Restore source pointer */
 			}
 		}else{
 			start_timer(9);
-			rbp = g->DIST_TO_MULSRCARG;
-			loops_init_prefetch(32, 64, 1, rcx);
+			loops_init_prefetch(32, 128, 1, rcx);
 			for(unsigned int loopA = 4; loopA; loopA--) {
 				rdi = (uintptr_t)g->xsincos_complex;	/* Load sin/cos pointer */
 				for(unsigned int loopB = 8; loopB; loopB--) {
-					x4cl_four_complex_with_mult(rsi, 4*64, 64, 2*64);
+					x4cl_four_complex_fft_final(rsi, 4*64, 64, 2*64);
 					rdi += 2*XMM_SCD;		/* Next sine/cosine pointer */
 				}
 			}
 			end_timer(9);
-			rsi += -32*4*64;		/* Restore source pointer */
+			goto	xpass2_8_levels_complex_done;
 		}
 	}else{
 		start_timer(9);

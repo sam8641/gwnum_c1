@@ -34,7 +34,7 @@ void xpass2_hg_10_levels(struct gwasm_data *__restrict g) {
 	start_timer(2);
 	rsi = (uintptr_t)g->data_addr;/* Load source address */
 	rbx = g->DIST_TO_FFTSRCARG;
-	if(g->ffttype != 4){
+	if likely(!(g->ffttype & 4)){
 
 		/* Do FFT level 1 */
 		/* */
@@ -310,8 +310,8 @@ void xpass2_hg_10_levels(struct gwasm_data *__restrict g) {
 
 		/* Execute the proper middle step */
 
-		if(g->ffttype <= 2) {
-			if(g->ffttype == 2){
+		if likely(g->ffttype & 2) {
+			if likely(!(g->ffttype & 1)){
 				s2cl_eight_reals_with_square_2(rsi, 4*64, 2*64);
 				rdi += XMM_SCD;		/* Next sine/cosine pointer */
 				loops_init_prefetch(256, 64, 1, rcx, 1, 32);
@@ -329,7 +329,8 @@ void xpass2_hg_10_levels(struct gwasm_data *__restrict g) {
 				}
 				rsi += -2*64;		/* Restore source pointer */
 			}else{
-				s2cl_eight_reals_fft_2_final(rsi, 4*64, 2*64);
+				rbp = g->DIST_TO_MULSRCARG;
+				s2cl_eight_reals_with_mult_2(rsi, 4*64, 2*64);
 				rdi += XMM_SCD;		/* Next sine/cosine pointer */
 				loops_init_prefetch(256, 64, 1, rcx, 1, 32);
 				for(unsigned int loopA = 2*4*32-1; loopA; ) {
@@ -337,18 +338,17 @@ void xpass2_hg_10_levels(struct gwasm_data *__restrict g) {
 					xtouch(xptr(rcx+2*4096-128));	/* Preload the TLB */
 					do{
 						do{
-							s2cl_four_complex_fft_final(rsi, 4*64, 2*64);
+							s2cl_four_complex_with_mult(rsi, 4*64, 2*64);
 							rdi += XMM_SCD;		/* Next sine/cosine pointer */
 						}while(--loopA & 31);
 						rsi += -32*4*64+dist128;	/* Next source pointer */
 					}while(loopA & (4*32-1));
 					rsi += -4*dist128+64;	/* Next source pointer */
 				}
-				goto	xpass2_10_real_done;
+				rsi += -2*64;		/* Restore source pointer */
 			}
 		}else{
-			rbp = g->DIST_TO_MULSRCARG;
-			s2cl_eight_reals_with_mult_2(rsi, 4*64, 2*64);
+			s2cl_eight_reals_fft_2_final(rsi, 4*64, 2*64);
 			rdi += XMM_SCD;		/* Next sine/cosine pointer */
 			loops_init_prefetch(256, 64, 1, rcx, 1, 32);
 			for(unsigned int loopA = 2*4*32-1; loopA; ) {
@@ -356,14 +356,14 @@ void xpass2_hg_10_levels(struct gwasm_data *__restrict g) {
 				xtouch(xptr(rcx+2*4096-128));	/* Preload the TLB */
 				do{
 					do{
-						s2cl_four_complex_with_mult(rsi, 4*64, 2*64);
+						s2cl_four_complex_fft_final(rsi, 4*64, 2*64);
 						rdi += XMM_SCD;		/* Next sine/cosine pointer */
 					}while(--loopA & 31);
 					rsi += -32*4*64+dist128;	/* Next source pointer */
 				}while(loopA & (4*32-1));
 				rsi += -4*dist128+64;	/* Next source pointer */
 			}
-			rsi += -2*64;		/* Restore source pointer */
+			goto	xpass2_10_real_done;
 		}
 	}else{
 		rbp = g->DIST_TO_MULSRCARG;
@@ -638,7 +638,7 @@ do{
 
 	rsi = (uintptr_t)g->data_addr;/* Load address of FFT data */
 	rbx = g->DIST_TO_FFTSRCARG;
-	if(g->ffttype != 4){
+	if likely(!(g->ffttype & 4)){
 
 		/* Do FFT level 1,2 */
 		/* */
@@ -781,8 +781,8 @@ do{
 		xtouch(xptr(rcx+4096-128));		/* Load two prefetch TLBs */
 		xtouch(xptr(rcx+2*4096-128));
 
-		for(unsigned int loopA = 2; loopA; loopA--) {
-			for(unsigned int loopB = 2; loopB; loopB--) {
+		for(unsigned int loopA = 2*2; loopA; ) {
+			do{
 				for(unsigned int loopC = 2; loopC; loopC--) {
 					for(unsigned int loopD = 4; loopD; loopD--) {
 						for(unsigned int loopE = 4; loopE; loopE--) {
@@ -804,7 +804,7 @@ do{
 					rbx += 4*2*XMM_SCD;	/* Next sine/cosine pointer */
 				}
 				rsi += -2*64*64+dist128;	/* Next source pointer */
-			}
+			}while(--loopA & 1);
 			xtouch_init(rcx += -64*128);		/* Re-prefetch 8KB section */
 		}
 		xtouch_init(rcx += 8192+128);		/* Prefetch next 8KB section after pad */
@@ -832,8 +832,8 @@ do{
 
 		/* Execute the right middle step */
 
-		if(g->ffttype <= 2){
-			if(g->ffttype == 2){
+		if likely(g->ffttype & 2){
+			if likely(!(g->ffttype & 1)){
 				start_timer(9);
 				loops_init_prefetch(128, 64, 1, rcx);
 				xtouch(xptr(rcx+4096-128));		/* Prefetch TLB */
@@ -852,36 +852,36 @@ do{
 			}else{
 				start_timer(9);
 				loops_init_prefetch(128, 64, 1, rcx);
+				rbp = g->DIST_TO_MULSRCARG;
 				xtouch(xptr(rcx+4096-128));		/* Prefetch TLB */
 				xtouch(xptr(rcx+2*4096-128));
 				for(unsigned int loopA = 4; loopA; loopA--) {
 					rdi = (uintptr_t)g->xsincos_complex;	/* Load sin/cos pointer */
 					for(unsigned int loopB = 32; loopB; loopB--) {
-						x4cl_four_complex_fft_final(rsi, 4*64, 64, 2*64);
+						x4cl_four_complex_with_mult(rsi, 4*64, 64, 2*64);
 						rdi += 2*XMM_SCD;		/* Next sine/cosine pointer */
 					}
 					rsi += -16*2*4*64+dist128;	/* Next source pointer */
 				}
+				xtouch_init(rcx += 128);		/* Prefetch next 8KB section after pad */
+				rsi += -4*dist128;		/* Restore source pointer */
 				end_timer(9);
-				goto	xpass2_10_levels_complex_done;
 			}
 		}else{
 			start_timer(9);
 			loops_init_prefetch(128, 64, 1, rcx);
-			rbp = g->DIST_TO_MULSRCARG;
 			xtouch(xptr(rcx+4096-128));		/* Prefetch TLB */
 			xtouch(xptr(rcx+2*4096-128));
 			for(unsigned int loopA = 4; loopA; loopA--) {
 				rdi = (uintptr_t)g->xsincos_complex;	/* Load sin/cos pointer */
 				for(unsigned int loopB = 32; loopB; loopB--) {
-					x4cl_four_complex_with_mult(rsi, 4*64, 64, 2*64);
+					x4cl_four_complex_fft_final(rsi, 4*64, 64, 2*64);
 					rdi += 2*XMM_SCD;		/* Next sine/cosine pointer */
 				}
 				rsi += -16*2*4*64+dist128;	/* Next source pointer */
 			}
-			xtouch_init(rcx += 128);		/* Prefetch next 8KB section after pad */
-			rsi += -4*dist128;		/* Restore source pointer */
 			end_timer(9);
+			goto	xpass2_10_levels_complex_done;
 		}
 	}else{
 		start_timer(9);
@@ -953,8 +953,8 @@ do{
 	xtouch(xptr(rcx+4096-128));		/* Load two prefetch TLBs */
 	xtouch(xptr(rcx+2*4096-128));
 
-	for(unsigned int loopA = 2; loopA; loopA--) {
-		for(unsigned int loopB = 2; loopB; loopB--) {
+	for(unsigned int loopA = 2*2; loopA; ) {
+		do{
 			for(unsigned int loopC = 4; loopC; loopC--) {
 				for(unsigned int loopD = 2; loopD; loopD--) {
 					for(unsigned int loopE = 4; loopE; loopE--) {
@@ -976,7 +976,7 @@ do{
 				rbx += 4*XMM_SCD;		/* Next sine/cosine pointer */
 			}
 			rsi += -4*32*64+dist128;	/* Next source pointer */
-		}
+		}while(--loopA & 1);
 		xtouch_init(rcx += -64*128);		/* Re-prefetch section */
 	}
 	rsi += -4*dist128;		/* Restore source pointer */

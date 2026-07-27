@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 
 project(gwnum_c1_lib LANGUAGES C CXX)
 #add_compile_options("-ffp-model=strict" "-")
@@ -142,7 +142,7 @@ endif()
 
 
 #target_link_options(gwnum_c1_lib PRIVATE "-no-pie")
-#target_link_libraries(gwnum_c1_lib PRIVATE /mnt/2/1/code/linux64/gwnum.a)
+#target_link_libraries(gwnum_c1_lib PRIVATE /mnt/2/1/code/gwnum/gwnum/linux64/gwnum.a)
 
 
 install(TARGETS gwnum_c1_lib RUNTIME DESTINATION bin)

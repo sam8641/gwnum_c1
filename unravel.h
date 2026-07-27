@@ -21,11 +21,11 @@
 
 #define loops_set_prefetch(A,B,C)
 
-#define likely(x)       __builtin_expect(!!(x), 1)
-#define unlikely(x)     __builtin_expect(x, 0)
+#define likely(x) (__builtin_expect((x)!=0, 1))
+#define unlikely(x) (__builtin_expect(x, 0))
 
 #if defined(__clang__)
-#define UNROLL(N)	_Pragma("clang loop unroll_count(N)")
+#define UNROLL(N)	_Pragma("clang loop0 unroll_count(N)")
 #define UNROLL_FULL	_Pragma("clang loop unroll(full)")
 #define NO_UNROLL	_Pragma("clang loop unroll(disable)")
 
