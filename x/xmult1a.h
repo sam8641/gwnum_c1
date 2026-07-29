@@ -1,5 +1,4 @@
 #pragma once
-#include <stdio.h>
 
 // input: xmm7
 #define inorm(lab, ttp, zero, echk, const1, base2, sse4) \
@@ -66,13 +65,12 @@ echk(g->MAXERR = vec2reducemax(xmm6)); \
 // input: xmm7
 #define zpnorm(lab, ttp, echk, const1, base2, sse4, khi, c1, cm1) \
 void lab##BLEND(struct gwasm_data *__restrict g, vec2f64 xmm7) { \
-	/*puts("zpnorm1-1 " #lab","#ttp","#echk","#const1"," #base2","#sse4","#khi","#c1","#cm1); */ \
+	/*puts("zpnorm1-1 " #lab","#ttp","#echk","#const1"," #base2","#sse4","#khi","#c1","#cm1);*/ \
 	uintptr_t rdx, rbx, rsi, rdi, rbp, tmp1; \
 	uintptr_t saved_reg3, saved_reg2, saved_reg1; \
 	vec2f64 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5; \
 	rsi = (uintptr_t)g->DESTARG;		/* Addr of multiplied number */ \
 	xmm2 = XMM_BIGVAL2; \
-	puts("znorm1"); \
 	xmm3[1] = xmm3[0] = 0; \
 	echk(vec2f64 xmm6 = {0.0, 0.0}); \
 	echk(xmm6[0] = g->MAXERR); \
@@ -101,7 +99,7 @@ void lab##BLEND(struct gwasm_data *__restrict g, vec2f64 xmm7) { \
 		rbx >>= 11;			/* Get next loop amount */ \
 	}while(rbx != 0); \
 	\
-echk(printf("--- err %f %f\n", xmm6[0], xmm6[1])); \
+/*echk(printf("--- err %f %f\n", xmm6[0], xmm6[1]));*/ \
 echk(g->MAXERR = vec2reducemax(xmm6)); \
 	cmnend; \
 	zpnorm_end_##base2##const1(g, xmm2, xmm3); \

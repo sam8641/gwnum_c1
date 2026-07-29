@@ -1,5 +1,4 @@
 #pragma once
-#include <stdio.h>
 
 #define xfft_header_rn(procname, xpass2name, pass2_levels, clm) \
 void procname##_i (struct gwasm_data *__restrict, int); \

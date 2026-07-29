@@ -11,8 +11,6 @@
 #include "../xmult.h"
 #include "xnormal.h"
 
-
-
 static void final_carries_3(struct gwasm_data *__restrict g, uintptr_t rsi, vec2f64 xmm6, vec2f64 xmm7) {
 	uintptr_t rax,rcx,rdi,rbp;
 	rbp = (uintptr_t)g->norm_grp_mults;	// Addr of the group multipliers

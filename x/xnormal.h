@@ -1356,7 +1356,7 @@ ttp(xptr(rbp-128+192+48) = xmm1);	/* Save ttp * 1/B,1/B */ \
 
 
 #if 0 // 32 bit
-#define xnorm_2d(ttp, zero, echk, const1, base2, sse4) \
+#define xnorm_2d(ttp, zero, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) \
 	xmm0 = xptr(rsi+0*16);	/* Load values1 */ \
 	xmm7 += xmm0;		/* sumout += values1 */ \
 ttp(xmm2 = xptr(rdx+0*32));	/* grp two-to-minus-phi */ \
@@ -1371,8 +1371,8 @@ no##ttp(xmm3 = xptr(rbx));		/* two-to-minus-phi */ \
 	xmm1 *= xmm3;		/* Mul by fudged col two-to-minus-phi */ \
 no##const1(echk(error_check_interleaved(sse4, xmm0, xmm4, xmm1, xmm5, xmm6))); \
 const1(mul_by_const_interleaved(ttp, base2, echk, sse4, xmm0, xmm4, xmm2, rax, xmm1, xmm5, xmm3, rcx, xmm6)); \
-	xmm0 += xptr(rbp+0*16);	/* x1 = values + carry */ \
-	xmm1 += xptr(rbp+1*16);	/* x2 = values + carry */ \
+	xmm0 += CARRY0;	/* x1 = values + carry */ \
+	xmm1 += CARRY1;	/* x2 = values + carry */ \
 \
 no##base2(rounding_interleaved(ttp, base2, const1, sse4, xmm0, xmm4, xmm2, rax, xmm1, xmm5, xmm3, rcx)); \
 \
@@ -1384,7 +1384,7 @@ base2(const1(xmm4 += xmm2));		/* Add in upper mul-by-const bits */ \
 base2(const1(xmm4 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax)));/* next carry = shifted y1 */ \
 base2(no##const1(xmm4 = xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax)));/* next carry = shifted y1 */ \
 base2(no##const1(xmm4 *= xmm2));		/* next carry = shifted y1 */ \
-	xptr(rbp+0*16) = xmm4;	/* Save carry1 */ \
+	CARRY0 = xmm4;	/* Save carry1 */ \
 base2(xmm2 -= xptr2(g->u.xmm.XMM_LIMIT_BIGMAX,rax));/* z1 = y1 - (maximum*BIGVAL-BIGVAL) */ \
 ttp(xmm4 = xptr(rbx+256+rax));	/* col two-to-phi */ \
 ttp(xmm4 *= xptr(rdx+0*32+16));	/* two-to-phi = col * grp */ \
@@ -1393,7 +1393,7 @@ base2(const1(xmm5 += xmm3));		/* Add in upper mul-by-const bits */ \
 base2(const1(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rcx)));/* next carry = shifted y2 */ \
 base2(no##const1(xmm5 = xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rcx)));/* next carry = shifted y2 */ \
 base2(no##const1(xmm5 *= xmm3));		/* next carry = shifted y2 */ \
-	xptr(rbp+1*16) = xmm5;	/* Save carry2 */ \
+	CARRY1 = xmm5;	/* Save carry2 */ \
 base2(xmm3 -= xptr2(g->u.xmm.XMM_LIMIT_BIGMAX,rcx));/* z2 = y2 - (maximum*BIGVAL-BIGVAL) */ \
 ttp(xmm5 = xptr(rbx+256+rcx));	/* col two-to-phi */ \
 ttp(xmm5 *= xptr(rdx+1*32+16));	/* two-to-phi = col * grp */ \
@@ -1419,8 +1419,8 @@ no##ttp(xmm3 = xptr(rbx));		/* two-to-minus-phi */ \
 	xmm1 *= xmm3;		/* Mul by fudged col two-to-minus-phi */ \
 no##const1(echk(error_check_interleaved(sse4, xmm0, xmm4, xmm1, xmm5, xmm6))); \
 const1(mul_by_const_interleaved(ttp, base2, echk, sse4, xmm0, xmm4, xmm2, rax, xmm1, xmm5, xmm3, rcx, xmm6)); \
-	xmm0 += xptr(rbp+2*16);	/* x1 = values + carry */ \
-	xmm1 += xptr(rbp+3*16);	/* x2 = values + carry */ \
+	xmm0 += CARRY2;	/* x1 = values + carry */ \
+	xmm1 += CARRY3;	/* x2 = values + carry */ \
 \
 no##base2(rounding_interleaved(ttp, base2, const1, sse4, xmm0, xmm4, xmm2, rax, xmm1, xmm5, xmm3, rcx)); \
 \
@@ -1432,7 +1432,7 @@ base2(const1(xmm4 += xmm2));		/* Add in upper mul-by-const bits */ \
 base2(const1(xmm4 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax)));/* next carry = shifted y1 */ \
 base2(no##const1(xmm4 = xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax)));/* next carry = shifted y1 */ \
 base2(no##const1(xmm4 *= xmm2));		/* next carry = shifted y1 */ \
-	xptr(rbp+2*16) = xmm4;	/* Save carry1 */ \
+	CARRY2 = xmm4;	/* Save carry1 */ \
 base2(xmm2 -= xptr2(g->u.xmm.XMM_LIMIT_BIGMAX,rax));/* z1 = y1 - (maximum*BIGVAL-BIGVAL) */ \
 ttp(xmm4 = xptr(rbx+256+rax));	/* col two-to-phi */ \
 ttp(xmm4 *= xptr(rdx+2*32+16));	/* two-to-phi = col * grp */ \
@@ -1441,7 +1441,7 @@ base2(const1(xmm5 += xmm3));		/* Add in upper mul-by-const bits */ \
 base2(const1(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rcx)));/* next carry = shifted y2 */ \
 base2(no##const1(xmm5 = xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rcx)));/* next carry = shifted y2 */ \
 base2(no##const1(xmm5 *= xmm3));		/* next carry = shifted y2 */ \
-	xptr(rbp+3*16) = xmm5;	/* Save carry2 */ \
+	CARRY3 = xmm5;	/* Save carry2 */ \
 base2(xmm3 -= xptr2(g->u.xmm.XMM_LIMIT_BIGMAX,rcx));/* z2 = y2 - (maximum*BIGVAL-BIGVAL) */ \
 ttp(xmm5 = xptr(rbx+256+rcx));	/* col two-to-phi */ \
 ttp(xmm5 *= xptr(rdx+3*32+16));	/* two-to-phi = col * grp */ \
@@ -1457,7 +1457,7 @@ zero(xmm1[1] = xmm1[0] = 0); \
 
 #else // 64 bit
 
-#define xnorm_2d(ttp, zero, echk, const1, base2, sse4) \
+#define xnorm_2d(ttp, zero, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) \
 ttp(xmm10 = xptr(rdx+0*32));	/* grp two-to-minus-phi			;P4	;Core2 */ \
 ttp(xmm10 *= xptr(rbx+rax));	/* Mul by col two-to-minus-phi		;1-6	;1-5 */ \
 no##ttp(xmm10 = xptr(rbx));		/* two-to-minus-phi */ \
@@ -1486,19 +1486,19 @@ const1(mul_by_const_interleaved(ttp, base2, echk, sse4, xmm8, xmm12, xmm10, rax,
 	xmm1 *= xmm3;		/* Mul by fudged col two-to-minus-phi	;15-20	;9-13 */ \
 no##const1(echk(error_check_interleaved(sse4, xmm0, xmm4, xmm1, xmm5, xmm6))); \
 const1(mul_by_const_interleaved(ttp, base2, echk, sse4, xmm0, xmm4, xmm2, r8, xmm1, xmm5, xmm3, r9, xmm6)); \
-	xmm8 += xptr(rbp+0*16);	/* x1 = values + carry			;16-19	;11-13 */ \
-	xmm9 += xptr(rbp+1*16);	/* x2 = values + carry			;18-21	;12-14 */ \
+	xmm8 += CARRY0;	/* x1 = values + carry			;16-19	;11-13 */ \
+	xmm9 += CARRY1;	/* x2 = values + carry			;18-21	;12-14 */ \
 \
 no##base2(rounding_interleaved(ttp, base2, const1, sse4, xmm8, xmm12, xmm10, rax, xmm9, xmm13, xmm11, rcx)); \
 \
 ttp(xmm14 = xptr(rbx+256+rax));	/* col two-to-phi */ \
 ttp(xmm14 *= xptr(rdx+0*32+16));	/* two-to-phi = col * grp		;19-24	;12-16 */ \
-	xmm0 += xptr(rbp+2*16);	/* x3 = values + carry			;20-23	;13-15 */ \
+	xmm0 += CARRY2;	/* x3 = values + carry			;20-23	;13-15 */ \
 ttp(xmm15 = xptr(rbx+256+rcx));	/* col two-to-phi */ \
 ttp(xmm15 *= xptr(rdx+1*32+16));	/* two-to-phi = col * grp		;21-26	;13-17 */ \
 base2(xmm10 = xptr2(g->u.xmm.XMM_LIMIT_BIGMAX,rax));/* Load maximum * BIGVAL - BIGVAL */ \
 base2(xmm10 += xmm8);		/* y1 = top bits of x			;22-25	;14-16 */ \
-	xmm1 += xptr(rbp+3*16);	/* x4 = values + carry			;24-27	;15-17 */ \
+	xmm1 += CARRY3;	/* x4 = values + carry			;24-27	;15-17 */ \
 \
 no##base2(rounding_interleaved(ttp, base2, const1, sse4, xmm0, xmm4, xmm2, r8, xmm1, xmm5, xmm3, r9)); \
 \
@@ -1528,20 +1528,20 @@ base2(const1(xmm5 += xmm3));		/* Add in upper mul-by-const bits */ \
 base2(const1(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,r9)));/* next carry = shifted y4 */ \
 base2(no##const1(xmm5 = xptr2(g->u.xmm.XMM_LIMIT_INVERSE,r9)));/* next carry = shifted y4 */ \
 base2(no##const1(xmm5 *= xmm3));		/* next carry = shifted y4		;35-40	;21-25 */ \
-	xptr(rbp+0*16) = xmm12;	/* Save carry1 */ \
+	CARRY0 = xmm12;	/* Save carry1 */ \
 base2(xmm2 -= xptr2(g->u.xmm.XMM_LIMIT_BIGMAX,r8));/* z3 = y3 - (maximum*BIGVAL-BIGVAL)	;36-39	;21-23 */ \
 ttp(xmm12 = xptr(rbx+256+r8));	/* col two-to-phi */ \
 ttp(xmm12 *= xptr(rdx+2*32+16));	/* two-to-phi = col * grp		;37-42	;22-26 */ \
 ttp(r8 = u8ptr(rdi+6));	/* Load next big vs. little flags */ \
-	xptr(rbp+1*16) = xmm13;	/* Save carry2 */ \
+	CARRY1 = xmm13;	/* Save carry2 */ \
 base2(xmm3 -= xptr2(g->u.xmm.XMM_LIMIT_BIGMAX,r9));/* z4 = y4 - (maximum*BIGVAL-BIGVAL)	;38-41	;22-24 */ \
 ttp(xmm13 = xptr(rbx+256+r9));	/* col two-to-phi */ \
 ttp(xmm13 *= xptr(rdx+3*32+16));	/* two-to-phi = col * grp		;39-43	;23-27 */ \
 ttp(r9 = u8ptr(rdi+7));	/* Load next big vs. little flags */ \
 base2(xmm8 -= xmm10);		/* rounded value = x1 - z1		;40-43	;23-25 */ \
-	xptr(rbp+2*16) = xmm4;	/* Save carry3 */ \
+	CARRY2 = xmm4;	/* Save carry3 */ \
 base2(xmm9 -= xmm11);		/* rounded value = x2 - z2		;42-45	;24-26 */ \
-	xptr(rbp+3*16) = xmm5;	/* Save carry4 */ \
+	CARRY3 = xmm5;	/* Save carry4 */ \
 base2(xmm0 -= xmm2);		/* rounded value = x3 - z3		;44-47	;25-27 */ \
 ttp(xmm8 *= xmm14);		/* value1 = rounded value * two-to-phi	;45-50	;26-30 */ \
 base2(xmm1 -= xmm3);		/* rounded value = x4 - z4		;46-49	;26-28 */ \
@@ -1563,7 +1563,7 @@ zero(xmm1[1] = xmm1[0] = 0); \
 #if 0 // 0: 32bit   1: 64bit
 #define xnorm_2d_zpad_pre_loop
 #define xnorm_2d_zpad_post_loop
-#define xnorm_2d_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1) \
+#define xnorm_2d_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1, CARRY0, CARRY1, CARRY2, CARRY3) \
 	xmm2 = xptr(rbx+rax);	/* col two-to-minus-phi */ \
 ttp(xmm2 *= xptr(rdx+0*32));	/* Mul by grp two-to-minus-phi */ \
 	xmm0 = xptr(rsi);		/* Load values1 */ \
@@ -1573,9 +1573,9 @@ ttp(xmm2 *= xptr(rdx+0*32));	/* Mul by grp two-to-minus-phi */ \
 	xmm0 *= xmm2;		/* Mul by fudged col two-to-minus-phi */ \
 	xmm1 *= xmm2;		/* Mul by fudged col two-to-minus-phi */ \
 \
-	xmm3 = xptr(rbp+2*16);	/* Add in previous high FFT data */ \
+	xmm3 = CARRY2;	/* Add in previous high FFT data */ \
 	split_lower_zpad_word(echk, base2, sse4, xmm0, xmm3, xmm4, rax); \
-	xptr(rbp+2*16) = xmm3; \
+	CARRY2 = xmm3; \
 \
 no##const1(xmm0 = g->u.xmm.XMM_K_LO); \
 const1(	xmm0 = g->u.xmm.XMM_K_TIMES_MULCONST_LO); \
@@ -1585,7 +1585,7 @@ khi(const1(xmm5 = g->u.xmm.XMM_K_TIMES_MULCONST_HI)); \
 khi(no##base2(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax))); /* Non-base2 rounding needs shifted carry */ \
 khi(	xmm5 *= xmm4); \
 ;  \
-		xmm0 += xptr(rbp+0*16);	/* x1 = values + carry */ \
+		xmm0 += CARRY0;	/* x1 = values + carry */ \
 \
 c1(	xmm1 *= g->u.xmm.XMM_MINUS_C);	/* Do one mul before split rather than two after split */ \
 \
@@ -1605,7 +1605,7 @@ ttp(xmm5 = xptr(rbx+256+rax));	/* col two-to-phi */ \
 ttp(xmm5 *= xptr(rdx+0*32+16));	/* new value1 = val * grp two-to-phi */ \
 ttp(rax = u8ptr(rdi+1));	/* Load next big vs. little flags */ \
 ttp(xmm0 *= xmm5);		/* new value1 *= fudged col two-to-phi */ \
-	xptr(rbp+0*16) = xmm4;	/* Save carry */ \
+	CARRY0 = xmm4;	/* Save carry */ \
 	xptr(rsi) = xmm0;		/* Save new value1 */ \
 \
 	xmm3 = xptr(rbx+rax);	/* col two-to-minus-phi */ \
@@ -1617,9 +1617,9 @@ ttp(xmm3 *= xptr(rdx+1*32));	/* Mul by grp two-to-minus-phi */ \
 	xmm5 *= xmm3;		/* Mul by fudged col two-to-minus-phi */ \
 	xmm1 *= xmm3;		/* Mul by fudged col two-to-minus-phi */ \
 \
-	xmm3 = xptr(rbp+3*16);	/* Add in previous high FFT data */ \
+	xmm3 = CARRY3;	/* Add in previous high FFT data */ \
 	split_lower_zpad_word(echk, base2, sse4, xmm5, xmm3, xmm2, rax); \
-	xptr(rbp+3*16) = xmm3; \
+	CARRY3 = xmm3; \
 \
 no##const1(xmm0 = g->u.xmm.XMM_K_LO); \
 const1(	xmm0 = g->u.xmm.XMM_K_TIMES_MULCONST_LO); \
@@ -1629,7 +1629,7 @@ khi(const1(xmm5 = g->u.xmm.XMM_K_TIMES_MULCONST_HI)); \
 khi(no##base2(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax))); /* Non-base2 rounding needs shifted carry */ \
 khi(	xmm5 *= xmm2); \
 \
-		xmm0 += xptr(rbp+1*16);	/* x2 = values + carry */ \
+		xmm0 += CARRY1;	/* x2 = values + carry */ \
 \
 c1(	xmm1 *= g->u.xmm.XMM_MINUS_C);	/* Do one mul before split rather than two after split */ \
 \
@@ -1649,7 +1649,7 @@ ttp(xmm3 = xptr(rbx+256+rax));	/* col two-to-phi */ \
 ttp(xmm3 *= xptr(rdx+1*32+16));	/* new value2 = val * grp two-to-phi */ \
 ttp(rax = u8ptr(rdi+4));	/* Load next big vs. little flags */ \
 ttp(xmm0 *= xmm3);		/* new value2 *= fudged col two-to-phi */ \
-	xptr(rbp+1*16) = xmm2;	/* Save carry */ \
+	CARRY1 = xmm2;	/* Save carry */ \
 	xptr(rsi+1*16) = xmm0;	/* Save new value2 */ \
 \
 	xmm1[1] = xmm1[0] = 0;		/* new high values = zero */ \
@@ -1661,19 +1661,12 @@ ttp(xmm0 *= xmm3);		/* new value2 *= fudged col two-to-phi */ \
 
 #else
 /* 64-bit implementation using extra registers */
-#define xnorm_2d_zpad_pre_loop \
-	xmm4  = xptr(rbp);		/* Preload carries */ \
-	xmm12 = xptr(rbp+1*16); \
-	xmm3  = xptr(rbp+2*16); \
-	xmm11 = xptr(rbp+3*16);
 
-#define xnorm_2d_zpad_post_loop \
-	xptr(rbp     ) = xmm4; /* Store carries */ \
-	xptr(rbp+1*16) = xmm12; \
-	xptr(rbp+2*16) = xmm3; \
-	xptr(rbp+3*16) = xmm11;
-
-#define xnorm_2d_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1) \
+#define xnorm_2d_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1, CARRY0, CARRY1, CARRY2, CARRY3) \
+	xmm4  = CARRY0;	/* Preload carries */ \
+	xmm12 = CARRY1; \
+	xmm3  = CARRY2; \
+	xmm11 = CARRY3; \
 	xmm2 = xptr(rbx+rax);	/* col two-to-minus-phi */ \
 ttp(xmm2 *= xptr(rdx+0*32));	/* Mul by grp two-to-minus-phi */ \
 	xmm0 = xptr(rsi);		/* Load values1 */ \
@@ -1758,7 +1751,11 @@ ttp(xmm8 *= xmm13);		/* new value2 *= fudged col two-to-phi */ \
 \
 	xmm1[1] = xmm1[0] = 0;		/* new high values = zero */ \
 	xptr(rsi+2*16) = xmm1;	/* Zero high value1 */ \
-	xptr(rsi+3*16) = xmm1;	/* Zero high value2 */
+	xptr(rsi+3*16) = xmm1;	/* Zero high value2 */ \
+	CARRY0 = xmm4; /* Store carries */ \
+	CARRY1 = xmm12; \
+	CARRY2 = xmm3; \
+	CARRY3 = xmm11; \
 
 #endif
 
@@ -3020,11 +3017,11 @@ const1(xmm4 = g->u.xmm.XMM_K_TIMES_MULCONST_HI); \
 /* */ \
 \
 
-#if 1
+#if 0
 #define xnorm_wpn_preload(ttp, zero, echk, const1, base2, sse4)
 
 
-#define xnorm_wpn(ttp, zero, echk, const1, base2, sse4) { \
+#define xnorm_wpn(ttp, zero, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) { \
 ttp(	uintptr_t rcx = rbx & 0xFF);				/* Fudge flags 1-2 */ \
 ttp(	rcx &= 0xF0); \
 		xmm0 = xptr(rsi+0*16);		/* Load values1 */ \
@@ -3035,8 +3032,8 @@ ttp(	uintptr_t rax = (rbx >> 8) & 0xFF);				/* Big/lit flags 1-4 */ \
 no##ttp(base2(uintptr_t rax = 0));			/* --We should clean up base 2 rational FFT so that this isn't needed */ \
 no##const1(echk(error_check_interleaved(sse4, xmm0, xmm4, xmm1, xmm5, xmm6))); \
 const1(	mul_by_const_interleaved(ttp, base2, echk, sse4, xmm0, xmm4, xmm2, rax*4, xmm1, xmm5, xmm3, rax*4+16, xmm6)); \
-		xmm0 += xptr(rbp+0*16);		/* x1 = values + carry */ \
-		xmm1 += xptr(rbp+1*16);		/* x2 = values + carry */ \
+		xmm0 += CARRY0;		/* x1 = values + carry */ \
+		xmm1 += CARRY1;		/* x2 = values + carry */ \
 \
 no##base2(rounding_interleaved(ttp, base2, const1, sse4, xmm0, xmm4, xmm2, rax*4, xmm1, xmm5, xmm3, rax*4+16)); \
 \
@@ -3051,7 +3048,7 @@ base2(const1(xmm4 += xmm2));			/* Add in upper mul-by-const bits */ \
 base2(const1(xmm4 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4)));	/* next carry = shifted y1 */ \
 base2(no##const1(xmm4 = xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4)));	/* next carry = shifted y1 */ \
 base2(no##const1(xmm4 *= xmm2));			/* next carry = shifted y1 */ \
-		xptr(rbp+0*16) = xmm4;		/* Save carry1 */ \
+		CARRY0 = xmm4;		/* Save carry1 */ \
 base2(const1(echk(xmm2 -= xptr2(g->u.xmm.XMM_LIMIT_BIGMAX,rax*4))));	/* z1 = y1 - (maximum*BIGVAL-BIGVAL) */ \
 base2(const1(no##echk(xmm2 -= xmm6)));			/* z1 = y1 - (maximum*BIGVAL-BIGVAL) */ \
 base2(no##const1(xmm2 -= xmm5));			/* z1 = y1 - (maximum*BIGVAL-BIGVAL) */ \
@@ -3059,7 +3056,7 @@ base2(const1(xmm5 += xmm3));			/* Add in upper mul-by-const bits */ \
 base2(const1(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4+16)));/* next carry = shifted y2 */ \
 base2(no##const1(xmm5 = xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4+16)));/* next carry = shifted y2 */ \
 base2(no##const1(xmm5 *= xmm3));			/* next carry = shifted y2 */ \
-		xptr(rbp+1*16) = xmm5;		/* Save carry2 */ \
+		CARRY1 = xmm5;		/* Save carry2 */ \
 base2(	xmm3 -= xmm7);			/* z2 = y2 - (maximum*BIGVAL-BIGVAL) */ \
 base2(	xmm0 -= xmm2);			/* rounded value = x1 - z1 */ \
 base2(	xmm1 -= xmm3);			/* rounded value = x2 - z2 */ \
@@ -3075,8 +3072,8 @@ ttp(	xmm0 *= xptr(rdx+2*XMM_GMD+rbx*8));	/* Mul by fudged grp two-to-minus-phi *
 ttp(	xmm1 *= xptr(rdx+3*XMM_GMD+rbx*8));	/* Mul by fudged grp two-to-minus-phi */ \
 no##const1(echk(error_check_interleaved(sse4, xmm0, xmm4, xmm1, xmm5, xmm6))); \
 const1(	mul_by_const_interleaved(ttp, base2, echk, sse4, xmm0, xmm4, xmm2, rax*4+32, xmm1, xmm5, xmm3, rax*4+48, xmm6)); \
-		xmm0 += xptr(rbp+2*16);		/* x1 = values + carry */ \
-		xmm1 += xptr(rbp+3*16);		/* x2 = values + carry */ \
+		xmm0 += CARRY2;		/* x1 = values + carry */ \
+		xmm1 += CARRY3;		/* x2 = values + carry */ \
 \
 no##base2(rounding_interleaved(ttp, base2, const1, sse4, xmm0, xmm4, xmm2, rax*4+32, xmm1, xmm5, xmm3, rax*4+48)); \
 \
@@ -3091,7 +3088,7 @@ base2(const1(xmm4 += xmm2));			/* Add in upper mul-by-const bits */ \
 base2(const1(xmm4 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4+32)));/* next carry = shifted y1 */ \
 base2(no##const1(xmm4 = xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4+32)));/* next carry = shifted y1 */ \
 base2(no##const1(xmm4 *= xmm2));			/* next carry = shifted y1 */ \
-		xptr(rbp+2*16) = xmm4;		/* Save carry1 */ \
+		CARRY2 = xmm4;		/* Save carry1 */ \
 base2(const1(echk(xmm2 -= xptr2(g->u.xmm.XMM_LIMIT_BIGMAX,rax*4+32))));/* z1 = y1 - (maximum*BIGVAL-BIGVAL) */ \
 base2(const1(no##echk(xmm2 -= xmm6)));			/* z1 = y1 - (maximum*BIGVAL-BIGVAL) */ \
 base2(no##const1(xmm2 -= xmm5));			/* z1 = y1 - (maximum*BIGVAL-BIGVAL) */ \
@@ -3099,7 +3096,7 @@ base2(const1(xmm5 += xmm3));			/* Add in upper mul-by-const bits */ \
 base2(const1(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4+48)));/* next carry = shifted y2 */ \
 base2(no##const1(xmm5 = xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4+48)));/* next carry = shifted y2 */ \
 base2(no##const1(xmm5 *= xmm3));			/* next carry = shifted y2 */ \
-		xptr(rbp+3*16) = xmm5;		/* Save carry2 */ \
+		CARRY3 = xmm5;		/* Save carry2 */ \
 base2(	xmm3 -= xmm7);			/* z2 = y2 - (maximum*BIGVAL-BIGVAL) */ \
 base2(	xmm0 -= xmm2);			/* rounded value = x1 - z1 */ \
 base2(	xmm1 -= xmm3);			/* rounded value = x2 - z2 */ \
@@ -3114,20 +3111,25 @@ ttp(	rbx = *(unsigned short*)(rdi+2));		/* Load next 4 big vs. little & fudge fl
 
 #else
 
+#define error_check_interleaved_64 error_check_interleaved
 
-#define xnorm_wpn_preload(ttp, zero, echk, const1, base2, sse4)
-echk(sse4(xmm15 = XMM_ABSVAL)); \
-echk(no##sse4(xmm15 = XMM_BIGVAL1)); \
+#define xnorm_wpn_preload(ttp, zero, echk, const1, base2, sse4) \
+/*echk(sse4(xmm15 = XMM_ABSVAL));*/ \
+/*echk(no##sse4(xmm15 = XMM_BIGVAL1));*/ \
 
-#define xnorm_wpn(ttp, zero, echk, const1, base2, sse4) \
-ttp(	rcx = rbx & 0xFF);				/* Fudge flags 1,2 */ \
+#define xnorm_wpn(ttp, zero, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) \
+	no##const1(xmm12  = CARRY0);	/* Preload carries */ \
+	no##const1(xmm13 = CARRY1); \
+	no##const1(xmm4  = CARRY2); \
+	no##const1(xmm5 = CARRY3); \
+ttp(	uintptr_t rcx = rbx & 0xFF);				/* Fudge flags 1,2 */ \
 ttp(	rcx &= 0xF0); \
 		xmm8 = xptr(rsi+0*16);		/* Load values1				;P4	;Core2 */ \
 ttp(	xmm8 *= xptr(rdx+0*XMM_GMD+rcx));	/* Mul by fudged grp two-to-minus-phi	;1-5	;1-4 */ \
 		xmm9 = xptr(rsi+1*16);		/* Load values2 */ \
 ttp(	xmm9 *= xptr(rdx+1*XMM_GMD+rcx));	/* Mul by fudged grp two-to-minus-phi	;3-7	;2-5 */ \
-ttp(	rax = (rbx >> 8) & 0xFF);				/* Big/lit flags 1-4 */ \
-no##ttp(base2(rax = 0));			/* --We should clean up base 2 rational FFT so that this isn't needed */ \
+ttp(	uintptr_t rax = (rbx >> 8) & 0xFF);				/* Big/lit flags 1-4 */ \
+no##ttp(base2(uintptr_t rax = 0));			/* --We should clean up base 2 rational FFT so that this isn't needed */ \
 no##const1(echk(error_check_interleaved_64(sse4, xmm8, xmm10, xmm9, xmm11, xmm6))); \
 const1(	mul_by_const_interleaved(ttp, base2, echk, sse4, xmm8, xmm12, xmm10, rax*4, xmm9, xmm13, xmm11, rax*4+16, xmm6)); \
 ttp(	rbx &= 0x0F);/* Fudge flags 3,4 */ \
@@ -3137,20 +3139,20 @@ ttp(	xmm0 *= xptr(rdx+2*XMM_GMD+rbx*8));	/* Mul by fudged grp two-to-minus-phi	;
 ttp(	xmm1 *= xptr(rdx+3*XMM_GMD+rbx*8));	/* Mul by fudged grp two-to-minus-phi	;7-11	;4-7 */ \
 no##const1(echk(error_check_interleaved_64(sse4, xmm0, xmm2, xmm1, xmm3, xmm6))); \
 const1(	mul_by_const_interleaved(ttp, base2, echk, sse4, xmm0, xmm4, xmm2, rax*4+32, xmm1, xmm5, xmm3, rax*4+48, xmm6)); \
-const1(	xmm8 += xptr(rbp+0*16));		/* x1 = values + carry */ \
+const1(	xmm8 += CARRY0);		/* x1 = values + carry */ \
 no##const1(xmm8 += xmm12);			/* x1 = values + carry			;6-9	;5-7 */ \
-const1(	xmm9 += xptr(rbp+1*16));		/* x2 = values + carry */ \
+const1(	xmm9 += CARRY1);		/* x2 = values + carry */ \
 no##const1(xmm9 += xmm13);			/* x2 = values + carry			;8-11	;6-8 */ \
 \
 no##base2(rounding_interleaved(ttp, base2, const1, sse4, xmm8, xmm12, xmm10, rax*4, xmm9, xmm13, xmm11, rax*4+16)); \
 \
-const1(	xmm0 += xptr(rbp+2*16));		/* x3 = values + carry */ \
+const1(	xmm0 += CARRY2);		/* x3 = values + carry */ \
 no##const1(xmm0 += xmm4);			/* x3 = values + carry			;10-13	;7-9 */ \
 base2(	xmm10 = xptr2(g->u.xmm.XMM_LIMIT_BIGMAX,rax*4));	/* Load maximum * BIGVAL - BIGVAL */ \
 base2(no##const1(xmm4 = xmm10));			/* Copy maximum * BIGVAL - BIGVAL */ \
 base2(const1(no##echk(xmm15 = xmm10)));			/* Copy maximum * BIGVAL - BIGVAL */ \
 base2(	xmm10 += xmm8);			/* y1 = top bits of x			;12-15	;8-10 */ \
-const1(	xmm1 += xptr(rbp+3*16));		/* x4 = values + carry */ \
+const1(	xmm1 += CARRY3);		/* x4 = values + carry */ \
 no##const1(xmm1 += xmm5);			/* x4 = values + carry			;14-17	;9-11 */ \
 \
 no##base2(rounding_interleaved(ttp, base2, const1, sse4, xmm0, xmm4, xmm2, rax*4+32, xmm1, xmm5, xmm3, rax*4+48)); \
@@ -3187,14 +3189,14 @@ base2(const1(xmm5 += xmm3));			/* Add in upper mul-by-const bits */ \
 base2(const1(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4+48)));/* next carry = shifted y4 */ \
 base2(no##const1(xmm5 = xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4+48)));/* next carry = shifted y4 */ \
 base2(no##const1(xmm5 *= xmm3));			/* next carry = shifted y4		;25-30	;15-19 */ \
-const1(	xptr(rbp+0*16) = xmm12);		/* Save carry1 */ \
+const1(	CARRY0 = xmm12);		/* Save carry1 */ \
 base2(	xmm2 -= xmm7);			/* z3 = y3 - (maximum*BIGVAL-BIGVAL)	;26-29	;15-17 */ \
-const1(	xptr(rbp+1*16) = xmm13);		/* Save carry2 */ \
+const1(	CARRY1 = xmm13);		/* Save carry2 */ \
 base2(	xmm3 -= xmm14);			/* z4 = y4 - (maximum*BIGVAL-BIGVAL)	;28-31	;16-18 */ \
 base2(	xmm8 -= xmm10);			/* rounded value = x1 - z1		;30-33	;17-19 */ \
-const1(	xptr(rbp+2*16) = xmm4);		/* Save carry3 */ \
+const1(	CARRY2 = xmm4);		/* Save carry3 */ \
 base2(	xmm9 -= xmm11);			/* rounded value = x2 - z2		;32-35	;18-20 */ \
-const1(	xptr(rbp+3*16) = xmm5);		/* Save carry4 */ \
+const1(	CARRY3 = xmm5);		/* Save carry4 */ \
 base2(	xmm0 -= xmm2);			/* rounded value = x3 - z3		;34-37	;19-21 */ \
 ttp(	xmm8 *= xptr(rdx+0*XMM_GMD+XMM_GMD/2+rcx)); /* value1 *= fudged grp two-to-phi	;35-40	;20-24 */ \
 base2(	xmm1 -= xmm3);			/* rounded value = x4 - z4		;36-39	;20-22 */ \
@@ -3208,6 +3210,10 @@ ttp(	rbx = *(unsigned short*)(rdi+2));		/* Load next 4 big vs. little & fudge fl
 		xptr(rsi+1*16) = xmm9;		/* Save new value2 */ \
 		xptr(rsi+2*16) = xmm0;		/* Save new value3 */ \
 		xptr(rsi+3*16) = xmm1;		/* Save new value4 */ \
+	no##const1(CARRY0 = xmm12); /* Store carries */ \
+	no##const1(CARRY1 = xmm13); \
+	no##const1(CARRY2 = xmm4); \
+	no##const1(CARRY3 = xmm5); \
 
 #endif
 
@@ -3216,10 +3222,10 @@ ttp(	rbx = *(unsigned short*)(rdi+2));		/* Load next 4 big vs. little & fudge fl
 /* ALSO NOTE:  In the zero pad case, big/lit & fudge flags 1,2 and the */ \
 /* same as big/lit & fudge flags 3,4. */ \
 
-#if 1
+#if 0
 #define xnorm_wpn_zpad_preload(ttp, echk, const1, base2, sse4, khi, c1, cm1) \
 
-#define xnorm_wpn_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1) { \
+#define xnorm_wpn_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1, CARRY0, CARRY1, CARRY2, CARRY3) { \
 no##ttp(uintptr_t rax = 0); \
 ttp(uintptr_t rax = (rbx >> 8) & 0xFF);			/* Big/little flags 1-4 */ \
 ttp(rbx &= 0xF0);/* Fudge flags 1,2 */ \
@@ -3229,9 +3235,9 @@ ttp(xmm2 = xptr(rdx+0*XMM_GMD+rbx)); /* Fudged grp two-to-minus-phi */ \
 ttp(xmm0 *= xmm2);		/* Mul by fudged grp two-to-minus-phi */ \
 ttp(xmm1 *= xmm2);		/* Mul by fudged grp two-to-minus-phi */ \
 \
-	xmm3 = xptr(rbp+2*16);	/* Add in previous high FFT data */ \
+	xmm3 = CARRY2;	/* Add in previous high FFT data */ \
 	split_lower_zpad_word(echk, base2, sse4, xmm0, xmm3, xmm4, rax*4); \
-	xptr(rbp+2*16) = xmm3; \
+	CARRY2 = xmm3; \
 \
 no##const1(xmm0 = g->u.xmm.XMM_K_LO); \
 const1(	xmm0 = g->u.xmm.XMM_K_TIMES_MULCONST_LO); \
@@ -3241,7 +3247,7 @@ khi(const1(xmm5 = g->u.xmm.XMM_K_TIMES_MULCONST_HI)); \
 khi(no##base2(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4))); /* Non-base2 rounding needs shifted carry */ \
 khi(	xmm5 *= xmm4); \
 ;  \
-		xmm0 += xptr(rbp+0*16);	/* x1 = values + carry */ \
+		xmm0 += CARRY0;	/* x1 = values + carry */ \
 \
 c1(	xmm1 *= g->u.xmm.XMM_MINUS_C);	/* Do one mul before split rather than two after split */ \
 \
@@ -3258,7 +3264,7 @@ khi(xmm4 += xmm5);		/* Add upper FFT word to lower FFT word */ \
 	rounding(ttp, base2, exec, sse4, xmm0, xmm4, xmm2, rax*4); \
 \
 ttp(xmm0 *= xptr(rdx+0*XMM_GMD+XMM_GMD/2+rbx)); /* new value1 *= fudged grp two-to-phi */ \
-	xptr(rbp+0*16) = xmm4;	/* Save carry */ \
+	CARRY0 = xmm4;	/* Save carry */ \
 	xptr(rsi) = xmm0;		/* Save new value1 */ \
 \
 ttp(xmm3 = xptr(rdx+1*XMM_GMD+rbx)); /* Fudged grp two-to-minus-phi */ \
@@ -3267,9 +3273,9 @@ ttp(xmm3 = xptr(rdx+1*XMM_GMD+rbx)); /* Fudged grp two-to-minus-phi */ \
 ttp(xmm5 *= xmm3);		/* Mul by fudged grp two-to-minus-phi */ \
 ttp(xmm1 *= xmm3);		/* Mul by fudged grp two-to-minus-phi */ \
 \
-	xmm3 = xptr(rbp+3*16);	/* Add in previous high FFT data */ \
+	xmm3 = CARRY3;	/* Add in previous high FFT data */ \
 	split_lower_zpad_word(echk, base2, sse4, xmm5, xmm3, xmm2, rax*4+16); \
-	xptr(rbp+3*16) = xmm3; \
+	CARRY3 = xmm3; \
 \
 no##const1(xmm0 = g->u.xmm.XMM_K_LO); \
 const1(	xmm0 = g->u.xmm.XMM_K_TIMES_MULCONST_LO); \
@@ -3279,7 +3285,7 @@ khi(const1(xmm5 = g->u.xmm.XMM_K_TIMES_MULCONST_HI)); \
 khi(no##base2(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax*4+16))); /* Non-base2 rounding needs shifted carry */ \
 khi(	xmm5 *= xmm2); \
 \
-		xmm0 += xptr(rbp+1*16);	/* x2 = values + carry */ \
+		xmm0 += CARRY1;	/* x2 = values + carry */ \
 \
 c1(	xmm1 *= g->u.xmm.XMM_MINUS_C);	/* Do one mul before split rather than two after split */ \
 \
@@ -3297,7 +3303,7 @@ khi(xmm2 += xmm5);		/* Add upper FFT word to lower FFT word */ \
 \
 ttp(xmm0 *= xptr(rdx+1*XMM_GMD+XMM_GMD/2+rbx)); /* new value2 *= fudged grp two-to-phi */ \
 ttp(rbx = *(unsigned short*)(rdi+2));	/* Load next big vs. little & fudge flags */ \
-	xptr(rbp+1*16) = xmm2;	/* Save carry */ \
+	CARRY1 = xmm2;	/* Save carry */ \
 	xptr(rsi+1*16) = xmm0;	/* Save new value2 */ \
 \
 	xmm1[1] = xmm1[0] = 0;		/* new high values = zero */ \
@@ -3311,21 +3317,28 @@ ttp(rbx = *(unsigned short*)(rdi+2));	/* Load next big vs. little & fudge flags 
 #define xnorm_wpn_zpad_preload(ttp, echk, const1, base2, sse4, khi, c1, cm1) \
 no##const1(		xmm15 = g->u.xmm.XMM_K_LO); \
 const1(			xmm15 = g->u.xmm.XMM_K_TIMES_MULCONST_LO); \
-no##const1(		xmm14 = g->u.xmm.XMM_MINUS_C); \
+no##const1(no##c1(no##cm1(xmm14 = g->u.xmm.XMM_MINUS_C))); \
+no##const1(    c1(        xmm14 = g->u.xmm.XMM_MINUS_C)); \
 const1(			xmm14 = g->u.xmm.XMM_MINUS_C_TIMES_MULCONST); \
-base2(			xmm13 = g->u.xmm.XMM_BIGBIGVAL); \
-base2(no##echk(no##sse4(	xmm6 = XMM_BIGVAL1))); \
+/*base2(			xmm13 = g->u.xmm.XMM_BIGBIGVAL);*/ \
+/*base2(no##echk(no##sse4(	xmm6 = XMM_BIGVAL2)));*/ \
 base2(no##echk(sse4(khi(no##const1(xmm6 = g->u.xmm.XMM_K_HI))))); \
 base2(no##echk(sse4(khi(const1(xmm6 = g->u.xmm.XMM_K_TIMES_MULCONST_HI))))); \
-no##base2(no##sse4(	xmm13 = XMM_BIGVAL1)); \
-no##base2(sse4(echk(	xmm13 = XMM_ABSVAL))); \
+/*no##base2(no##sse4(	xmm13 = XMM_BIGVAL2));*/ \
+/*no##base2(sse4(echk(	xmm13 = XMM_ABSVAL)));*/ \
 no##base2(no##echk(khi(no##const1(xmm6 = g->u.xmm.XMM_K_HI)))); \
 no##base2(no##echk(khi(const1(xmm6 = g->u.xmm.XMM_K_TIMES_MULCONST_HI)))); \
-\
-\
 
-#define xnorm_wpn_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1) \
-ttp(rax = (rbx >> 8) & 0xFF);			/* Big/little flags 1-4 */ \
+
+
+#define xnorm_wpn_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1, CARRY0, CARRY1, CARRY2, CARRY3) \
+	xmm4  = CARRY0;	/* Preload carries */ \
+	xmm11 = CARRY1; \
+	xmm3  = CARRY2; \
+	xmm10 = CARRY3; \
+no##ttp(const uintptr_t rax = 0); \
+\
+ttp(uintptr_t rax = (rbx >> 8) & 0xFF);			/* Big/little flags 1-4 */ \
 ttp(rbx &= 0xF0);/* Fudge flags 1,2 */ \
 \
 ttp(xmm2 = xptr(rdx+0*XMM_GMD+rbx)); /* Fudged grp two-to-minus-phi */ \
@@ -3411,6 +3424,10 @@ ttp(rbx = *(unsigned short*)(rdi+2));	/* Load next big vs. little & fudge flags 
 	xmm1[1] = xmm1[0] = 0;		/* new high values = zero */ \
 	xptr(rsi+2*16) = xmm1;	/* Zero high value1 */ \
 	xptr(rsi+3*16) = xmm1;	/* Zero high value2 */ \
+	CARRY0 = xmm4; /* Store carries */ \
+	CARRY1 = xmm11; \
+	CARRY2 = xmm3; \
+	CARRY3 = xmm10; \
 
 #endif
 

@@ -13,7 +13,7 @@
 
 
 void non2zpdn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
-	puts("non2zpdn");
+	//puts("non2zpdn");
 	uintptr_t rax=0, rbp, rdi, rsi;
 	rsi = (uintptr_t)g->DESTARG;
 	rdi = (uintptr_t)g->norm_biglit_array;
@@ -22,7 +22,7 @@ void non2zpdn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
 	//cmnend;
 }
 void non2zpcdn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
-	puts("non2zpcdn");
+	//puts("non2zpcdn");
 	uintptr_t rax=0, rbp, rdi, rsi;
 	rsi = (uintptr_t)g->DESTARG;
 	rdi = (uintptr_t)g->norm_biglit_array;
@@ -31,16 +31,7 @@ void non2zpcdn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
 	//cmnend;
 }
 void zpcdn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
-	puts("zpcdn");
-	uintptr_t rax=0, rbp, rdi, rsi;
-	rsi = (uintptr_t)g->DESTARG;
-	rdi = (uintptr_t)g->norm_biglit_array;
-	rbp = (uintptr_t)g->norm_col_mults;
-	xnorm012_1d_zpad(noexec, exec);
-	//cmnend;
-}
-void zpdn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
-	puts("zpdn");
+	//puts("zpcdn");
 	uintptr_t rax=0, rbp, rdi, rsi;
 	rsi = (uintptr_t)g->DESTARG;
 	rdi = (uintptr_t)g->norm_biglit_array;
@@ -48,8 +39,17 @@ void zpdn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
 	xnorm012_1d_zpad(exec, exec);
 	//cmnend;
 }
+void zpdn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
+	//puts("zpdn");
+	uintptr_t rax=0, rbp, rdi, rsi;
+	rsi = (uintptr_t)g->DESTARG;
+	rdi = (uintptr_t)g->norm_biglit_array;
+	rbp = (uintptr_t)g->norm_col_mults;
+	xnorm012_1d_zpad(noexec, exec);
+	//cmnend;
+}
 void non2dn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
-	puts("non2dn");
+	//puts("non2dn");
 	uintptr_t rax, rcx, rbp, rdi, rsi;
 	rsi = (uintptr_t)g->DESTARG;
 	xnorm_top_carry_1d;				// Adjust top carry when k > 1
@@ -59,7 +59,7 @@ void non2dn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
 	//cmnend;
 }
 void zdn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
-	puts("zdn");
+	//puts("zdn");
 	uintptr_t rax, rcx, rbp, rdi, rsi;
 	rsi = (uintptr_t)g->DESTARG;
 	rdi = (uintptr_t)g->norm_biglit_array;
