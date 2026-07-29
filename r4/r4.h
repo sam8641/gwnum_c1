@@ -1347,26 +1347,27 @@
 	vec2f64 *sd3 = (vec2f64*)(srcreg+d2+d1); \
 	r4_x4c_djbunfft_mem(sd0[1],sd0[3],sd1[1],sd1[3],sd2[1],sd2[3],sd3[1],sd3[3], sd1[1],screg,scoff,srcreg+srcinc+d2,d1); \
 /*	xstore	[srcreg+d1+16], xmm6	;; Save R3 */ \
-	sd1[3] = xmm3;	/* Save I3 */ \
-	xmm6 = sd1[0];	/* R3 */ \
-	xmm3 = sd1[2];	/* R4 */ \
-	sd3[1] = xmm0;	/* Save R4 */ \
-	sd3[3] = xmm1;	/* Save I4 */ \
-	xmm0 = sd3[0];	/* R7 */ \
-	xmm1 = sd3[2];	/* R8 */ \
+	vec2f64 xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7; \
+	xma2 = sd1[0];	/* R3 */ \
 	sd1[0] = xmm7;	/* Save R1 */ \
+	xma3 = sd1[2];	/* R4 */ \
 	sd1[2] = xmm4;	/* Save I1 */ \
+	sd1[3] = xmm3;	/* Save I3 */ \
+	xma6 = sd3[0];	/* R7 */ \
+	xma7 = sd3[2];	/* R8 */ \
 	sd3[0] = xmm5;	/* Save R2 */ \
+	sd3[1] = xmm0;	/* Save R4 */ \
 	sd3[2] = xmm2;	/* Save I2 */ \
-	r4_x4c_djbunfft_partial_mem(xmm7,xmm4,xmm6,xmm3,xmm5,xmm2,xmm0,xmm1, sd0[0],sd0[2],sd2[0],sd2[2],sd0[0], screg,0,srcreg+srcinc,d1); \
-/*	xstore	[srcreg], xmm4		;; Save R1 */ \
-	sd0[2] = xmm5;	/* Save I1 */ \
-	sd0[1] = xmm6;	/* Save R3 */ \
-	sd0[3] = xmm7;	/* Save I3 */ \
-	sd2[0] = xmm3;	/* Save R2 */ \
-	sd2[2] = xmm0;	/* Save I2 */ \
-	sd2[1] = xmm2;	/* Save R4 */ \
-	sd2[3] = xmm1;	/* Save I4 */ \
+	sd3[3] = xmm1;	/* Save I4 */ \
+	r4_x4c_djbunfft_partial_mem(xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7, sd0[0],sd0[2],sd2[0],sd2[2],sd0[0], screg,0,srcreg+srcinc,d1); \
+/*	xstore	[srcreg], xma1		;; Save R1 */ \
+	sd0[1] = xma2;	/* Save R3 */ \
+	sd0[2] = xma4;	/* Save I1 */ \
+	sd0[3] = xma0;	/* Save I3 */ \
+	sd2[0] = xma3;	/* Save R2 */ \
+	sd2[1] = xma5;	/* Save R4 */ \
+	sd2[2] = xma6;	/* Save I2 */ \
+	sd2[3] = xma7;	/* Save I4 */ \
 	srcreg += srcinc; \
 }
 
@@ -1386,26 +1387,27 @@
 	vec2f64 *sd3 = (vec2f64*)(srcreg+d2+d1); \
 	r4_x4c_2sc_djbunfft_mem(sd0[1],sd0[3],sd1[1],sd1[3],sd2[1],sd2[3],sd3[1],sd3[3], sd1[1],screg1+scoff1,screg2+scoff2,srcreg+srcinc+d2,d1); \
 /*	xstore	[srcreg+d1+16], xmm6	;; Save R3 */ \
-	sd1[3] = xmm3;	/* Save I3 */ \
-	xmm6 = sd1[0];	/* R3 */ \
-	xmm3 = sd1[2];	/* R4 */ \
-	sd3[1] = xmm0;	/* Save R4 */ \
-	sd3[3] = xmm1;	/* Save I4 */ \
-	xmm0 = sd3[0];	/* R7 */ \
-	xmm1 = sd3[2];	/* R8 */ \
+	vec2f64 xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7; \
+	xma2 = sd1[0];	/* R3 */ \
 	sd1[0] = xmm7;	/* Save R1 */ \
+	xma3 = sd1[2];	/* R4 */ \
 	sd1[2] = xmm4;	/* Save I1 */ \
+	sd1[3] = xmm3;	/* Save I3 */ \
+	xma6 = sd3[0];	/* R7 */ \
+	xma7 = sd3[2];	/* R8 */ \
 	sd3[0] = xmm5;	/* Save R2 */ \
+	sd3[1] = xmm0;	/* Save R4 */ \
 	sd3[2] = xmm2;	/* Save I2 */ \
-	r4_x4c_2sc_djbunfft_partial_mem(xmm7,xmm4,xmm6,xmm3,xmm5,xmm2,xmm0,xmm1, sd0[0],sd0[2],sd2[0],sd2[2],sd0[0], screg1,screg2,srcreg+srcinc,d1); \
-/*	xstore	[srcreg], xmm4		;; Save R1 */ \
-	sd0[2] = xmm5;	/* Save I1 */ \
-	sd0[1] = xmm6;	/* Save R3 */ \
-	sd0[3] = xmm7;	/* Save I3 */ \
-	sd2[0] = xmm3;	/* Save R2 */ \
-	sd2[2] = xmm0;	/* Save I2 */ \
-	sd2[1] = xmm2;	/* Save R4 */ \
-	sd2[3] = xmm1;	/* Save I4 */ \
+	sd3[3] = xmm1;	/* Save I4 */ \
+	r4_x4c_2sc_djbunfft_partial_mem(xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7, sd0[0],sd0[2],sd2[0],sd2[2],sd0[0], screg1,screg2,srcreg+srcinc,d1); \
+/*	xstore	[srcreg], xma1		;; Save R1 */ \
+	sd0[1] = xma2;	/* Save R3 */ \
+	sd0[2] = xma4;	/* Save I1 */ \
+	sd0[3] = xma0;	/* Save I3 */ \
+	sd2[0] = xma3;	/* Save R2 */ \
+	sd2[1] = xma5;	/* Save R4 */ \
+	sd2[2] = xma6;	/* Save I2 */ \
+	sd2[3] = xma7;	/* Save I4 */ \
 	srcreg += srcinc; \
 }
 
@@ -2229,7 +2231,7 @@
 /* 64-bit Intel and K10 implementations of the above - use the extra XMM registers */ \
 /* For some reason this implementation is worse on a Pentium 4. */ \
 
-#if 1 // X86_64 && (@INSTR(,%xarch,<CORE>) NE 0) OR (@INSTR(,%xarch,<BLEND>) NE 0) OR (@INSTR(,%xarch,<K10>) NE 0);
+#if 0 // X86_64 && (@INSTR(,%xarch,<CORE>) NE 0) OR (@INSTR(,%xarch,<BLEND>) NE 0) OR (@INSTR(,%xarch,<K10>) NE 0);
 \
 /* Theoretical best case is 44 clocks on a Core 2.  Now at 51.4 clocks. */ \
 #undef r4_x4cl_four_complex_djbunfft
@@ -3075,6 +3077,7 @@
 	vec2f64 *sd1 = (vec2f64*)(srcreg+d1); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d2); \
 	vec2f64 *sd3 = (vec2f64*)(srcreg+d2+d1); \
+	vec2f64 xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7; \
 	xmm0 = sd0[0];	/* R1 */ \
 	xmm1 = sd0[2];	/* R2 */ \
 	xmm4 = sd2[0];	/* R5 */ \
@@ -3082,25 +3085,25 @@
 	r4_x4c_unfft_postmult(xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7,sd1[0],sd1[2],sd3[0],sd3[2],sd0[0],sd0[2],screg,0,srcreg+srcinc,d1); \
 /*	xstore	[srcreg], xmm		;; Save R1 */ \
 /*	xstore	[srcreg+32], xmm	;; Save R5 */ \
-	xmm5 = sd0[1];	/* R1 */ \
-	xmm6 = sd2[1];	/* R5 */ \
-	sd2[0] = xmm7;	/* Save R2 */ \
-	sd2[2] = xmm0;	/* Save R6 */ \
-	xmm7 = sd0[3];	/* R2 */ \
-	xmm0 = sd2[3];	/* R6 */ \
-	sd2[1] = xmm4;	/* Save R4 */ \
-	sd2[3] = xmm1;	/* Save R8 */ \
+	xma0 = sd0[1];	/* R1 */ \
+	xma1 = sd0[3];	/* R2 */ \
 	sd0[1] = xmm2;	/* Save R3 */ \
 	sd0[3] = xmm3;	/* Save R7 */ \
-	r4_x4c_unfft_postmult(xmm5,xmm7,xmm2,xmm3,xmm6,xmm0,xmm4,xmm1,sd1[1],sd1[3],sd3[1],sd3[3],sd1[0],sd1[2],screg,off,srcreg+srcinc+d2,d1); \
-/*	xstore	[srcreg+d1], xmm	;; Save R1 */ \
-/*	xstore	[srcreg+d1+32], xmm	;; Save R5 */ \
-	sd3[0] = xmm1;	/* Save R2 */ \
-	sd3[2] = xmm5;	/* Save R6 */ \
-	sd3[1] = xmm6;	/* Save R4 */ \
-	sd3[3] = xmm7;	/* Save R8 */ \
-	sd1[1] = xmm2;	/* Save R3 */ \
-	sd1[3] = xmm3;	/* Save R7 */ \
+	xma4 = sd2[1];	/* R5 */ \
+	xma5 = sd2[3];	/* R6 */ \
+	sd2[0] = xmm7;	/* Save R2 */ \
+	sd2[1] = xmm4;	/* Save R4 */ \
+	sd2[2] = xmm0;	/* Save R6 */ \
+	sd2[3] = xmm1;	/* Save R8 */ \
+	r4_x4c_unfft_postmult(xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7,sd1[1],sd1[3],sd3[1],sd3[3],sd1[0],sd1[2],screg,off,srcreg+srcinc+d2,d1); \
+/*	xstore	[srcreg+d1], xmb	;; Save R1 */ \
+/*	xstore	[srcreg+d1+32], xmb	;; Save R5 */ \
+	sd1[1] = xma2;	/* Save R3 */ \
+	sd1[3] = xma3;	/* Save R7 */ \
+	sd3[0] = xma7;	/* Save R2 */ \
+	sd3[1] = xma4;	/* Save R4 */ \
+	sd3[2] = xma0;	/* Save R6 */ \
+	sd3[3] = xma1;	/* Save R8 */ \
 	srcreg += srcinc; \
 }
 
@@ -3197,21 +3200,21 @@
 	r3 += r8;				/* A3 = A3 + B3	(final R3) */ \
 \
 	r8 = CONST2_P924; \
-	r8 *= r6;				/* A2 = R2 * .924 */ \
 	r5 = CONST2_P383; \
+	r8 *= r6;				/* A2 = R2 * .924 */ \
 	r5 *= r1;				/* C2 = I2 * .383 */ \
-	r8 += r5;				/* A2 = A2 + C2 (final R2) */ \
 	r6 *= CONST2_P383;			/* B2 = R2 * .383 */ \
 	r1 *= CONST2_P924;			/* D2 = I2 * .924 */ \
+	r8 += r5;				/* A2 = A2 + C2 (final R2) */ \
 	r1 -= r6;				/* D2 = D2 - B2 (final I2) */ \
 \
 	r5 = CONST2_P383; \
-	r5 *= r7;				/* A4 = R4 * .383 */ \
 	r6 = CONST2_P924; \
+	r5 *= r7;				/* A4 = R4 * .383 */ \
 	r6 *= r2;				/* C4 = I4 * .924 */ \
-	r5 += r6;				/* A4 = A4 + C4	(final R4) */ \
 	r7 *= CONST2_P924;			/* B4 = R4 * .924 */ \
 	r2 *= CONST2_P383;			/* D4 = I4 * .383 */ \
+	r5 += r6;				/* A4 = A4 + C4	(final R4) */ \
 	r2 -= r7;				/* D4 = D4 - B4	(final I4) */ \
 }
 
@@ -3224,32 +3227,33 @@
 	vec2f64 *sd1 = (vec2f64*)(srcreg+d1); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d2); \
 	vec2f64 *sd3 = (vec2f64*)(srcreg+d2+d1); \
+	vec2f64 xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7; \
 	xmm2 = sd1[1];	/* R2 */ \
 	xmm6 = sd3[1];	/* R4 */ \
 	xmm3 = sd1[3];	/* I2 */ \
 	xmm7 = sd3[3];	/* I4 */ \
 	r4_x4c_djbunfft_postmult(xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7, sd0[1],sd0[3],sd2[1],sd2[3],sd1[1],sd1[3], screg,off,pmreg,pmoff,srcreg+srcinc+d2,d1); \
-	sd1[1] = xmm2;	/* Save R3 */ \
-	sd1[3] = xmm3;	/* Save I3 */ \
-	xmm2 = sd1[0];	/* R2 */ \
-	xmm3 = sd3[0];	/* R4 */ \
-	sd3[1] = xmm4;	/* Save R4 */ \
-	sd3[3] = xmm0;	/* Save I4 */ \
-	xmm4 = sd1[2];	/* I2 */ \
-	xmm0 = sd3[2];	/* I4 */ \
+	xma2 = sd1[0];	/* R2 */ \
 	sd1[0] = xmm5;	/* Save R1 */ \
+	sd1[1] = xmm2;	/* Save R3 */ \
+	xma3 = sd1[2];	/* I2 */ \
 	sd1[2] = xmm7;	/* Save I1 */ \
+	sd1[3] = xmm3;	/* Save I3 */ \
+	xma6 = sd3[0];	/* R4 */ \
+	xma7 = sd3[2];	/* I4 */ \
 	sd3[0] = xmm1;	/* Save R2 */ \
+	sd3[1] = xmm4;	/* Save R4 */ \
 	sd3[2] = xmm6;	/* Save I2 */ \
-	r4_x4c_djbunfft_postmult(xmm1,xmm5,xmm2,xmm4,xmm6,xmm7,xmm3,xmm0, sd0[0],sd0[2],sd2[0],sd2[2],sd0[0],sd0[2], screg,0,pmreg,0,srcreg+srcinc,d1); \
-	sd0[0] = xmm7;	/* Save R1 */ \
-	sd0[2] = xmm0;	/* Save I1 */ \
-	sd0[1] = xmm2;	/* Save R3 */ \
-	sd0[3] = xmm4;	/* Save I3 */ \
-	sd2[0] = xmm5;	/* Save R2 */ \
-	sd2[2] = xmm3;	/* Save I2 */ \
-	sd2[1] = xmm6;	/* Save R4 */ \
-	sd2[3] = xmm1;	/* Save I4 */ \
+	sd3[3] = xmm0;	/* Save I4 */ \
+	r4_x4c_djbunfft_postmult(xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7, sd0[0],sd0[2],sd2[0],sd2[2],sd0[0],sd0[2], screg,0,pmreg,0,srcreg+srcinc,d1); \
+	sd0[0] = xma5;	/* Save R1 */ \
+	sd0[1] = xma2;	/* Save R3 */ \
+	sd0[2] = xma7;	/* Save I1 */ \
+	sd0[3] = xma3;	/* Save I3 */ \
+	sd2[0] = xma1;	/* Save R2 */ \
+	sd2[1] = xma4;	/* Save R4 */ \
+	sd2[2] = xma6;	/* Save I2 */ \
+	sd2[3] = xma0;	/* Save I4 */ \
 	srcreg += srcinc; \
 }
 
@@ -4453,28 +4457,29 @@
 	vec2f64 *sd1 = (vec2f64*)(srcreg+d1); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d2); \
 	vec2f64 *sd3 = (vec2f64*)(srcreg+d2+d1); \
+	vec2f64 xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7; \
 	r4_x4c_wpn_djbunfft_mem(sd0[1],sd0[3],sd1[1],sd1[3],sd2[1],sd2[3],sd3[1],sd3[3], sd1[1], screg+32+scoff,screg+scoff,srcreg+srcinc+d2,d1); \
 /*	xstore	[srcreg+d1+16], xmm6	;; Save R3 */ \
-	sd1[3] = xmm3;	/* Save I3 */ \
-	xmm6 = sd1[0];	/* R3 */ \
-	xmm3 = sd1[2];	/* R4 */ \
-	sd3[1] = xmm0;	/* Save R4 */ \
-	sd3[3] = xmm1;	/* Save I4 */ \
-	xmm0 = sd3[0];	/* R7 */ \
-	xmm1 = sd3[2];	/* R8 */ \
+	xma2 = sd1[0];	/* R3 */ \
 	sd1[0] = xmm7;	/* Save R1 */ \
+	xma3 = sd1[2];	/* R4 */ \
 	sd1[2] = xmm4;	/* Save I1 */ \
+	sd1[3] = xmm3;	/* Save I3 */ \
+	xma6 = sd3[0];	/* R7 */ \
+	xma7 = sd3[2];	/* R8 */ \
 	sd3[0] = xmm5;	/* Save R2 */ \
+	sd3[1] = xmm0;	/* Save R4 */ \
 	sd3[2] = xmm2;	/* Save I2 */ \
-	r4_x4c_wpn_djbunfft_partial_mem(xmm7,xmm4,xmm6,xmm3,xmm5,xmm2,xmm0,xmm1, sd0[0],sd0[2],sd2[0],sd2[2],sd0[0], screg+32,screg,srcreg+srcinc,d1); \
-/*	xstore	[srcreg], xmm4		;; Save R1 */ \
-	sd0[2] = xmm5;	/* Save I1 */ \
-	sd0[1] = xmm6;	/* Save R3 */ \
-	sd0[3] = xmm7;	/* Save I3 */ \
-	sd2[0] = xmm3;	/* Save R2 */ \
-	sd2[2] = xmm0;	/* Save I2 */ \
-	sd2[1] = xmm2;	/* Save R4 */ \
-	sd2[3] = xmm1;	/* Save I4 */ \
+	sd3[3] = xmm1;	/* Save I4 */ \
+	r4_x4c_wpn_djbunfft_partial_mem(xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7, sd0[0],sd0[2],sd2[0],sd2[2],sd0[0], screg+32,screg,srcreg+srcinc,d1); \
+/*	xstore	[srcreg], xma1		;; Save R1 */ \
+	sd0[1] = xma2;	/* Save R3 */ \
+	sd0[2] = xma4;	/* Save I1 */ \
+	sd0[3] = xma0;	/* Save I3 */ \
+	sd2[0] = xma3;	/* Save R2 */ \
+	sd2[1] = xma5;	/* Save R4 */ \
+	sd2[2] = xma6;	/* Save I2 */ \
+	sd2[3] = xma7;	/* Save I4 */ \
 	srcreg += srcinc; \
 }
 
@@ -5274,10 +5279,10 @@
 	xmm7 = sd0[3];	/* R5 */ \
 	sd0[2] = xmm2;	/* Save R3 */ \
 	sd0[3] = xmm6;	/* Save R4 */ \
-	sd1[0] = xmm0;	/* Save R5 */ \
-	sd1[1] = xmm1;	/* Save R6 */ \
 	xmm2 = sd1[2];	/* R2 */ \
 	xmm6 = sd1[3];	/* R6 */ \
+	sd1[0] = xmm0;	/* Save R5 */ \
+	sd1[1] = xmm1;	/* Save R6 */ \
 	sd1[2] = xmm5;	/* Save R7 */ \
 	sd1[3] = xmm4;	/* Save R8 */ \
 	r4_x4c_simple_fft_partial_mem(xmm3,xmm2,xmm0,xmm5,xmm7,xmm6,xmm1,xmm4, sd2[2],sd3[2],sd2[3],sd3[3],srcreg+srcinc+d2,d1); \
@@ -8409,28 +8414,29 @@
 	vec2f64 *sd1 = (vec2f64*)(srcreg+d1); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d2); \
 	vec2f64 *sd3 = (vec2f64*)(srcreg+d2+d1); \
+	vec2f64 xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7; \
 	r4_x8r_unfft_mem(sd0[1],sd0[3],sd1[1],sd1[3],sd2[1],sd2[3],sd3[1],sd3[3], screg1+scoff1,screg2+scoff2, screg5+scoff5,srcreg+srcinc+d2,d1, sd3[1],sd3[3]); \
-	sd1[1] = xmm7;	/* Save R3 */ \
 /*	xstore	[srcreg+d3+16], xmm2	;; Save R4 */ \
-	sd1[3] = xmm6;	/* Save R7 */ \
 /*	xstore	[srcreg+d3+48], xmm5	;; Save R8 */ \
-	xmm6 = sd3[0];	/* Load R4 */ \
-	xmm7 = sd3[2];	/* Load I4 */ \
-	xmm2 = sd1[0];	/* Load R2 */ \
-	xmm5 = sd1[2];	/* Load I2 */ \
-	sd1[0] = xmm1;	/* Save R1 */ \
+	xma6 = sd3[0];	/* Load R4 */ \
+	xma7 = sd3[2];	/* Load I4 */ \
 	sd3[0] = xmm4;	/* Save R2 */ \
-	sd1[2] = xmm0;	/* Save R5 */ \
 	sd3[2] = xmm3;	/* Save R6 */ \
-	r4_x8r_unfft_partial_mem(xmm0,xmm1,xmm2,xmm5,xmm3,xmm4,xmm6,xmm7, sd0[0],sd0[2],sd2[0],sd2[2], screg1,screg2,screg5,srcreg+srcinc,d1, sd2[1],sd2[3]); \
-	sd0[0] = xmm1;		/* Save R1 */ \
-	sd2[0] = xmm3;	/* Save R2 */ \
-	sd0[2] = xmm0;	/* Save R5 */ \
-	sd2[2] = xmm5;	/* Save R6 */ \
-	sd0[1] = xmm7;	/* Save R3 */ \
-/*	xstore	[srcreg+d2+16], xmm2	;; Save R4 */ \
-	sd0[3] = xmm6;	/* Save R7 */ \
-/*	xstore	[srcreg+d2+48], xmm4	;; Save R8 */ \
+	xma2 = sd1[0];	/* Load R2 */ \
+	xma3 = sd1[2];	/* Load I2 */ \
+	sd1[0] = xmm1;	/* Save R1 */ \
+	sd1[1] = xmm7;	/* Save R3 */ \
+	sd1[2] = xmm0;	/* Save R5 */ \
+	sd1[3] = xmm6;	/* Save R7 */ \
+	r4_x8r_unfft_partial_mem(xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7, sd0[0],sd0[2],sd2[0],sd2[2], screg1,screg2,screg5,srcreg+srcinc,d1, sd2[1],sd2[3]); \
+	sd2[0] = xma4;	/* Save R2 */ \
+	sd2[2] = xma3;	/* Save R6 */ \
+	sd0[0] = xma1;		/* Save R1 */ \
+	sd0[1] = xma7;	/* Save R3 */ \
+	sd0[2] = xma0;	/* Save R5 */ \
+	sd0[3] = xma6;	/* Save R7 */ \
+/*	xstore	[srcreg+d2+16], xma2	;; Save R4 */ \
+/*	xstore	[srcreg+d2+48], xma5	;; Save R8 */ \
 	srcreg += srcinc; \
 }
 
@@ -9318,29 +9324,30 @@
 	vec2f64 *sd1 = (vec2f64*)(srcreg+d1); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d2); \
 	vec2f64 *sd3 = (vec2f64*)(srcreg+d2+d1); \
+	vec2f64 xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7; \
 	/* tmp = srcinc+d2; */ \
 	r4_x8r_wpn_unfft_mem(sd0[1],sd0[3],sd1[1],sd1[3],sd2[1],sd2[3],sd3[1],sd3[3],screg2+scoff2,screg1+scoff1+32,screg2+scoff2+48,screg1+scoff1,srcreg+srcinc+d2,d1,sd3[1],sd3[3]); \
-	sd1[1] = xmm7;	/* Save R3 */ \
 /*	xstore	[srcreg+d3+16], xmm2	;; Save R4 */ \
-	sd1[3] = xmm6;	/* Save R7 */ \
 /*	xstore	[srcreg+d3+48], xmm5	;; Save R8 */ \
-	xmm6 = sd3[0];	/* Load R4 */ \
-	xmm7 = sd3[2];	/* Load I4 */ \
-	xmm2 = sd1[0];	/* Load R2 */ \
-	xmm5 = sd1[2];	/* Load I2 */ \
-	sd1[0] = xmm1;	/* Save R1 */ \
+	xma6 = sd3[0];	/* Load R4 */ \
+	xma7 = sd3[2];	/* Load I4 */ \
 	sd3[0] = xmm4;	/* Save R2 */ \
-	sd1[2] = xmm0;	/* Save R5 */ \
 	sd3[2] = xmm3;	/* Save R6 */ \
-	r4_x8r_wpn_unfft_partial_mem(xmm0,xmm1,xmm2,xmm5,xmm3,xmm4,xmm6,xmm7,sd0[0],sd0[2],sd2[0],sd2[2],screg2,screg1+32,screg2+48,screg1,srcreg+srcinc,d1,sd2[1],sd2[3]); \
-	sd0[0] = xmm1;		/* Save R1 */ \
-	sd2[0] = xmm3;	/* Save R2 */ \
-	sd0[2] = xmm0;	/* Save R5 */ \
-	sd2[2] = xmm5;	/* Save R6 */ \
-	sd0[1] = xmm7;	/* Save R3 */ \
-/*	xstore	[srcreg+d2+16], xmm2	;; Save R4 */ \
-	sd0[3] = xmm6;	/* Save R7 */ \
-/*	xstore	[srcreg+d2+48], xmm4	;; Save R8 */ \
+	xma2 = sd1[0];	/* Load R2 */ \
+	xma3 = sd1[2];	/* Load I2 */ \
+	sd1[0] = xmm1;	/* Save R1 */ \
+	sd1[1] = xmm7;	/* Save R3 */ \
+	sd1[2] = xmm0;	/* Save R5 */ \
+	sd1[3] = xmm6;	/* Save R7 */ \
+	r4_x8r_wpn_unfft_partial_mem(xma0,xma1,xma2,xma3,xma4,xma5,xma6,xma7,sd0[0],sd0[2],sd2[0],sd2[2],screg2,screg1+32,screg2+48,screg1,srcreg+srcinc,d1,sd2[1],sd2[3]); \
+/*	xstore	[srcreg+d2+16], xma2	;; Save R4 */ \
+/*	xstore	[srcreg+d2+48], xma5	;; Save R8 */ \
+	sd2[0] = xma4;	/* Save R2 */ \
+	sd2[2] = xma3;	/* Save R6 */ \
+	sd0[0] = xma1;	/* Save R1 */ \
+	sd0[1] = xma7;	/* Save R3 */ \
+	sd0[2] = xma0;	/* Save R5 */ \
+	sd0[3] = xma6;	/* Save R7 */ \
 	srcreg += srcinc; \
 }
 
@@ -9817,10 +9824,10 @@
 	shuffle_store_partial(de0[0], de0[1], xmm0, xmm7);				/* Save real value #1,R2 */ \
 	shuffle_store_partial(de0[2], de0[3], xmm1, xmm5);			/* Save real value #2,I2 */ \
 	xmm0 = sd0[2];	/* R1 */ \
-	xmm7 = sd1[2];	/* R2 */ \
 	xmm5 = sd0[3];	/* R5 */ \
 	shuffle_store_with_temp(de1[0], de1[1], xmm4, xmm6, xmm1);		/* Save R3,R4 */ \
 	shuffle_store_with_temp(de1[2], de1[3], xmm3, xmm2, xmm1);	/* Save I3,I4 */ \
+	xmm7 = sd1[2];	/* R2 */ \
 	xmm1 = sd1[3];	/* R6 */ \
 	xprefetch(u8ptr(srcreg+srcinc+d2)); \
 	r4_x4c_djbfft_partial_mem(xmm0,xmm7,xmm3,xmm2,xmm5,xmm1,xmm6,xmm4, sd2[2],sd3[2],sd2[3],sd3[3],screg1,0,dstreg+dstinc+e2,e1, de2[0],de2[2]); \
@@ -10906,18 +10913,18 @@
 	vec2f64 *sd3 = (vec2f64*)(srcreg+d2+d1); \
 	vec2f64 TMP1, TMP2, TMP3, TMP4; \
 	r4_h8r_h4c_djbunfft_mem(sd0[1],sd0[3],sd1[1],sd1[3], sd2[1],sd2[3],sd3[1],sd3[3], screg1,scoff1,screg2,scoff2, srcreg+srcinc+d2,d1,sd3[1],sd3[3]); \
-	sd1[1] = xmm7;	/* Save R3 */ \
 /*	xstore	[srcreg+d3+16], xmm5	;; Save R4 */ \
-	sd1[3] = xmm6;	/* Save R7 */ \
 /*	xstore	[srcreg+d3+48], xmm2	;; Save R8 */ \
-	TMP1 = sd1[0];	/* Load R2 */ \
-	TMP2 = sd1[2];	/* Load I2 */ \
 	TMP3 = sd3[0];	/* Load R4 */ \
 	TMP4 = sd3[2];	/* Load I4 */ \
-	sd1[0] = xmm1;	/* Save R1 */ \
 	sd3[0] = xmm4;	/* Save R2 */ \
-	sd1[2] = xmm0;	/* Save R5 */ \
 	sd3[2] = xmm3;	/* Save R6 */ \
+	TMP1 = sd1[0];	/* Load R2 */ \
+	TMP2 = sd1[2];	/* Load I2 */ \
+	sd1[0] = xmm1;	/* Save R1 */ \
+	sd1[1] = xmm7;	/* Save R3 */ \
+	sd1[2] = xmm0;	/* Save R5 */ \
+	sd1[3] = xmm6;	/* Save R7 */ \
 	r4_h8r_h4c_djbunfft_mem(sd0[0],sd0[2],TMP1,TMP2, sd2[0],sd2[2],TMP3,TMP4, screg1,0,screg2,0, srcreg+srcinc,d1,sd2[1],sd2[3]); \
 	sd0[0] = xmm1;		/* Save R1 */ \
 	sd2[0] = xmm4;	/* Save R2 */ \
@@ -10940,18 +10947,18 @@
 	vec2f64 *sd3 = (vec2f64*)(srcreg+d2+d1); \
 	vec2f64 TMP1, TMP2, TMP3, TMP4; \
 	r4_h8r_h4c_2sc_djbunfft_mem(sd0[1],sd0[3],sd1[1],sd1[3], sd2[1],sd2[3],sd3[1],sd3[3], screg1+scoff1,screg2+scoff2,screg3+scoff3, srcreg+srcinc+d2,d1,sd3[1],sd3[3]); \
-	sd1[1] = xmm7;	/* Save R3 */ \
 /*	xstore	[srcreg+d3+16], xmm5	;; Save R4 */ \
-	sd1[3] = xmm6;	/* Save R7 */ \
 /*	xstore	[srcreg+d3+48], xmm2	;; Save R8 */ \
-	TMP1 = sd1[0];	/* Load R2 */ \
-	TMP2 = sd1[2];	/* Load I2 */ \
 	TMP3 = sd3[0];	/* Load R4 */ \
 	TMP4 = sd3[2];	/* Load I4 */ \
-	sd1[0] = xmm1;	/* Save R1 */ \
 	sd3[0] = xmm4;	/* Save R2 */ \
-	sd1[2] = xmm0;	/* Save R5 */ \
 	sd3[2] = xmm3;	/* Save R6 */ \
+	TMP1 = sd1[0];	/* Load R2 */ \
+	TMP2 = sd1[2];	/* Load I2 */ \
+	sd1[0] = xmm1;	/* Save R1 */ \
+	sd1[1] = xmm7;	/* Save R3 */ \
+	sd1[2] = xmm0;	/* Save R5 */ \
+	sd1[3] = xmm6;	/* Save R7 */ \
 	r4_h8r_h4c_2sc_djbunfft_mem(sd0[0],sd0[2],TMP1,TMP2, sd2[0],sd2[2],TMP3,TMP4, screg1,screg2,screg3,srcreg+srcinc,d1, sd2[1],sd2[3]); \
 	sd0[0] = xmm1;		/* Save R1 */ \
 	sd2[0] = xmm4;	/* Save R2 */ \
@@ -11305,10 +11312,10 @@ vec2f64 M1=mem1, M2=mem2, M3=mem3, M4=mem4, M5=mem5, M6=mem6, M7=mem7, M8=mem8; 
 	xmm7 = sd0[3];	/* R5 */ \
 	sd0[2] = xmm2;	/* Save R2 */ \
 	sd0[3] = xmm6;	/* Save I2 */ \
-	sd1[0] = xmm0;	/* Save R3 */ \
-	sd1[1] = xmm1;	/* Save I3 */ \
 	xmm2 = sd1[2];	/* R2 */ \
 	xmm6 = sd1[3];	/* R6 */ \
+	sd1[0] = xmm0;	/* Save R3 */ \
+	sd1[1] = xmm1;	/* Save I3 */ \
 	sd1[2] = xmm5;	/* Save R4 */ \
 	sd1[3] = xmm4;	/* Save I4 */ \
 	r4_x4c_simple_fft_partial_mem(xmm3,xmm2,xmm0,xmm5,xmm7,xmm6,xmm1,xmm4, sd2[2],sd3[2],sd2[3],sd3[3],srcreg+srcinc+d2,d1); \
