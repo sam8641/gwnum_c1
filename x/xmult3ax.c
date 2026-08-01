@@ -35,7 +35,6 @@ static void final_carries_3(struct gwasm_data *__restrict g, uintptr_t rsi, vec2
 }
 
 void gwxadd3(struct gwasm_data *__restrict g) {
-	//puts("gwxadd3");
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi, tmp1;
@@ -127,7 +126,6 @@ void gwxadd3(struct gwasm_data *__restrict g) {
 }
 
 void gwxsub3(struct gwasm_data *__restrict g) {
-	//puts("gwxsub3");
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi, tmp1;
@@ -219,7 +217,6 @@ void gwxsub3(struct gwasm_data *__restrict g) {
 }
 
 void gwxaddsub3(struct gwasm_data *__restrict g) {
-	//puts("gwxaddsub3");
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4,t5,t6,t7,t8;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi, tmp1;
@@ -331,7 +328,6 @@ void gwxaddsub3(struct gwasm_data *__restrict g) {
 
 
 void gwxmuls3(struct gwasm_data *__restrict g) {
-	//puts("gwxmuls3");
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4,t5;
 	uintptr_t rax, rcx, rbp, rdi, rsi, tmp1;

@@ -115,22 +115,41 @@ void one_million_clocks (void)
 		a = (a + 1 ^ 1) + 1 ^ 1;
 	test624=a;
 }
-#ifndef X86_OR_X64
-void erdtsc (uint32_t *hi, uint32_t *lo) {
-	unsigned long long a = __builtin_readcyclecounter();
-	*lo = (uint32_t) a;
-	*hi = a >> 32;
+
+#if defined(__has_builtin) && __has_builtin(__builtin_readcyclecounter)
+#define rdtsc1() __builtin_readcyclecounter()
+#elif defined(X86_OR_X64)
+#define rdtsc1() __rdtsc()
+#elif defined(_M_ARM64)
+#define rdtsc1() _ReadStatusReg(ARM64_PMCCNTR_EL0)
+#elif defined(__aarch64__) && !defined(__NO_INLINE_ASM__)
+static inline uint64_t rdtsc1() {
+	uint64_t a;
+	__asm__ volatile("mrs %0, cntvct_el0" : "=r" (a));
+	return a;
 }
-void ecpuid (struct cpuid_data *t) { __builtin_debugtrap(); }
 #else
-void erdtsc (uint32_t *hi, uint32_t *lo) {
-	uint64_t a = __rdtsc();
+#define NO_RDTSC
+#endif
+
+#if defined(__x86_64__) && !defined(_MSC_VER) && !defined(__NO_INLINE_ASM__)
+void erdtsc(uint32_t *hi, uint32_t *lo) {
+	__asm__ volatile("rdtsc" : "=a"(*lo), "=d"(*hi));
+}
+#elif !defined(NO_RDTSC)
+void erdtsc(uint32_t *hi, uint32_t *lo) {
+	uint64_t a=rdtsc1();
 	*lo = (uint32_t)a;
 	*hi = a >> 32;
 }
+#endif
+
+#if defined(X86_OR_X64)
 void ecpuid (struct cpuid_data *t) {
 	__get_cpuid_count(t->EAX, t->ECX, &t->EAX,&t->EBX,&t->ECX,&t->EDX);
 }
+#else
+//void ecpuid (struct cpuid_data *t) { __builtin_debugtrap(); }
 #endif
 unsigned long ecpuidsupport (void) {return 1;}
 void fpu_init (void) {};
@@ -184,9 +203,9 @@ unsigned int num_cpus (void)
 /* The MS 64-bit compiler does not allow inline assembly.  Fortunately, any */
 /* CPU capable of running x86-64 bit code can execute these instructions. */
 
-#if defined(X86_64) || defined(__x86_64__) || defined(__aarch64__)
+#if !defined(__i386__) && !defined(_M_IX86)
 
-int canExecInstruction (
+static inline int canExecInstruction (
 	unsigned long cpu_flag)
 {
 	return (TRUE);
@@ -205,7 +224,7 @@ int canExecInstruction (
 int	boom;
 jmp_buf	env;
 void sigboom_handler (int i)
-{void erdtsc (uint32_t *hi, uint32_t *lo);
+{
 	boom = TRUE;
 	longjmp (env, 1);
 }
@@ -322,11 +341,11 @@ void busy_loop (void *arg)
 /* See Intel's document AP-485 for using CPUID on Intel processors */
 /* AMD and VIA have similar documents */
 
-#if defined(__aarch64__)
+#if !defined(__i386__) && !defined(_M_IX86) && !defined(__x86_64__) && !defined(_M_X64)
 void guessCpuType (void)
 {
 	CPU_BRAND[0] = 0;
-	memcpy(CPU_BRAND, "arm64", 6);
+	memcpy(CPU_BRAND, "unknown", 8);
 	CPU_SPEED = 100.0;
 	CPU_FLAGS = CPU_CMOV | CPU_MMX | CPU_PREFETCH | CPU_SSE | CPU_SSE2 | CPU_SSE3 | CPU_SSSE3 | CPU_SSE41 | CPU_SSE42 /* | CPU_AVX | CPU_FMA3 | CPU_AVX2*/;
 	CPU_CORES = 1;
@@ -1489,7 +1508,10 @@ static	char *	BRAND_NAMES[] = {	/* From Intel Ap-485 */
 }
 #endif
 
-void guessCpuSpeed (void)
+#ifdef NO_RDTSC
+void guessCpuSpeed () {CPU_SPEED = 100.0;}
+#else
+void guessCpuSpeed ()
 {
 
 /* If RDTSC is not supported, then measuring the CPU speed is real hard */
@@ -1668,6 +1690,7 @@ void guessCpuSpeed (void)
 		CPU_SPEED = avg_speed;
 	}
 }
+#endif
 
 /*--------------------------------------------------------------------------
 | And now, the routines that access the high resolution performance counter.

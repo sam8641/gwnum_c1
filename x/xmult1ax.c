@@ -16,7 +16,6 @@ typedef double __attribute__ ((vector_size (32), aligned(16))) vec4f64b;
 
 void gwxaddq1(struct gwasm_data *__restrict g)
 {
-	//puts("gwxaddq1");
 	vec8f64b *c = g->SRCARG;
 	vec8f64b *d = g->SRC2ARG;
 	vec8f64b *si = g->DESTARG;
@@ -30,7 +29,6 @@ void gwxaddq1(struct gwasm_data *__restrict g)
 //DEST = SRC2 - SRC
 void gwxsubq1(struct gwasm_data *__restrict g)
 {
-	//puts("gwxsubq1");
 	vec8f64b *c = g->SRCARG;
 	vec8f64b *d = g->SRC2ARG;
 	vec8f64b *si = g->DESTARG;
@@ -45,7 +43,6 @@ void gwxsubq1(struct gwasm_data *__restrict g)
 // DEST = SRC + SRC2, DEST2 = SRC - SRC2
 void gwxaddsubq1(struct gwasm_data *__restrict g)
 {
-	puts("gwxaddsubq1");
 	vec4f64b *c = g->SRCARG;
 	vec4f64b *d = g->SRC2ARG;
 	vec4f64b *si = g->DESTARG;
@@ -67,7 +64,6 @@ void gwxaddsubq1(struct gwasm_data *__restrict g)
 
 void gwxcopyzero1(struct gwasm_data *__restrict g)
 {
-	puts("gwxcopyzero1");
 	vec2f64 *rsi = g->SRCARG;
 	vec2f64 *rdi = g->DESTARG;
 	int32_t ecx = 0;
@@ -178,7 +174,6 @@ void gwxadd1(struct gwasm_data *__restrict g)
 
 
 void gwxadd1(struct gwasm_data *__restrict g) {
-	//puts("gwxadd1");
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi;
 	uintptr_t saved_dest_ptr, saved_col_ptr;
@@ -232,7 +227,6 @@ void gwxadd1(struct gwasm_data *__restrict g) {
 
 // gwxsub1 is copied from gwxadd1, then change addpd to subpd
 void gwxsub1(struct gwasm_data *__restrict g) {
-	//puts("gwxsub1");
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi;
 	uintptr_t saved_dest_ptr, saved_col_ptr;
@@ -285,7 +279,6 @@ void gwxsub1(struct gwasm_data *__restrict g) {
 }
 
 void gwxaddsub1(struct gwasm_data *__restrict g) {
-	//puts("gwxaddsub1");
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi;
 	uintptr_t saved_dest1_ptr, saved_dest2_ptr, saved_col_ptr;
@@ -350,7 +343,6 @@ void gwxaddsub1(struct gwasm_data *__restrict g) {
 
 // gwxsub1 is copied from gwxadd1, then change addpd to subpd
 void gwxmuls1(struct gwasm_data *__restrict g) {
-	//puts("gwxmuls1");
 	vec2f64 xmm0,xmm1,xmm2,xmm3	,xmm4,xmm5,xmm7;
 	uintptr_t rbp, rdi, rsi, tmp1;
 	uintptr_t saved_dest_ptr, saved_col_ptr, saved_biglit_ptr;

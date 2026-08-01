@@ -198,33 +198,32 @@ const double BIGVAL = 9223372036854775808.0;  // 2^63
 #if 1
 int gcdhlp (uint32_t ulen, uint32_t *udata, uint32_t vlen, uint32_t *vdata, unsigned int *struct_ptr) {
 	//puts("         gcdhlp");
-#if 1
-	uintptr_t rax,rcx,rdx,rbx,rsi,rbp,r8,r9,r10,r12,r13,r14,r15,t;
-	rcx = ulen;
+	uint64_t rax,rcx,rdx,rbx,rsi,rbp,r8,r9,r10,r12,r13,r14,r15,t;
+	uintptr_t c = ulen;
 	r8 = vlen;
 
-	r14 = udata[rcx-1];	/* U[Ulen-1] */
+	r14 = udata[c-1];	/* U[Ulen-1] */
 	r15 = 0;		/* Zero V in case U and V not same len */
-	if(rcx != r8)			/* Load top V word if U and V same len */
+	if(c != vlen)			/* Load top V word if U and V same len */
 		goto noload;
-	r15 = vdata[rcx-1];	/* V[Ulen-1] */
+	r15 = vdata[c-1];	/* V[Ulen-1] */
 
-	if(rcx == 1)			/* Are there more words to shift */
+	if(c == 1)			/* Are there more words to shift */
 		goto simple;			/* bits from? */
 
 	noload:
 	r14 <<= 32;
 	r15 <<= 32;
-	rax = udata[rcx-2];	/* U[Ulen-2] */
-	rbx = vdata[rcx-2];	/* V[Ulen-2] */
+	rax = udata[c-2];	/* U[Ulen-2] */
+	rbx = vdata[c-2];	/* V[Ulen-2] */
 	r14 += rax;
 	r15 += rbx;
 
-	if(rcx == 2)			/* Are there more words to shift */
+	if(c == 2)			/* Are there more words to shift */
 		goto simple;			/* bits from? */
 
-	rax = udata[rcx-3];	/* U[Ulen-3] */
-	rbx = vdata[rcx-3];	/* V[Ulen-3] */
+	rax = udata[c-3];	/* U[Ulen-3] */
+	rbx = vdata[c-3];	/* V[Ulen-3] */
 
 	rcx = __builtin_clzll(r14);		/* Count bits to shift U */
 	/*cl ^= 63;*/			/* Turn bit # into a shift count */
@@ -391,167 +390,6 @@ int gcdhlp (uint32_t ulen, uint32_t *udata, uint32_t vlen, uint32_t *vdata, unsi
 	struct_ptr[3] = r13; /* Save D */
 	struct_ptr[4] = r12; /* Save ODD */
 
-#else
-	uint64_t a,c,b,si,bp,r8,r9,r10,r12,r13,r14,r15,t;
-	int64_t d;
-
-	c = ulen;
-	r8 = vlen;
-
-	// (cx,dx,r8,r9,r11)
-
-	r14 = udata[c-1];
-	r15 = 0;
-	if(c == r8)
-	{
-		r15 = vdata[c-1];
-		if(c == 1) goto simple;
-	}
-	r14 <<= 32;
-	r15 <<= 32;
-	a = udata[c-2];
-	b = vdata[c-2];
-	r14 += a;
-	r15 += b;
-
-	if(c == 2) goto simple;
-
-	a = udata[c-3];
-	b = vdata[c-3];
-
-	c = __builtin_clzll(r14);  // __bsrd or __builtin_clz
-	// c ^= 63;, not needed, unless BSR is used.
-
-	a <<= 32;
-	b <<= 32;
-	r14 = shldq(r14, a, c);
-	r15 = shldq(r15, b, c);
-
-	r8 = 1;
-	r9 = 0;
-	r10 = 0;
-	r13 = 1;
-	r12 = 0;
-
-	si = 0x100000000ULL;
-	r14  >>= 1;
-	r15 >>= 1;
-
-dloop:
-	a = r14;
-	a -= r9;
-	c = r15;
-	c += r13;
-	d = 0;
-	a = _div128(d, a, c, &d);
-
-	c = r15;
-	c -= r10;
-	bp = a;
-	bp *= c;
-	bp += c;
-	b = r14 + r8;
-	if(b >= bp) goto lpdone;
-
-	b = r13;
-	b *= a;
-	b += r9;
-	if(b >= si) goto lpdone;
-	r9 = r13;
-	r13 = b;
-
-	c = r10;
-	c *= a;
-	c += r8;
-	r8 = r10;
-	r10 = c;
-
-	a *= r15;
-	r14 -= a;
-	t = r14; r14 = r15; r15 = t; // xchg
-
-	r12 ^= 1;
-
-
-
-	a = r14;
-	a -= r8;
-	c = r15;
-	c += r10;
-	d = 0;
-	a = _div128(d, a, c, &d);
-
-	c = r15;
-	c -= r13;
-	bp = a;
-	bp *= c;
-	bp += c;
-	b = r14 + r9;
-	if(b >= bp) goto lpdone;
-
-	b = r13;
-	b *= a;
-	b += r9;
-	if(b >= si) goto lpdone;
-	r9 = r13;
-	r13 = b;
-
-	c = r10;
-	c *= a;
-	c += r8;
-	r8 = r10;
-	r10 = c;
-
-	a *= r15;
-	r14 -= a;
-	t = r14; r14 = r15; r15 = t; // xchg
-
-	r12 ^= 1;
-	goto dloop;
-
-simple:
-	r8 = 1;
-	r9 = 0;
-	r10 = 0;
-	r13 = 1;
-	r12 = 0;
-
-
-	si = 0x100000000ULL;
-sloop:
-	a = r14;
-	//d = 0;
-	//d = a % r15;  // unused remainder
-	a = a / r15;  // unsigned "div" with rdx = 0
-	bp = a;
-	a = a * r13; //_umul128(a, r13, &d);
-	a += r9;
-	if(a >= si) goto lpdone;
-	r9 = r13;
-	r13 = a;
-
-	a = r10;
-	a = a * bp; //_umul128(a, bp, &d);
-	a += r8;
-	r8 = r10;
-	r10 = a;
-
-	a = r15;
-	a = a * bp; //_umul128(a, bp, &d);
-	r14 -= a;
-	t = r14; r14 = r15; r15 = t; // xchg
-
-	r12 ^= 1;
-
-	if(r15) goto sloop;
-
-lpdone:
-	struct_ptr[0] = (uint32_t)r8;
-	struct_ptr[1] = (uint32_t)r9;
-	struct_ptr[2] = (uint32_t)r10;
-	struct_ptr[3] = (uint32_t)r13;
-	struct_ptr[4] = (uint32_t)r12;
-#endif
 	return r9 != 0 ? 1 : 0;
 }
 #endif

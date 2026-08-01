@@ -137,9 +137,17 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	#message(STATUS "Using Clang compiler")
-	target_compile_options(gwnum_c1_lib PRIVATE "-ffp-exception-behavior=maytrap")
+	if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|i386|i686|x86|arm64|aarch64")
+		target_compile_options(gwnum_c1_lib PRIVATE "-ffp-exception-behavior=maytrap")
+	endif()
+else()
+	# Avoid gcc default fp-contract=fast with FMA (ARM64), possible round errors.
+	include(CheckCXXCompilerFlag)
+	check_cxx_compiler_flag("-ffp-contract=on" HAVE_FP_CONTRACT)
+	if(HAVE_FP_CONTRACT)
+		target_compile_options(gwnum_c1_lib PRIVATE -ffp-contract=on)
+	endif()
 endif()
-
 
 #target_link_options(gwnum_c1_lib PRIVATE "-no-pie")
 #target_link_libraries(gwnum_c1_lib PRIVATE /mnt/2/1/code/gwnum/gwnum/linux64/gwnum.a)

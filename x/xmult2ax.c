@@ -18,7 +18,6 @@ typedef double __attribute__ ((vector_size (32), aligned(16))) vec4f64b;
 
 void gwxaddq2(struct gwasm_data *__restrict g)
 {
-	//puts("gwxaddq2");
 	char *rcx = g->SRCARG;
 	char *rdx = g->SRC2ARG;
 	char *rsi = g->DESTARG;
@@ -48,7 +47,6 @@ void gwxaddq2(struct gwasm_data *__restrict g)
 //DEST = SRC2 - SRC
 void gwxsubq2(struct gwasm_data *__restrict g)
 {
-	//puts("gwxsubq2");
 	char *rcx = g->SRCARG;
 	char *rdx = g->SRC2ARG;
 	char *rsi = g->DESTARG;
@@ -79,7 +77,6 @@ void gwxsubq2(struct gwasm_data *__restrict g)
 // DEST = SRC + SRC2, DEST2 = SRC - SRC2
 void gwxaddsubq2(struct gwasm_data *__restrict g)
 {
-	//puts("gwxaddsubq2");
 	char *rcx = g->SRCARG;
 	char *rdx = g->SRC2ARG;
 	char *rsi = g->DESTARG;
@@ -118,7 +115,6 @@ void gwxaddsubq2(struct gwasm_data *__restrict g)
 
 void gwxcopyzero2(struct gwasm_data *__restrict g)
 {
-	//puts("gwxcopyzero2");
 	int32_t ecx = 0;
 	char *rsi = g->SRCARG;
 	char *rdi = g->DESTARG;
@@ -175,7 +171,6 @@ static void final_carries_2(struct gwasm_data *__restrict g, uintptr_t rsi, vec2
 }
 
 void gwxadd2(struct gwasm_data *__restrict g) {
-	//puts("gwxadd2");
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi;
@@ -265,7 +260,6 @@ void gwxadd2(struct gwasm_data *__restrict g) {
 }
 
 void gwxsub2(struct gwasm_data *__restrict g) {
-	//puts("gwxsub2");
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi;
@@ -366,9 +360,6 @@ void gwxaddsub2(struct gwasm_data *__restrict g) {
 }
 #else // Primary method
 void gwxaddsub2(struct gwasm_data *__restrict g) {
-	//puts("gwxaddsub2");
-	//printf("gwxaddsub2 %i %i\n", g->B_IS_2, g->RATIONAL_FFT);
-
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4,t5,t6,t7,t8;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi;
@@ -484,7 +475,6 @@ void gwxaddsub2(struct gwasm_data *__restrict g) {
 
 
 void gwxmuls2(struct gwasm_data *__restrict g) {
-	//puts("gwxmuls2");
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4,t5;
 	uintptr_t rax, rcx, rbx, rbp, rdi, rsi, tmp1;

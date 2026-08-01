@@ -64,41 +64,37 @@ static const vec2f64 XMM_SQRTHALF2 = {
 
 #define shuffle_load_with_temp(A,B,C,D,E) shuffle_load(A,B,C,D)
 
-// x86  maxsd A,B ; (A>B?A:B) ; when any input is NAN, then return B.
-// arm64 fmax A,B ; fmax(A,B) ; when any input is NAN, then return NAN.
+// x86  maxsd A,B is (A>B?A:B) ; when any input is NAN, then return B.
+// arm64 fmax A,B is fmax(A,B) ; when any input is NAN, then return NAN.
 // __builtin_elementwise_max is fast on ARM64, but slow multi-instruction on x86.
 
 #if defined(__x86_64) || defined(__i386__)
-	//#if defined(__clang__) || defined(__GNUC__)
 	#define vec2max __builtin_ia32_maxpd
 	#define vec2min __builtin_ia32_minpd
-	#define maxpd(A,B) A = __builtin_ia32_maxpd(A,B)
-	#define minpd(A,B) A = __builtin_ia32_minpd(A,B)
-	//#endif
-#if 1
 	static inline double vec2reducemax(vec2f64 a) {return a[0]>a[1]?a[0]:a[1];}
 	static inline double vec2reducemin(vec2f64 a) {return a[0]<a[1]?a[0]:a[1];}
-#else
-	static inline double vec2reducemax(vec2f64 a){
-		vec2f64 b = {a[1], a[1]};
-		return __builtin_ia32_maxsd(a, b)[0];
-	}
-	static inline double vec2reducemin(vec2f64 a){
-		vec2f64 b = {a[1], a[1]};
-		return __builtin_ia32_minsd(a, b)[0];
-	}
-#endif
-	#else
-	//#ifdef __clang__
+#elif defined(__has_builtin) && __has_builtin(__builtin_elementwise_max) \
+		&& (!defined(__arm__) || (defined(__ARM_ARCH) && __ARM_ARCH >= 8))
 	#define vec2reducemax __builtin_reduce_max
 	#define vec2reducemin __builtin_reduce_min
 	#define vec2max __builtin_elementwise_max
 	#define vec2min __builtin_elementwise_min
-	#define maxpd(A,B) A = __builtin_elementwise_max(A,B)
-	#define minpd(A,B) A = __builtin_elementwise_min(A,B)
-	//#else
-	//#endif
+#elif defined(__arm64__)
+	#define vec2reducemax vmaxvq_f64
+	#define vec2reducemin vminvq_f64
+	#define vec2max vmaxq_f64
+	#define vec2min vminq_f64
+#else
+	static inline vec2f64 vec2max(vec2f64 a, vec2f64 b)
+		{vec2f64 r = {a[0]>b[0]?a[0]:b[0], a[1]>b[1]?a[1]:b[1]}; return r;}
+	static inline vec2f64 vec2min(vec2f64 a, vec2f64 b)
+		{vec2f64 r = {a[0]<b[0]?a[0]:b[0], a[1]<b[1]?a[1]:b[1]}; return r;}
+	static inline double vec2reducemax(vec2f64 a) {return a[0]>a[1]?a[0]:a[1];}
+	static inline double vec2reducemin(vec2f64 a) {return a[0]<a[1]?a[0]:a[1];}
 #endif
+
+#define maxpd(A,B) A = vec2max(A,B)
+#define minpd(A,B) A = vec2min(A,B)
 
 #define u8ptr(A) *(unsigned char*)(A)
 #define u16ptr(A) *(unsigned short*)(A)
@@ -111,26 +107,52 @@ static const vec2f64 XMM_SQRTHALF2 = {
 #define xptr2(A,B) (*(vec2f64*)((char*)(A) + (B)))
 #define f64ptr2(A,B) (*(double*)((char*)(A) + (B)))
 
+// Some CPU don't have fast roundeven.
 
-#if defined(__SSE2__) && !defined(__SSE4_1__)
-	#define roundf64(A) (((A) + XMM_BIGVAL1) - XMM_BIGVAL1)
-	#define roundx(A) (((A) + XMM_BIGVAL2) - XMM_BIGVAL2)
-#elif defined(__clang__)
+#if defined(__arm__) && defined(__ARM_ARCH) && __ARM_ARCH >= 8 \
+		&& defined(__clang_major__) && __clang_major__ <= 21
+	// 32 bit, -march=armv8-a or -mcpu=cortex-a53
+	// Old clang have roundeven compile error backend bug.
+	#if 1
+		#define roundf64 __builtin_elementwise_nearbyint
+		#define roundx __builtin_elementwise_nearbyint
+	#else
+	static inline double roundf64(double a) {
+		__asm__("vrintn.f64 %[out], %[in]" : [out]"=w"(a) : [in]"w"(a));
+		return a;
+	}
+	static inline vec2f64 roundx(vec2f64 v) {
+		v[0] = roundf64(v[0]);
+		v[1] = roundf64(v[1]);
+		return v;
+	}
+	#endif
+#elif defined(__has_builtin) && __has_builtin(__builtin_elementwise_roundeven) \
+		&& (!defined(__SSE2__) || defined(__SSE4_1__)) \
+		&& (!defined(__arm__) || (defined(__ARM_ARCH) && __ARM_ARCH >= 8))
 	#define roundf64 __builtin_elementwise_roundeven
 	#define roundx __builtin_elementwise_roundeven
-#elif defined(__GNUC__) && defined(__SSE4_1__)
+#elif defined(__SSE4_1__)
 	#define roundf64(A) __builtin_roundeven(A)
 	#define roundx(A) __builtin_ia32_roundpd(X,8)
+#elif defined(__arm64__)
+	#define roundf64(A) __builtin_roundeven(A)
+	#define roundx(A) vrndnq_f64(X)
 #else
-	#error "missing round functions?"
+	#define roundf64(A) (((A) + XMM_BIGVAL1) - XMM_BIGVAL1)
+	#define roundx(A) (((A) + XMM_BIGVAL2) - XMM_BIGVAL2)
 #endif
 
-#if defined(__clang__)
+#if defined(__has_builtin) && __has_builtin(__builtin_elementwise_abs)
 	#define absf64 __builtin_elementwise_abs
 	#define absx __builtin_elementwise_abs
+#elif defined(__arm64__)
+	#include <arm_neon.h>
+	#define absf64 __builtin_fabs
+	#define absx vabsq_f64
 #else
+	#include <math.h>
 	#define absf64 fabs
-	// #include <math.h>
 	static inline vec2f64 absx(vec2f64 a) {a[0] = fabs(a[0]); a[1] = fabs(a[1]); return a;}
 #endif
 
