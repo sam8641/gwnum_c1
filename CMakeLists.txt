@@ -154,4 +154,4 @@ endif()
 
 
 install(TARGETS gwnum_c1_lib RUNTIME DESTINATION bin)
-target_include_directories(gwnum_c1_lib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../qd ${CMAKE_CURRENT_SOURCE_DIR}/../../sqlite-amalgamation-3420000)
+target_include_directories(gwnum_c1_lib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/qd)
