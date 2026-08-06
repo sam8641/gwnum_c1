@@ -15,7 +15,8 @@
 
 /* Include files */
 
-#ifdef __linux__		// Required for CentOS 5 compilation
+#if defined(__linux__) && defined(USE_SQLITE3)
+// Required for CentOS 5 compilation
 #define _GNU_SOURCE
 #define __USE_UNIX98
 #include <sys/mman.h>
@@ -26,6 +27,8 @@
 #include "gwbench.h"
 #include "gwini.h"
 #include "gwthread.h"
+
+#ifdef USE_SQLITE3
 
 /* Include the open source SQL database */
 
@@ -87,6 +90,7 @@
 //#define SQLITE_OMIT_XFER_OPT 1
 //#define SQLITE_UNTESTABLE 1
 ////#define SQLITE_ZERO_MALLOC 1
+
 #include "sqlite3.c"
 
 /* Defines */
@@ -98,6 +102,7 @@ gwmutex	SQL_MUTEX;				/* Lock for accessing SQL database */
 sqlite3 *BENCH_DB = NULL;			/* SQL database storing the bench data */
 int	get_max_sql_stmt_prepared = FALSE;	/* SQL stmt used in get_max_thoughput */
 sqlite3_stmt *get_max_sql_stmt;
+#endif
 
 /* Allow overriding which benchmark data we use to select fastest FFT implementations */
 /* These values are read from gwnum.txt.  If set, then gwnum will use benchmarking data */
@@ -110,6 +115,8 @@ int	BENCH_NUM_WORKERS = 0;
 /****************************************************************************/
 /*          Routines to read and write bench data in INI file               */
 /****************************************************************************/
+
+#ifdef USE_SQLITE3
 
 void gwbench_read_data (int cpu_flags)
 {
@@ -488,6 +495,8 @@ int internal_implementation_id (
 		(clm << 0));					// Compressed cache-line-multiplier
 }
 
+#endif // USE_SQLITE3
+
 /* Returns TRUE if the implementation id returned by gwbench_get_max_throughput matches the data parsed from a jmptable entry */
 
 int internal_implementation_ids_match (
@@ -530,6 +539,8 @@ int internal_implementation_ids_match (
 	return (impl_id == (fft_type << 24) + (no_prefetch << 21) + (in_place << 20) +
 			   (architecture << 12) + (pass2_multiplier << 8) + (pass2_pow2 << 4) + (clm << 0));
 }
+
+#ifdef USE_SQLITE3
 
 /* This routine returns the implementation ID and throughput for the best implementation of this FFT length. */
 /* If throughput for this FFT length is not in the benchmark database, then -1.0 is returned */
@@ -768,3 +779,31 @@ stmt_error:
 	sqlite3_finalize (sql_stmt);
 	gwmutex_unlock (&SQL_MUTEX);
 }
+
+#endif //USE_SQLITE3
+
+#if !defined(USE_SQLITE3)
+
+#if defined(__clang__) || defined(__GNUC__)
+#define UNUSED __attribute__((unused))
+#else
+#define UNUSED
+#endif
+
+void gwbench_read_data (UNUSED int cpu_flags) {};
+void gwbench_get_max_throughput (
+	UNUSED int fftlen,
+	UNUSED int arch,
+	UNUSED int num_cores,
+	UNUSED int num_workers,
+	UNUSED int num_hyperthreads,
+	UNUSED int negacyclic,
+	UNUSED int error_check,
+	int	*impl,
+	double	*throughput)
+{
+	*impl = -1;
+	*throughput = -1.0;
+}
+
+#endif

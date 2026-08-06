@@ -4,6 +4,11 @@ Assembly files have been converted to C code, using builtin vectors.
 
 Compatible with Clang compiler, for use with ARM64 CPU.
 
+CMakeLists.txt is available, for use with CMake.
+
+SQLite3 is disabled by default to remove a dependency.
+To enable it, define USE_SQLITE3 in gwbench.c or compiler parameter.
+
 
 -> Legal stuff
 
