@@ -556,7 +556,7 @@ khi(xmm2 += xmm5);		/* Add upper FFT word to lower FFT word */ \
 ttp(xmm0 *= xptr(rbp+48));		/* new value1 = val * two-to-phi */ \
 \
 	xptr(rsi+16) = xmm0;		/* Save new value1 */ \
-	xmm1[1] = xmm1[0] = 0;		/* new value2 = zero */ \
+	xmm1[1] = xmm1[0] = 0.0;		/* new value2 = zero */ \
 	xptr(rsi+32) = xmm1;		/* Zero previous value2 */ \
 	xptr(rsi+48) = xmm1;		/* Zero current value2 */ \
 }
@@ -804,7 +804,7 @@ const1(xmm4[0] = g->u.xmm.XMM_K_TIMES_MULCONST_HI[0]); \
 		/*shufpd	xmm3, xmm3, 1;*/ \
 	} \
 	xmm2[0] = xmm2[1]; xmm2[1] = XMM_BIGVAL1; /* Rotate carry */ \
-	xmm3[0] = xmm3[1]; xmm3[1] = 0; \
+	xmm3[0] = xmm3[1]; xmm3[1] = 0.0; \
 }
 
 
@@ -1610,7 +1610,7 @@ ttp(xmm0 *= xmm3);		/* new value2 *= fudged col two-to-phi */ \
 	CARRY1 = xmm2;	/* Save carry */ \
 	xptr(rsi+1*16) = xmm0;	/* Save new value2 */ \
 \
-	xmm1 -= xmm1;		/* new high values = zero */ \
+	xmm1[1] = xmm1[0] = 0.0;		/* new high values = zero */ \
 	xptr(rsi+2*16) = xmm1;	/* Zero high value1 */ \
 	xptr(rsi+3*16) = xmm1;	/* Zero high value2 */ \
 
@@ -1700,7 +1700,7 @@ ttp(rax = u8ptr(rdi+4));	/* Load next big vs. little flags */ \
 ttp(xmm8 *= xmm13);		/* new value2 *= fudged col two-to-phi */ \
 	xptr(rsi+1*16) = xmm8;	/* Save new value2 */ \
 \
-	xmm1 -= xmm1;		/* new high values = zero */ \
+	xmm1[1] = xmm1[0] = 0.0;		/* new high values = zero */ \
 	xptr(rsi+2*16) = xmm1;	/* Zero high value1 */ \
 	xptr(rsi+3*16) = xmm1;	/* Zero high value2 */ \
 	CARRY0 = xmm4; /* Store carries */ \
@@ -2366,7 +2366,7 @@ if(g->this_block == 0) {		/* Are we carrying into the first data block? */ \
 	} \
 	rsi = (uintptr_t)g->carries;		/* Reload carries pointer */ \
 	xmm7[0] = XMM_BIGVAL1;/* Clear two carries just processed by xnorm012_2d_zpad_part1_cmn */ \
-	xmm6[0] = 0; \
+	xmm6[0] = 0.0; \
 	f64ptr(rsi) = xmm7[0]; \
 	f64ptr(rsi+32) = xmm6[0]; \
 }
@@ -2419,7 +2419,7 @@ const1(xmm4[0] *= g->u.xmm.XMM_MULCONST[0]);		/* Multiply the add in value by th
 \
 	rax = u8ptr(rdi);	/* Load big vs. little flags */ \
 	xmm0[0] = g->ZPAD0_6[0];/* Load values1 */ \
-	xmm5[0] = 0;		/* Create a zero high FFT carry to add in */ \
+	xmm5[0] = 0.0;		/* Create a zero high FFT carry to add in */ \
 	single_split_lower_zpad_word(base2, xmm0[0], xmm5[0], xmm1[0], rax); \
 no##const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C[0]); \
 const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
@@ -3239,7 +3239,7 @@ ttp(rbx = *(unsigned short*)(rdi+2));	/* Load next big vs. little & fudge flags 
 	CARRY1 = xmm2;	/* Save carry */ \
 	xptr(rsi+1*16) = xmm0;	/* Save new value2 */ \
 \
-	xmm1[1] = xmm1[0] = 0;		/* new high values = zero */ \
+	xmm1[1] = xmm1[0] = 0.0;		/* new high values = zero */ \
 	xptr(rsi+2*16) = xmm1;	/* Zero high value1 */ \
 	xptr(rsi+3*16) = xmm1;	/* Zero high value2 */ \
 }
@@ -3354,7 +3354,7 @@ ttp(rbx = *(unsigned short*)(rdi+2));	/* Load next big vs. little & fudge flags 
 	xptr(rsi) = xmm0;		/* Save new value1 */ \
 	xptr(rsi+1*16) = xmm7;	/* Save new value2 */ \
 \
-	xmm1[1] = xmm1[0] = 0;		/* new high values = zero */ \
+	xmm1[1] = xmm1[0] = 0.0;		/* new high values = zero */ \
 	xptr(rsi+2*16) = xmm1;	/* Zero high value1 */ \
 	xptr(rsi+3*16) = xmm1;	/* Zero high value2 */ \
 	CARRY0 = xmm4; /* Store carries */ \
@@ -3783,7 +3783,7 @@ if(g->this_block == 0) {		/* Are we carrying into the first data block? */ \
 	} \
 	rsi = (uintptr_t)g->carries;		/* Reload carries pointer */ \
 	xmm0[0] = XMM_BIGVAL1;/* Clear two carries just processed by xnorm012_wpn_zpad_part1_cmn */ \
-	xmm2[0] = 0; \
+	xmm2[0] = 0.0; \
 	f64ptr(rsi) = xmm0[0]; \
 	f64ptr(rsi+32) = xmm2[0]; \
 } \
@@ -3836,7 +3836,7 @@ const1(xmm4[0] *= g->u.xmm.XMM_MULCONST[0]);		/* Multiply the add in value by th
 \
 	rax = u8ptr(rdi+1);	/* Load big vs. little flags */ \
 	xmm0[0] = g->ZPAD0_6[0];/* Load values1 */ \
-	xmm5[0] = 0;		/* Create a zero high FFT carry to add in */ \
+	xmm5[0] = 0.0;		/* Create a zero high FFT carry to add in */ \
 	single_split_lower_zpad_word(base2, xmm0[0], xmm5[0], xmm1[0], rax*4); \
 no##const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C[0]); \
 const1(xmm0[0] *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
@@ -5009,7 +5009,7 @@ ttp(rbx += 32);			/* Next column two-to-phi ptr */ \
 \
 
 #define xnorm_op_2d_fft \
-	xmm2[0] = XMM_BIGVAL1; xmm2[1] = 0; \
+	xmm2[0] = XMM_BIGVAL1; xmm2[1] = 0.0; \
 \
 	xmm7[0] -= xmm2[0];		/* Remove XMM_BIGVAL */ \
 	xmm7[0] *= g->u.xmm.XMM_MINUS_C[0];	/* mul wrap around carry by -c */ \
@@ -5277,7 +5277,7 @@ ttp(rbx += 32);			/* Next column two-to-phi ptr */ \
 \
 
 #define xnorm_smallmul_2d_blk(base2, TMP1, TMP2, TMP3, TMP4) \
-	xmm5[0] = XMM_BIGVAL1; xmm5[1] = 0; \
+	xmm5[0] = XMM_BIGVAL1; xmm5[1] = 0.0; \
 \
 	xmm1[0] = TMP1[0];	/* Load carry */ \
 	xnorm_smallmul_2d_prop4(base2, rsi+0*16, 8, rbp+0*32, rbx, rdi+0*1, xmm1[0]); \
@@ -5852,7 +5852,7 @@ ttp(rdi += 2);			/* Next flags ptr */ \
 \
 
 #define xnorm_op_wpn_fft \
-	xmm2[0] = XMM_BIGVAL1; xmm2[1] = 0; \
+	xmm2[0] = XMM_BIGVAL1; xmm2[1] = 0.0; \
 \
 	rax = u8ptr(rdi);	/* Load fudge factor flags 1,2 */ \
 	rax &= 0xF0; \
@@ -6058,7 +6058,7 @@ ttp(rdi += 2);			/* Next flags ptr */ \
 \
 
 #define xnorm_smallmul_wpn_blk(base2, TMP1, TMP2, TMP3, TMP4) \
-	xmm5[0] = XMM_BIGVAL1; xmm5[1] = 0; \
+	xmm5[0] = XMM_BIGVAL1; xmm5[1] = 0.0; \
 \
 	xmm1[0] = TMP1[0];	/* Load carry */ \
 	xnorm_smallmul_wpn_prop4(base2, rsi+0*16, 8, rbp+0*XMM_GMD, rdi, 0, xmm1[0]); \

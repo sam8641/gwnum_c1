@@ -34,7 +34,7 @@ ttp(vec2f64 xmm15); \
 	uintptr_t saved_rsi = rsi; \
 echk(vec2f64 xmm6 = g->u.xmm.XMM_MAXERR); \
 	rbx = (uintptr_t) g->norm_ptr2;  \
-ttp(rax = g->cache_line_multiplier); \
+ttp(rax = (uint32_t)g->cache_line_multiplier); \
 	rdi = ((uintptr_t)g->u.xmm.XMM_COL_MULTS) + 128; /* LEA */ \
 ttp(setlp:) \
 	xnorm_2d_setup(ttp); \
@@ -46,7 +46,7 @@ ttp(if(rax) goto setlp); \
 ttp(rdx = (uintptr_t)g->norm_grp_mults); \
 	rbp = (uintptr_t)g->carries; \
 	rdi = (uintptr_t)g->norm_ptr1; \
-	rax = g->addcount1; \
+	rax = (uint32_t)g->addcount1; \
 	loopcount2 = rax; \
 	loopcount3 = 0; \
 ttp(rax = u8ptr(rdi+0)); \
@@ -58,7 +58,7 @@ no##ttp(base2(rcx = 0)); \
 no##ttp(base2(r8 = 0)); /*64b*/ \
 no##ttp(base2(r9 = 0)); /*64b*/ \
 	do{ \
-		rbx = g->cache_line_multiplier; \
+		rbx = (uint32_t)g->cache_line_multiplier; \
 		loopcount1 = rbx; \
 		rbx = ((uintptr_t)g->u.xmm.XMM_COL_MULTS); /* LEA */ \
 		/* L2prefetch128 [rdx+128] */ \
@@ -109,7 +109,7 @@ ttp(uintptr_t rdx); \
 	/*zpad_sub7(g);*/		/* Subtract 7 ZPAD words from lowest FFT words */ \
 echk(vec2f64 xmm6 = g->u.xmm.XMM_MAXERR); \
 	rbx = (uintptr_t) g->norm_ptr2; \
-ttp(rax = g->cache_line_multiplier); \
+ttp(rax = (uint32_t)g->cache_line_multiplier); \
 	rdi = ((uintptr_t)g->u.xmm.XMM_COL_MULTS) + 128; /* LEA */ \
 ttp(setlp:) \
 	xnorm_2d_setup(ttp); \
@@ -121,14 +121,14 @@ ttp(if(rax) goto setlp); \
 ttp(rdx = (uintptr_t)g->norm_grp_mults); \
 	rbp = (uintptr_t)g->carries; \
 	rdi = (uintptr_t)g->norm_ptr1; \
-	rax = g->addcount1; \
+	rax = (uint32_t)g->addcount1; \
 	loopcount2z = rax; \
 	loopcount3z = 0; \
 ttp(rax = u8ptr(rdi+0)); \
 no##ttp(rax = 0); \
 no##ttp(rcx = 0); \
 	do{ /*ilp0:*/ \
-		rbx = g->cache_line_multiplier; \
+		rbx = (uint32_t)g->cache_line_multiplier; \
 		loopcount1z = rbx; \
 		rbx = ((uintptr_t)g->u.xmm.XMM_COL_MULTS); /* LEA */ \
 /* L2prefetch128 [rdx+128] */ \

@@ -301,7 +301,7 @@ void xfunc572(struct gwasm_data *__restrict g) {
 		f5 = f4 * g->ZPAD_K6_MID; f1 -= f5;
 		f5 = f4 * g->ZPAD_K6_LO; f2 -= f5;
 		TMP56[0] = f4;
-		TMP56[1] = 0;
+		TMP56[1] = 0.0;
 		g->u.xmm.XMM_TMP3 = TMP56;
 
 		f0 *= g->ZPAD_SHIFT6;
@@ -428,7 +428,7 @@ void xfunc572(struct gwasm_data *__restrict g) {
 		f4 = f0 * ZPAD_INVERSE_K1;
 		f4 = roundf64(f4);
 		TMP56[0] = f4;
-		TMP56[1] = 0;
+		TMP56[1] = 0.0;
 		f4 *= ZPAD_K1_LO;
 		f0 -= f4;
 		g->u.xmm.XMM_TMP3 = TMP56;

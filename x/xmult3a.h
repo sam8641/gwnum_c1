@@ -28,13 +28,13 @@ ttp(rdx = (uintptr_t)g->norm_grp_mults); \
 	rbp = (uintptr_t)g->carries; \
 	rdi = (uintptr_t)g->norm_ptr1; \
 	blk8_counter = 0; \
-	uintptr_t loopcount3 = g->count3; \
+	uint32_t loopcount3 = g->count3; \
 	no##ttp(loopcount3 *= g->count2;) \
 ttp(rbx = u16ptr(rdi)); \
 	do{ /*ilp0:*/ \
-		ttp(uintptr_t loopcount2 = g->count2); \
+		ttp(uint32_t loopcount2 = g->count2); \
 		ttp(do){ /*ilp1:*/ \
-			uintptr_t loopcount1 = g->cache_line_multiplier; \
+			uint32_t loopcount1 = g->cache_line_multiplier; \
 			vec2f64 carry0 = xptr(rbp+0*16); \
 			vec2f64 carry1 = xptr(rbp+1*16); \
 			vec2f64 carry2 = xptr(rbp+2*16); \
@@ -53,7 +53,7 @@ ttp(rbx = u16ptr(rdi)); \
 			xptr(rbp+3*16) = carry3; \
 			rsi += g->normblkdst; /* Skip gap in blkdst or clmblkdst */ \
 			rbp += 64; /* Next set of carries */ \
-			blk8_counter += 0x80000000u / 4u; \
+			blk8_counter += 0x20000000u; /* 2^32 / 8 */ \
 			if(blk8_counter == 0) { \
 				/*puts("carry1");*/ \
 				rsi += g->normblkdst8; \
@@ -92,13 +92,13 @@ ttp(rdx = (uintptr_t)g->norm_grp_mults); \
 	rbp = (uintptr_t)g->carries; \
 ttp(rdi = (uintptr_t)g->norm_ptr1); \
 	blk8_counterz = 0; \
-	uintptr_t loopcount3z = g->count3; \
+	uint32_t loopcount3z = g->count3; \
 	no##ttp(loopcount3z *= g->count2;) \
 ttp(rbx = u16ptr(rdi)); \
 	do{ /*ilp0:*/ \
-		ttp(uintptr_t loopcount2z = g->count2); \
+		ttp(uint32_t loopcount2z = g->count2); \
 		ttp(do){ /*ilp1:*/ \
-			uintptr_t loopcount1z = g->cache_line_multiplier; \
+			uint32_t loopcount1z = g->cache_line_multiplier; \
 			vec2f64 carry0 = xptr(rbp+0*16); \
 			vec2f64 carry1 = xptr(rbp+1*16); \
 			vec2f64 carry2 = xptr(rbp+2*16); \
@@ -117,7 +117,7 @@ ttp(rbx = u16ptr(rdi)); \
 			xptr(rbp+3*16) = carry3; \
 			rsi += g->normblkdst; \
 			rbp += 64; \
-			blk8_counterz += 0x80000000u / 4u; \
+			blk8_counterz += 0x20000000u; /* 2^32 / 8 */ \
 			if(blk8_counterz == 0) { \
 				rsi += g->normblkdst8; \
 			} \

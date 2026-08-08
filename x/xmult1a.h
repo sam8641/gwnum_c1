@@ -14,7 +14,7 @@ echk(xmm6[0] = g->MAXERR); \
 	rbp = (uintptr_t)g->norm_col_mults; \
 ttp(uintptr_t rdi = (uintptr_t)g->norm_biglit_array); \
 	/*rax = 0;*/ \
-	rdx = g->normcount1; /* 32 bit int */ \
+	rdx = (uint32_t)g->normcount1; /* 32 bit unsigned int */ \
 	uintptr_t saved_reg3 = rsi; \
 ttp(uintptr_t saved_reg2 = rdi); \
 ttp(uintptr_t saved_reg1 = rbp); \
@@ -62,13 +62,13 @@ void lab##BLEND(struct gwasm_data *__restrict g) { \
 	zpad_sub7(g);		/* Subtract 7 ZPAD words from lowest FFT words */ \
 	rsi = (uintptr_t)g->DESTARG;		/* Addr of multiplied number */ \
 	xmm2 = XMM_BIGVAL2; \
-	xmm3[1] = xmm3[0] = 0; \
+	xmm3[1] = xmm3[0] = 0.0; \
 	echk(vec2f64 xmm6 = {0.0, 0.0}); \
 	echk(xmm6[0] = g->MAXERR); \
 	rbp = (uintptr_t)g->norm_col_mults;	/* Addr of the multipliers */ \
 	rdi = (uintptr_t)g->norm_biglit_array;	/* Addr of the big/little flags array */ \
 	/*rax = 0;*/		/* Clear big/lit flag */ \
-	rbx = (uintptr_t)g->normcount1;		/* Load loop counter */ \
+	rbx = (uint32_t)g->normcount1;		/* Load loop counter */ \
 	do{ \
 		saved_reg1 = rbx;		/* Save loop counter */ \
 		rbx &= 0x7FF;		/* Grab 11 bits of the counter */ \
@@ -96,7 +96,7 @@ echk(g->MAXERR = vec2reducemax(xmm6)); \
 }
 
 #define zpnorm_end_noexecexec non2zpcdn
-#define zpnorm_end_noexecnoexec non2zpcdn
+#define zpnorm_end_noexecnoexec non2zpdn
 #define zpnorm_end_execexec zpcdn
 #define zpnorm_end_execnoexec zpdn
 

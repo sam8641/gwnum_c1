@@ -7378,6 +7378,7 @@ unsigned long addr_offset (
 	unsigned long fftlen;
 	unsigned long addr, i1, i2, i3, i6;
 
+	// BUG: ASSERT being triggered with 123456789124*3^301+1
 	ASSERTG (i < gwdata->FFTLEN);
 
 	fftlen = gwdata->FFTLEN;

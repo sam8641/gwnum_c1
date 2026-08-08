@@ -258,6 +258,7 @@ int nonbase2_gianttogw (	/* Returns an error code or zero for success */
 		gwaddquick (work_gwdata, t3, t1);			// Add the multiplied upper and the lower
 		fft_words_per_mult = fft_words_per_mult * 2;
 #ifdef GDEBUG
+		// BUG: Assert being triggered with 123456789124*3^2000001+1
 		for(int h=0;h<(int)work_gwdata->FFTLEN;h+=fft_words_per_mult)ASSERTG(*addr(work_gwdata, t1, fft_words_per_mult-1) >= 0.0);
 #endif
 	}
