@@ -1,4 +1,5 @@
 #pragma once
+#include <stdio.h>
 
 // double define to allow it's inputs to expand correctly.
 #define CONCAT2(A, B) A##B
@@ -105,7 +106,7 @@ ttp(uintptr_t rdx); \
 		xmm8, xmm9, xmm10, xmm11, xmm12, xmm13; \
 \
 	/* Handled in C code by pass1_pre_carries */ \
-	zpad_sub7(g);		/* Subtract 7 ZPAD words from lowest FFT words */ \
+	/*zpad_sub7(g);*/		/* Subtract 7 ZPAD words from lowest FFT words */ \
 echk(vec2f64 xmm6 = g->u.xmm.XMM_MAXERR); \
 	rbx = (uintptr_t) g->norm_ptr2; \
 ttp(rax = g->cache_line_multiplier); \

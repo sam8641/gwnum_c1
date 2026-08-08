@@ -79,7 +79,7 @@ void CONCAT(lab, ARCH1)(struct gwasm_data *__restrict g, uintptr_t rsi) { \
 	vec2f64 xmm8, xmm9, xmm10, xmm11, xmm12, xmm15; \
 \
 	/* Handled in C code by pass1_pre_carries */ \
-	zpad_sub7(g);		/* Subtract 7 ZPAD words from lowest FFT words */ \
+	/*zpad_sub7(g);*/		/* Subtract 7 ZPAD words from lowest FFT words */ \
 	no##const1(no##c1(no##cm1(vec2f64 xmm14))); \
 	no##const1(    c1(vec2f64 xmm14)); \
 	const1(vec2f64 xmm14); \
