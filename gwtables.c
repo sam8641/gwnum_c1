@@ -4,7 +4,7 @@
 | This file contains the C routines to build sin/cos and weights tables
 | that the FFT assembly code needs.
 | 
-|  Copyright 2002-2023 Mersenne Research, Inc.  All rights reserved.
+|  Copyright 2002-2024 Mersenne Research, Inc.  All rights reserved.
 +---------------------------------------------------------------------*/
 
 /* Include files */
@@ -39,6 +39,597 @@ unsigned long pow_two_above_or_equal (
 /*                    AVX-512 FFT tables                     */
 /*************************************************************/
 
+/* This routine builds the sin/cos table used in a one pass AVX traditional DJB radix-4 FFT  - called by gwsetup. */
+/* If this is a negacyclic FFT, then the root-of-minus-1 premultipliers are also built. */
+
+double *zr4_build_onepass_sincos_table (
+	gwhandle *gwdata,	/* Handle initialized by gwsetup */
+	double	*table)		/* Pointer to the table to fill in */
+{
+	unsigned long size, avx_increment, j, N;
+	int	pow2_count;
+
+/* Count the power-of-two FFT levels after the initial 4 FFT levels */
+
+	size = gwdata->FFTLEN / 16;
+	for (pow2_count = 0; (size & 1) == 0; size /= 2) pow2_count++;
+
+/* Init necessary variables */
+
+	size = gwdata->FFTLEN / 16;		/* Complex values we're generating sin/cos data for */
+	avx_increment = gwdata->FFTLEN / 8;
+
+/* The first group has no sin/cos data! */
+
+	N = 8;
+	size /= 8;
+
+/* Do eight complex and 16-reals at the outermost FFT levels (to take advantage of 64-complex and 128-real macros) */
+
+	int num_eights = 0;
+	while (size % 8 == 0) {
+		if (num_eights == 1 && (size == 16 || size == 24)) break;		// For 16K and 24K FFT
+		num_eights++;
+		size /= 8;
+	}
+
+/* For the zr4_four_complex_djbfft building block levels, output the sin/cos values.  Be careful, sometimes we prefer to use zr6_six_complex. */
+
+	if (size % 4 == 0 && size != 36) {
+		while (size % 4 == 0) {
+			N = N * 4;
+			size /= 4;
+		}
+
+/* For the zr4_eight_reals_four_complex_djbfft building block levels, output the sin/cos values needed. */
+/* The eight_reals doubles N because the real part of the FFT is one level behind the complex part of the FFT. */
+/* The four-complex sin/cos values are the same for all 7 of the upper ZMM doubles. */
+
+		if (!gwdata->NEGACYCLIC_FFT) {
+			for (j = 0; j < N / 4; j++) {
+				// This is really ugly.  Butterflies require bit-flipping powers of w and the real and complex powers use different powers of w.
+				// Computing powers of w for 8-reals			and matching 4-complex:
+				// r1a/r1b, w power = 0					r1/i1, w power = 0
+				// r3/i3, 3-1=2 flip=2					r2/i2, 2-1=1, flip=2
+				// r5/i5, 5-1=4 flip=1					r3/i3, 3-1=2, flip=1
+				// r6/i6, 6-1=5 flip=5 (aka -3)				r4/i4, 4-1=3, flip=3 (aka -1)
+				// so we need sincos125					and sincos123 or sincos12(-1)
+				gwsincos125by8 (j, N*2, table);				/* For the eight_reals */
+				gwsincos12by8 (j + avx_increment, N, table+1);		/* For the four-complex */
+				table[2*16+1] = -table[0*16+1];				/* Copy and negate the first sin and cos/sin values (due to djbfft) */
+				table[2*16+9] = -table[0*16+9];
+				for (int k = 0; k < 6*8; k += 8)			/* Fill out the upper AVX512 entries */
+					table[k+7] = table[k+6] = table[k+5] = table[k+4] = table[k+3] = table[k+2] = table[k+1];
+				table += 48;
+			}
+		}
+
+/* Output the sin/cos data for the complex sections (used by the zr4_four_complex_djbfft building block). */
+
+		else {
+			for (j = 0; j < N / 4; j++) {
+				gwsincos12by1 (j, N, table);
+				table += 4;
+			}
+		}
+	}
+
+
+/* For the zr2_two_complex_djbfft building block level, output the sin/cos values.  Be careful, sometimes we prefer to use zr6_six_complex. */
+
+	if (size % 2 == 0 && size % 6 != 0) {
+		N = N * 2;
+		size /= 2;
+
+/* The zr2_four_reals building blocks require an extra sin/cos value.  The dour_reals doubles N because */
+/* the real part of theFFT is one level behind the complex part of the FFT. */
+
+		if (!gwdata->NEGACYCLIC_FFT) {
+			for (j = 0; j < N / 2; j++) {
+				gwsincos1by8 (j, N*2, table);				/* For the four-reals FFT */
+				gwsincos1by8 (j + avx_increment, N, table+1);		/* For the two-complex FFT */
+				for (int k = 0; k < 2*8; k += 8)			/* Fill out the upper AVX512 entries */
+					table[k+7] = table[k+6] = table[k+5] = table[k+4] = table[k+3] = table[k+2] = table[k+1];
+				table += 16;
+			}
+		}
+
+/* Output the sin/cos data for the complex sections (used by the zr3_three_complex_djbfft building block). */
+
+		else {
+			for (j = 0; j < N / 2; j++) {
+				gwsincos1by1 (j, N, table);
+				table += 2;
+			}
+		}
+	}
+
+/* For the zr6_six_complex_djbfft building block levels, output the sin/cos values. */
+
+	if (size % 6 == 0) {
+		while ((size % 6) == 0) {
+			N = N * 6;
+			size /= 6;
+		}
+
+/* For the zr6_twelve_reals_six_complex_djbfft building block levels, output the sin/cos values needed. */
+/* The twelve_reals doubles N because the real part of the FFT is one level behind the complex part of the FFT. */
+/* The six-complex sin/cos values are the same for all 7 of the upper ZMM doubles. */
+
+		if (!gwdata->NEGACYCLIC_FFT) {
+			for (j = 0; j < N / 6; j++) {
+				gwsincos12345by8 (j, N*2, table);			/* For the twelve-reals FFT */
+				gwsincos123by8 (j + avx_increment, N, table+1);		/* For the six-complex FFT */
+				table[4*16+1] = -table[0*16+1];				/* Copy and negate the first sin and cos/sin values (due to djbfft) */
+				table[4*16+9] = -table[0*16+9];
+				table[3*16+1] = -table[1*16+1];
+				table[3*16+9] = -table[1*16+9];
+				for (int k = 0; k < 10*8; k += 8)			/* Fill out the upper AVX512 entries */
+					table[k+7] = table[k+6] = table[k+5] = table[k+4] = table[k+3] = table[k+2] = table[k+1];
+				table += 80;
+			}
+		}
+
+/* Output the sin/cos data for the complex sections (used by the zr6_six_complex_djbfft building block). */
+
+		else {
+			for (j = 0; j < N / 6; j++) {
+				gwsincos123by1 (j, N, table);
+				table += 6;
+			}
+		}
+	}
+
+/* For the zr7_seven_complex_djbfft building block levels, output the sin/cos values. */
+
+	if (size % 7 == 0) {
+		while ((size % 7) == 0) {
+			N = N * 7;
+			size /= 7;
+		}
+
+/* For the zr7_fourteen_reals_seven_complex_djbfft building block levels, output the sin/cos values needed. */
+/* The fourteen_reals doubles N because the real part of the FFT is one level behind the complex part of the FFT. */
+/* The seven-complex sin/cos values are the same for all 7 of the upper ZMM doubles. */
+
+		if (!gwdata->NEGACYCLIC_FFT) {
+			for (j = 0; j < N / 7; j++) {
+				gwsincos123456by8_special7 (j, N*2, table);		/* For the fourteen-reals FFT */
+				gwsincos123by8_special7 (j + avx_increment, N, table+1); /* For the seven-complex FFT */
+				table[5*16+1] = -table[0*16+1];				/* Copy and negate the first sin and cos/sin values (due to djbfft) */
+				table[5*16+9] = -table[0*16+9];
+				table[4*16+1] = -table[1*16+1];
+				table[4*16+9] = -table[1*16+9];
+				table[3*16+1] = -table[2*16+1];
+				table[3*16+9] = -table[2*16+9];
+				for (int k = 0; k < 12*8; k += 8)			/* Fill out the upper AVX512 entries */
+					table[k+7] = table[k+6] = table[k+5] = table[k+4] = table[k+3] = table[k+2] = table[k+1];
+				table += 96;
+			}
+		}
+
+/* Output the sin/cos data for the complex sections (used by the zr7_seven_complex_djbfft building block). */
+
+		else {
+			for (j = 0; j < N / 7; j++) {
+				gwsincos123by1_special7 (j, N, table);
+				table += 6;
+			}
+		}
+	}
+
+/* For the zr5_five_complex_djbfft building block levels, output the sin/cos values. */
+
+	if (size % 5 == 0) {
+		while ((size % 5) == 0) {
+			N = N * 5;
+			size /= 5;
+		}
+
+/* For the zr5_ten_reals_five_complex_djbfft building block levels, output the sin/cos values needed. */
+/* The ten_reals doubles N because the real part of the FFT is one level behind the complex part of the FFT. */
+/* The five-complex sin/cos values are the same for all 7 of the upper ZMM doubles. */
+
+		if (!gwdata->NEGACYCLIC_FFT) {
+			for (j = 0; j < N / 5; j++) {
+				gwsincos1234by8 (j, N*2, table);			/* For the ten-reals FFT */
+				gwsincos12by8 (j + avx_increment, N, table+1);		/* For the five-complex FFT */
+				table[3*16+1] = -table[0*16+1];				/* Copy and negate the first sin and cos/sin values (due to djbfft) */
+				table[3*16+9] = -table[0*16+9];
+				table[2*16+1] = -table[1*16+1];
+				table[2*16+9] = -table[1*16+9];
+				for (int k = 0; k < 8*8; k += 8)			/* Fill out the upper AVX512 entries */
+					table[k+7] = table[k+6] = table[k+5] = table[k+4] = table[k+3] = table[k+2] = table[k+1];
+				table += 64;
+			}
+		}
+
+/* Output the sin/cos data for the complex sections (used by the zr5_five_complex_djbfft building block). */
+
+		else {
+			for (j = 0; j < N / 5; j++) {
+				gwsincos12by1 (j, N, table);
+				table += 4;
+			}
+		}
+	}
+
+/* For the zr3_three_complex_djbfft building block levels, output the sin/cos values. */
+
+	if (size % 3 == 0) {
+		while ((size % 3) == 0) {
+			N = N * 3;
+			size /= 3;
+		}
+
+/* The zr3_six_reals building blocks require an extra sin/cos value.  The six_reals doubles N because */
+/* the real part of theFFT is one level behind the complex part of the FFT. */
+
+		if (!gwdata->NEGACYCLIC_FFT) {
+			for (j = 0; j < N / 3; j++) {
+				gwsincos12by8 (j, N*2, table);				/* For the six-reals FFT */
+				gwsincos1by8 (j + avx_increment, N, table+1);		/* For the three-complex FFT */
+				table[1*16+1] = -table[0*16+1];				/* Copy and negate the first sin and cos/sin values (due to djbfft) */
+				table[1*16+9] = -table[0*16+9];
+				for (int k = 0; k < 4*8; k += 8)			/* Fill out the upper AVX512 entries */
+					table[k+7] = table[k+6] = table[k+5] = table[k+4] = table[k+3] = table[k+2] = table[k+1];
+				table += 32;
+			}
+		}
+
+/* Output the sin/cos data for the complex sections (used by the zr3_three_complex_djbfft building block). */
+
+		else {
+			for (j = 0; j < N / 3; j++) {
+				gwsincos1by1 (j, N, table);
+				table += 2;
+			}
+		}
+	}
+	ASSERTG (size == 1);
+	if (size != 1) gwdata->GWERROR = GWERROR_INTERNAL + 1;
+
+/* For the zr8_eight_complex_djbfft and zr8_sixteen_reals_eight_complex_djbfft building block levels, output the sin/cos values. */
+
+	if (num_eights) {
+		while (num_eights--) {
+			N = N * 8;
+		}
+
+/* For the zr8_sixteen_reals_eight_complex_djbfft building block levels, output the sin/cos values needed.  The sixteen doubles N because the real */
+/* part of the FFT is one level behind the complex part of the FFT.  The eight-complex sin/cos values are the same for all 3 of the upper ZMM doubles. */
+
+		if (!gwdata->NEGACYCLIC_FFT) {
+			for (j = 0; j < N / 8; j++) {
+				// This is really ugly.  Butterflies require bit-flipping powers of w and the real and complex powers use different powers of w.
+				// Computing powers of w for 16-reals			and matching 8-complex:
+				// r1a/r1b, w power = 0					r1/i1, w power = 0
+				// r3/i3, 3-1=2 flip=4					r2/i2, 2-1=1, flip=4
+				// r5/i5, 5-1=4 flip=2					r3/i3, 3-1=2, flip=2
+				// r6/i6, 6-1=5 flip=10 (aka -6)			r4/i4, 4-1=3, flip=6 (aka -2)
+				// r9/i9, 9-1=8 flip=1					r5/i5, 5-1=4, flip=1
+				// r10/i10, 10-1=9 flip=9 (aka -7)			r6/i6, 6-1=5, flip=5 (aka -3)
+				// r11/i11, 11-1=10 flip=5				r7/i7, 7-1=6, flip=3
+				// r12/i12, 12-1=11 flip=13 (aka -3)			r8/i8, 8-1=7, flip=7 (aka -1)
+				// so we need sincos12549AD				and sincos1234567 or sincos1234(-321)
+				gwsincos12549ADby8 (j, N*2, table);			/* For the sixteen reals */
+				gwsincos1234by8 (j + avx_increment, N, table+1);	/* For the eight complex */
+				table[6*16+1] = -table[0*16+1];				/* Copy and negate the first 3 sin and cos/sin values (due to djbfft) */
+				table[6*16+9] = -table[0*16+9];
+				table[5*16+1] = -table[1*16+1];
+				table[5*16+9] = -table[1*16+9];
+				table[4*16+1] = -table[2*16+1];
+				table[4*16+9] = -table[2*16+9];
+				for (int k = 0; k < 14*8; k += 8)			/* Fill out the upper AVX512 entries */
+					table[k+7] = table[k+6] = table[k+5] = table[k+4] = table[k+3] = table[k+2] = table[k+1];
+				table += 112;
+			}
+		}
+
+/* Output the sin/cos values for negacyclic FFTs, used by the zr8b_eight_complex_djbfft macro. */
+/* We only need one sin/cos value pair as we use the vbroadcastsd instruction to fill out the ZMM register. */
+
+		else {
+			for (j = 0; j < N / 8; j++) {
+				gwsincos1234by1 (j, N, table);
+				table += 8;
+			}
+		}
+	}
+
+/* Real FFTs output one last set of sin/cos values for the first sixteen-reals FFT. */
+
+	avx_increment = gwdata->FFTLEN / 128;
+	if (!gwdata->NEGACYCLIC_FFT) {
+		N = gwdata->FFTLEN;
+		for (j = 0; j < avx_increment; j++) {
+			gwsincos1234567by8 (j, N, table);
+			gwsincos1234567by8 (j + avx_increment, N, table+1);
+			gwsincos1234567by8 (j + 2*avx_increment, N, table+2);
+			gwsincos1234567by8 (j + 3*avx_increment, N, table+3);
+			gwsincos1234567by8 (j + 4*avx_increment, N, table+4);
+			gwsincos1234567by8 (j + 5*avx_increment, N, table+5);
+			gwsincos1234567by8 (j + 6*avx_increment, N, table+6);
+			gwsincos1234567by8 (j + 7*avx_increment, N, table+7);
+			table += 112;
+		}
+	}
+
+/* For negacyclic FFTs, build the fixed roots-of-minus-one table and the DJB FFT sin/cos table. */
+/* Output these values in the same order they will be used in the first levels of pass 1. */
+
+	else {
+		N = gwdata->FFTLEN / 2;
+		for (j = 0; j < avx_increment; j++) {
+			/* Compute the roots-of-minus-one premultiplier.  The root-of-minus-one premultiplier is */
+			/* for 2N, and a root-of-minus-one-of-2N is the same as a root unity for 4N.  NOTE: We only */
+			/* output the cos/sin values, the sine value will be applied to the group multipliers later on. */
+			gwcos1plus01234567by8 (j, N / 8, N * 4, table);
+			gwcos1plus01234567by8 (j + avx_increment, N / 8, N * 4, table + 1);
+			gwcos1plus01234567by8 (j + 2 * avx_increment, N / 8, N * 4, table + 2);
+			gwcos1plus01234567by8 (j + 3 * avx_increment, N / 8, N * 4, table + 3);
+			gwcos1plus01234567by8 (j + 4 * avx_increment, N / 8, N * 4, table + 4);
+			gwcos1plus01234567by8 (j + 5 * avx_increment, N / 8, N * 4, table + 5);
+			gwcos1plus01234567by8 (j + 6 * avx_increment, N / 8, N * 4, table + 6);
+			gwcos1plus01234567by8 (j + 7 * avx_increment, N / 8, N * 4, table + 7);
+			table += 64;
+			/* Output the fixed sin/cos DJB FFT entry */
+			gwsincos1234by8 (j, N, table);
+			gwsincos1234by8 (j + avx_increment, N, table+1);
+			gwsincos1234by8 (j + 2 * avx_increment, N, table+2);
+			gwsincos1234by8 (j + 3 * avx_increment, N, table+3);
+			gwsincos1234by8 (j + 4 * avx_increment, N, table+4);
+			gwsincos1234by8 (j + 5 * avx_increment, N, table+5);
+			gwsincos1234by8 (j + 6 * avx_increment, N, table+6);
+			gwsincos1234by8 (j + 7 * avx_increment, N, table+7);
+			table += 64;
+		}
+		N = N / 8;
+	}
+
+/* Return address of the end of the table */
+
+	return (table);
+}
+
+/* This routine builds a big/little flags table - used by one-pass AVX-512 normalization routines */
+
+double *zr4_build_onepass_biglit_table (
+	gwhandle *gwdata,	/* Handle initialized by gwsetup */
+	double	*table)		/* Pointer to the table to fill in */
+{
+	struct gwasm_data *asm_data = (struct gwasm_data *) gwdata->asm_data;
+	unsigned char *p, *temp_biglit_table;
+	int	i, j, k, l, num_combos, temp_biglit_table_size;
+	uint64_t combos[129];		// There are 129 possible 8-byte combinations
+	int	next_combo[129];
+	uint64_t *output_ptr;		// Ptr for outputting the compressed biglit table
+const	int	START_OF_CHAIN = 0x8000;
+const	int	END_OF_CHAIN = 0x4000;
+
+/* Init table of first 8 big/lit values */
+
+	memset (asm_data->u.zmm.ZMM_FIRST_BIGLIT_VALUES, 0, sizeof (asm_data->u.zmm.ZMM_FIRST_BIGLIT_VALUES));
+
+/* Rational FFTs don't have any big/lit flags */
+
+	if (gwdata->RATIONAL_FFT) return (table);
+
+/* Create separate table for first 8 biglit values for carry propagation code */
+
+	for (i = 0; i < sizeof (asm_data->u.zmm.ZMM_FIRST_BIGLIT_VALUES) * 8; i++)
+		if (is_big_word (gwdata, i)) bitset (asm_data->u.zmm.ZMM_FIRST_BIGLIT_VALUES, i);
+
+/* Loop to build table for non-zero-padded case in the order that normalize will need them */
+
+	temp_biglit_table_size = gwdata->FFTLEN / 8;
+	if (gwdata->ZERO_PADDED_FFT) temp_biglit_table_size = temp_biglit_table_size / 2;
+	p = temp_biglit_table = (unsigned char *) malloc (temp_biglit_table_size);
+	for (i = 0; i < (int) (2*gwdata->FFTLEN/16); i += gwdata->FFTLEN/16) {		// Two groups of 4 sections normalized at the same time
+	for (j = 0; j < (int) gwdata->FFTLEN/128; j++) {				// Number double cache lines in each section
+	for (k = 0; k < (int) gwdata->FFTLEN/2; k += 2*gwdata->FFTLEN/16) {		// Each normalize macro accesses 4 double cache lines
+	for (l = 0; l < (int) gwdata->FFTLEN; l += gwdata->FFTLEN/2) {			// Two AVX512 words in each double cache line
+		int upper_avx512_word = gwdata->FFTLEN/128;				// Eight elements in each AVX512 word
+
+/* We only need half as much data for zero-padded FFTs because the upper half weights are the same as the lower half weights. */
+
+		if (l && gwdata->ZERO_PADDED_FFT) continue;
+
+/* Now set the big/little flag corresponding to words in an AVX-512 cacheline */
+
+		int word = i + j + k + l;
+		*p = is_big_word (gwdata, word);
+		if (is_big_word (gwdata, word + upper_avx512_word)) *p += 2;
+		if (is_big_word (gwdata, word + 2 * upper_avx512_word)) *p += 4;
+		if (is_big_word (gwdata, word + 3 * upper_avx512_word)) *p += 8;
+		if (is_big_word (gwdata, word + 4 * upper_avx512_word)) *p += 16;
+		if (is_big_word (gwdata, word + 5 * upper_avx512_word)) *p += 32;
+		if (is_big_word (gwdata, word + 6 * upper_avx512_word)) *p += 64;
+		if (is_big_word (gwdata, word + 7 * upper_avx512_word)) *p += 128;
+
+/* Move to next big/lit byte */
+
+		p++;
+	}}}}
+
+/* Now compress the table.  Big/lit flags form a very regular pattern.  For example, if there are 18.3 b's per */
+/* FFT word then you get either a big word followed by two little words or a big word followed by three little words. */
+/* Here we determine which patterns of big/lit are possible in a znorm macro which processes 4 AVX-512 words. */
+
+/* Generate all possible valid combinations of big/lit flags */
+
+	p = temp_biglit_table;
+	num_combos = 0;
+	for (i = 0; i < temp_biglit_table_size; i += 8) {
+		uint64_t combo = * (uint64_t *) (p+i);
+		/* Ignore this combo if it is a duplicate.  Otherwise, add it to our combos collection. */
+		for (j = 0; ; j++) {
+			if (j == num_combos) {
+				combos[num_combos++] = combo;
+				break;
+			}
+			if (combo == combos[j]) break;
+		}
+		/* Remember combo number for building biglit table later */
+		p[i] = (unsigned char) j;
+	}
+
+/* Concatentate combos to save space. Look for 2 chains where the end of one chain has 4 bytes in common with the start of the other chain. */
+
+	/* Init the next-in-chain array */
+	for (i = 0; i < num_combos; i++) next_combo[i] = START_OF_CHAIN + END_OF_CHAIN;
+	/* Examine all chain starts */
+	for (i = 0; i < num_combos; i++) {
+		int	chain_end;
+		/* Skip if not the start of a chain */
+		if (! (next_combo[i] & START_OF_CHAIN)) continue;
+		/* Find end of chain */
+		for (chain_end = i; ! (next_combo[chain_end] & END_OF_CHAIN); chain_end = next_combo[chain_end] & 0xFF);
+		/* Now look at all chain ends */
+		for (j = 0; j < num_combos; j++) {
+			/* Skip if not a chain end */
+			if (! (next_combo[j] & END_OF_CHAIN)) continue;
+			/* Can't chain to ourselves! */
+			if (j == chain_end) continue;
+			/* See if chain end has common elements with the chain start */
+			/* Due to little-endianness we want the MSW of the chain end to match the LSW of start */
+			/* j(end)	LSW, MSW */
+			/* i(strt)	     LSW  MSW */
+			if ((combos[j] >> 32) == (combos[i] & 0xFFFFFFFF)) {
+				next_combo[j] = (next_combo[j] & START_OF_CHAIN) + i;
+				next_combo[i] &= ~START_OF_CHAIN;
+				break;
+			}
+		}
+	}
+
+/* Output the compressed biglit table.  We believe this will always fit in 768 bytes. */
+
+	asm_data->compressed_biglits = table;
+	table = (double *) (((char *) table) + 768);
+	output_ptr = (uint64_t *) asm_data->compressed_biglits;
+	for (i = 0; i < num_combos; i++) {
+		/* Skip if not the start of a chain */
+		if (! (next_combo[i] & START_OF_CHAIN)) continue;
+		/* Follow the chain */
+		for (j = i; ; j = next_combo[j] & 0xFFF) {
+			/* Output the combo */
+			*output_ptr = combos[j];
+			/* Remember this combo's "offset" into the compressed biglit table */
+			/* We'll use this to build the biglit table later */
+			combos[j] = ((char *) output_ptr - (char *) asm_data->compressed_biglits) / sizeof (uint32_t);
+			/* Advance the output ptr */
+			output_ptr++;
+			/* Break when chain ends */
+			if (next_combo[j] & END_OF_CHAIN) break;
+			/* Back up the output ptr by half the distance */
+			output_ptr = (uint64_t *) (((char *) output_ptr) - sizeof (uint32_t));
+		}
+	}
+	ASSERTG ((char *) output_ptr <= (char *) table);
+
+/* Output the indexes into the compressed biglit table */
+
+	// Init index into temp_biglit_table
+	p = asm_data->norm_biglit_array = table;
+	for (i = 0; i < temp_biglit_table_size; i += 8) {
+		/* Get the combo number we saved earlier */
+		j = temp_biglit_table[i];
+		/* Convert the combo number into an index into the compressed biglit table.  Output it. */
+		*p++ = (unsigned char) combos[j];
+	}
+
+/* Free the temporary table */
+
+	free (temp_biglit_table);
+
+/* Return pointer to end of our table */
+
+	return ((double *) ((char *) table + 768));
+}
+
+/* This routine builds a weights table - used by one-pass AVX-512 first FFT levels */
+
+double *zr4_build_onepass_weights_table (
+	gwhandle *gwdata,	/* Handle initialized by gwsetup */
+	double	*table)		/* Pointer to the table to fill in */
+{
+	struct gwasm_data *asm_data = (struct gwasm_data *) gwdata->asm_data;
+
+/* Loop to build table for non-zero-padded case in the order that sixteen reals and eight complex first fft will need them. */
+/* We only need half as much zero-padded FFT data because the upper half weights are the same as the lower half.  Unfortunately, the */
+/* sixteen reals and eight complex macros don't know that they are operating on a zero-padded FFT.  Thus, we create a bigger table than strictly necessary. */
+
+	for (int i = 0; i < (int) gwdata->FFTLEN/128; i++) {				// Number of sixteen reals first fft macro calls
+	for (int j = 0; j < (int) gwdata->FFTLEN/2; j += gwdata->FFTLEN/16) {		// Each macro accesses 8 double cache lines
+	for (int k = 0; k < (int) gwdata->FFTLEN; k += gwdata->FFTLEN/2) {		// Two AVX512 words in each double cache line
+	for (int l = 0; l < (int) gwdata->FFTLEN/16; l += gwdata->FFTLEN/128) {		// Eight elements in each AVX512 word
+
+/* Call double-precision routine to compute the weight */
+
+		// Four special divided weights for zr8fs_eight_complex_first_fft
+		if (gwdata->NEGACYCLIC_FFT && k && j <= (int) (3*gwdata->FFTLEN/16))
+			gwfft_weights_over_weights3 (gwdata->dd_data, i+j+k+l, i+j+l, table, NULL, NULL);
+		// Remaining negacyclic weights are pre-multiplied by sine value for the root-of-minus-one premultiplier.  The root-of-minus-one premultiplier
+		// is for 2N, and a root-of-minus-one-of-2N is the same as a root unity for 4N (where N is the number of complex values = FFTLEN/2). */
+		else if (gwdata->NEGACYCLIC_FFT)
+			gwfft_weights3_times_sine (gwdata->dd_data, i+j+k+l, i+j+l, gwdata->FFTLEN * 2, table, NULL, NULL);
+		// Three special divided weights for zr8fs_sixteen_reals_first_fft
+		else if (k && j && j <= (int) (3*gwdata->FFTLEN/16))
+			gwfft_weights_over_weights3 (gwdata->dd_data, i+j+k+l, i+j+l, table, NULL, NULL);
+		// Output more accurate weight-1 in some cases
+		else if (k == 0 && (j == 0 || (j >= (int) (4*gwdata->FFTLEN/16) && j <= (int) (7*gwdata->FFTLEN/16))))
+			gwfft_weight_minus1 (gwdata->dd_data, i+j+k+l, table);
+		// Finally, output a simple weight
+		else
+			gwfft_weights3 (gwdata->dd_data, i+j+k+l, table, NULL, NULL);
+		table++;
+	}}}}
+
+/* Return pointer for next table */
+
+	return (table);
+}
+
+/* This routine builds an inverse weights table - used by one-pass AVX-512 normalization routines. */
+
+double *zr4_build_onepass_inverse_weights_table (
+	gwhandle *gwdata,	/* Handle initialized by gwsetup */
+	double	*table)		/* Pointer to the table to fill in */
+{
+	struct gwasm_data *asm_data = (struct gwasm_data *) gwdata->asm_data;
+
+/* Loop to build table in the order that normalize will need them. */
+
+	for (int i = 0; i < (int) (2*gwdata->FFTLEN/16); i += gwdata->FFTLEN/16) {	// Two groups of 4 sections normalized at the same time
+	for (int j = 0; j < (int) gwdata->FFTLEN/128; j++) {				// Number double cache lines in each section
+	for (int k = 0; k < (int) gwdata->FFTLEN/2; k += 2*gwdata->FFTLEN/16) {		// Each normalize macro accesses 4 double cache lines
+	for (int l = 0; l < (int) gwdata->FFTLEN; l += gwdata->FFTLEN/2) {		// Two AVX512 words in each double cache line
+	for (int m = 0; m < (int) gwdata->FFTLEN/16; m += gwdata->FFTLEN/128) {		// Eight elements in each AVX512 word
+
+/* We only need half as much data for zero-padded FFTs because the upper half weights are the same as the lower half weights. */
+
+		if (l && gwdata->ZERO_PADDED_FFT) break;
+
+/* Call double-precision routine to compute the inverse weight.  For negacyclic FFTs, we delay the mul-by-sine in zr8fs_eight_complex_last_unfft */
+/* by precomputing the weight times sine value of the roots-of-minus-one premultiplier. */
+
+		if (gwdata->NEGACYCLIC_FFT) {
+			/* Rational negacyclic FFT inverse weight are the same for low and high cache lines of the double cache line */
+			if (gwdata->RATIONAL_FFT && l) continue;
+			/* Compute the roots-of-minus-one premultiplier.  The root-of-minus-one premultiplier is for 2N, and a root-of-minus-one-of-2N */
+			/* is the same as a root unity for 4N (where N is the number of complex values = FFTLEN/2). */
+			gwfft_weights3_times_sine (gwdata->dd_data, i+j+k+l+m, i+j+k+m, gwdata->FFTLEN * 2, NULL, NULL, table);
+		} else
+			gwfft_weights3 (gwdata->dd_data, i+j+k+l+m, NULL, NULL, table);
+		table++;
+	}}}}}
+
+/* Return pointer for next table */
+
+	return (table);
+}
+
 /* Helper routine for two pass AVX-512 build routines */
 
 static __inline int zr4dwpn_delay_count (gwhandle *gwdata)
@@ -51,7 +642,7 @@ static __inline int zr4dwpn_delay_count (gwhandle *gwdata)
 
 //	if (gwdata->PASS1_SIZE == 80) return (5);	// BUG - delay count of 5 is not working yet and may never work
 	if (gwdata->PASS1_SIZE == 192 || gwdata->PASS1_SIZE == 960 || gwdata->PASS1_SIZE == 1152 || gwdata->PASS1_SIZE == 1344 ||
-	    gwdata->PASS1_SIZE == 1920 || gwdata->PASS1_SIZE == 2304 || gwdata->PASS1_SIZE == 3072) return (12);  // BUG Could do 1536 this way instead -- will use less memory
+		gwdata->PASS1_SIZE == 1920 || gwdata->PASS1_SIZE == 2304 || gwdata->PASS1_SIZE == 3072) return (12);  // BUG Could do 1536 this way instead -- will use less memory
 	return (8);		// BUG:  applies to pass1 size = 128, 640, 768, 896, 1024, 1280, 1536, 2048
 }
 
@@ -66,7 +657,7 @@ double *zr4dwpn_build_pass1_table (
 	unsigned long pass1_size, pass1_increment, delay_count;
 	unsigned long group, i, j, k, N, temp, upper_avx512_word;
 
-/* Special code to initialize one-pass FFTs */
+/* Special code to initialize wrapper one-pass FFTs */
 
 	if (gwdata->PASS1_SIZE == 0) {
 
@@ -200,8 +791,7 @@ double *zr4dwpn_build_pass1_table (
 			table += 64;
 		}
 
-/* For the zr8sg_sixteen_reals_fft8 building block, output the extra */
-/* sin/cos values needed for the sixteen_reals. */
+/* For the zr8sg_sixteen_reals_fft8 building block, output the extra sin/cos values needed for the sixteen_reals. */
 
 		if (!gwdata->NEGACYCLIC_FFT) {
 			for (i = 0; i < gwdata->PASS1_CACHE_LINES; i += 8) {
@@ -518,18 +1108,6 @@ double *zr4dwpn_build_pass1_table (
 					gwsincos1234by8 (temp + 5 * upper_avx512_word, N, table+5);
 					gwsincos1234by8 (temp + 6 * upper_avx512_word, N, table+6);
 					gwsincos1234by8 (temp + 7 * upper_avx512_word, N, table+7);
-#ifdef TRY_SQRT2_TO_REDUCE_ROUNDOFF
-{
-	gwsincos1234by8_sqrthalf (temp, N, table);
-	gwsincos1234by8_sqrthalf (temp + upper_avx512_word, N, table+1);
-	gwsincos1234by8_sqrthalf (temp + 2 * upper_avx512_word, N, table+2);
-	gwsincos1234by8_sqrthalf (temp + 3 * upper_avx512_word, N, table+3);
-	gwsincos1234by8_sqrthalf (temp + 4 * upper_avx512_word, N, table+4);
-	gwsincos1234by8_sqrthalf (temp + 5 * upper_avx512_word, N, table+5);
-	gwsincos1234by8_sqrthalf (temp + 6 * upper_avx512_word, N, table+6);
-	gwsincos1234by8_sqrthalf (temp + 7 * upper_avx512_word, N, table+7);
-}
-#endif
 					table += 64;
 
 /* The zr8_csc_sixteen_real building blocks require extra sin/cos values.  The sixteen_real doubles N */
@@ -689,18 +1267,6 @@ double *zr4dwpn_build_fixed_pass1_table (
 				gwsincos1234by8 (j + 5 * upper_avx512_word, N, table+5);
 				gwsincos1234by8 (j + 6 * upper_avx512_word, N, table+6);
 				gwsincos1234by8 (j + 7 * upper_avx512_word, N, table+7);
-#ifdef TRY_SQRT2_TO_REDUCE_ROUNDOFF
-{
-	gwsincos1234by8_sqrthalf (j, N, table);
-	gwsincos1234by8_sqrthalf (j + upper_avx512_word, N, table+1);
-	gwsincos1234by8_sqrthalf (j + 2 * upper_avx512_word, N, table+2);
-	gwsincos1234by8_sqrthalf (j + 3 * upper_avx512_word, N, table+3);
-	gwsincos1234by8_sqrthalf (j + 4 * upper_avx512_word, N, table+4);
-	gwsincos1234by8_sqrthalf (j + 5 * upper_avx512_word, N, table+5);
-	gwsincos1234by8_sqrthalf (j + 6 * upper_avx512_word, N, table+6);
-	gwsincos1234by8_sqrthalf (j + 7 * upper_avx512_word, N, table+7);
-}
-#endif
 				table += 64;
 			}
 			N = N / 8;
@@ -755,7 +1321,7 @@ double *zr4_build_pass2_complex_table (
 /* in pass 2 have an upper_avx512_word of one. */
 
 	if (gwdata->PASS2_SIZE != 640 && gwdata->PASS2_SIZE != 4480 && gwdata->PASS2_SIZE != 6400 &&
-	    gwdata->PASS2_SIZE != 7680 && gwdata->PASS2_SIZE != 10240) {
+		gwdata->PASS2_SIZE != 7680 && gwdata->PASS2_SIZE != 10240) {
 		while (N % 5 == 0) {
 			for (i = 0; i < N / 5; i += 8) {
 				gwsincos12by8 (i, N, table);
@@ -878,18 +1444,6 @@ double *zr4_build_pass2_complex_table (
 			gwsincos1234by8 (i+5, N, table+5);
 			gwsincos1234by8 (i+6, N, table+6);
 			gwsincos1234by8 (i+7, N, table+7);
-#ifdef TRY_SQRT2_TO_REDUCE_ROUNDOFF
-if (N > 64) {
-	gwsincos1234by8_sqrthalf (i, N, table);
-	gwsincos1234by8_sqrthalf (i+1, N, table+1);
-	gwsincos1234by8_sqrthalf (i+2, N, table+2);
-	gwsincos1234by8_sqrthalf (i+3, N, table+3);
-	gwsincos1234by8_sqrthalf (i+4, N, table+4);
-	gwsincos1234by8_sqrthalf (i+5, N, table+5);
-	gwsincos1234by8_sqrthalf (i+6, N, table+6);
-	gwsincos1234by8_sqrthalf (i+7, N, table+7);
-}
-#endif
 			table += 64;
 		}
 		N = N / 8;
@@ -920,7 +1474,7 @@ double *zr4_build_pass2_real_table (
 /* Output sin/cos values for 10-real macros */
 
 	if (gwdata->PASS2_SIZE != 640 && gwdata->PASS2_SIZE != 4480 && gwdata->PASS2_SIZE != 6400 &&
-	    gwdata->PASS2_SIZE != 7680 && gwdata->PASS2_SIZE != 10240) {
+		gwdata->PASS2_SIZE != 7680 && gwdata->PASS2_SIZE != 10240) {
 		while (N % 5 == 0) {
 			for (j = 0; j < N / 5; j += 8) {
 				gwsincos13by8 (j, N*2, table);
@@ -1087,9 +1641,9 @@ const	int	END_OF_CHAIN = 0x4000;
 	if (gwdata->ZERO_PADDED_FFT) temp_biglit_table_size = temp_biglit_table_size / 2;
 	p = temp_biglit_table = (unsigned char *) malloc (temp_biglit_table_size);
 	for (group = 0; group < upper_avx512_word; group += gwdata->PASS1_CACHE_LINES) {
-	    for (h = 0; h < gwdata->FFTLEN / 2; h += 4 * 8 * upper_avx512_word) {
+		for (h = 0; h < gwdata->FFTLEN / 2; h += 4 * 8 * upper_avx512_word) {
 		for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
-		    for (j = 0; j < 4 * 8 * upper_avx512_word; j += 8 * upper_avx512_word) {
+			for (j = 0; j < 4 * 8 * upper_avx512_word; j += 8 * upper_avx512_word) {
 			for (k = 0; k < gwdata->FFTLEN; k += gwdata->FFTLEN / 2) {
 				unsigned long word;
 
@@ -1118,9 +1672,9 @@ const	int	END_OF_CHAIN = 0x4000;
 
 				p++;
 			}
-		    }
+			}
 		}
-	    }
+		}
 	}
 
 /* Now compress the table.  Big/lit flags form a very regular pattern.  For example, if there are 18.3 b's per */
@@ -1271,9 +1825,9 @@ double *zr4dwpn_build_norm_table (
 /* NOTE4: The sixteen real macros need some group multipliers divided by another group multiplier to save a multiply instruction (also delayed for XOR masks). */
 
 	if (table != NULL) {
-	    for (i = 0; i < gwdata->FFTLEN / 2 / delay_count; i += 8 * upper_avx512_word) {
+		for (i = 0; i < gwdata->FFTLEN / 2 / delay_count; i += 8 * upper_avx512_word) {
 		for (j = 0; j < gwdata->FFTLEN / 2; j += gwdata->FFTLEN / 2 / delay_count) {
-		    for (k = 0; k < gwdata->FFTLEN; k += gwdata->FFTLEN / 2) {
+			for (k = 0; k < gwdata->FFTLEN; k += gwdata->FFTLEN / 2) {
 			for (avx512_word = 0; avx512_word < 8 * upper_avx512_word; avx512_word += upper_avx512_word) {
 
 /* For zero-padded FFTs the upper half of the FFT has the exact same multipliers as the lower half. */
@@ -1286,9 +1840,9 @@ double *zr4dwpn_build_norm_table (
 				grp = i + j + k + avx512_word;
 				*weights++ = gwfft_weight_no_c (gwdata->dd_data, grp);
 			}
-		    }
+			}
 		}
-	    }
+		}
 	}
 
 /* Second build of the tables.  The group multipliers must be rebuilt in the same order as used by the zr8/12_first_fft macros. */
@@ -1296,10 +1850,10 @@ double *zr4dwpn_build_norm_table (
 /* the sine value of the roots-of-minus-one premultiplier, and the case where abs(c) != 1. */
 
 	else {
-	    if (gwdata->PASS1_SIZE == 0 || (gwdata->PASS1_SIZE && gwdata->NEGACYCLIC_FFT) || labs (gwdata->c) != 1 || delay_count == 8 || delay_count == 12)
-	    for (i = 0; i < gwdata->FFTLEN / 2 / delay_count; i += 8 * upper_avx512_word) {
+		if (gwdata->PASS1_SIZE == 0 || (gwdata->PASS1_SIZE && gwdata->NEGACYCLIC_FFT) || labs (gwdata->c) != 1 || delay_count == 8 || delay_count == 12)
+		for (i = 0; i < gwdata->FFTLEN / 2 / delay_count; i += 8 * upper_avx512_word) {
 		for (j = 0; j < gwdata->FFTLEN / 2; j += gwdata->FFTLEN / 2 / delay_count) {
-		    for (k = 0; k < gwdata->FFTLEN; k += gwdata->FFTLEN / 2) {
+			for (k = 0; k < gwdata->FFTLEN; k += gwdata->FFTLEN / 2) {
 			for (avx512_word = 0; avx512_word < 8 * upper_avx512_word; avx512_word += upper_avx512_word) {
 				double	ttp;
 				unsigned long sine_word;
@@ -1317,32 +1871,32 @@ double *zr4dwpn_build_norm_table (
 				if (gwdata->PASS1_SIZE && gwdata->NEGACYCLIC_FFT) {
 					/* Handle case where we use FMA to save multiplies by pre-dividing group multipliers */
 					if ((delay_count == 8 && k != 0 && j <= 3 * (gwdata->FFTLEN / 2 / delay_count)) ||
-					    (delay_count == 12 && k != 0 && j <= 5 * (gwdata->FFTLEN / 2 / delay_count)))
+						(delay_count == 12 && k != 0 && j <= 5 * (gwdata->FFTLEN / 2 / delay_count)))
 						ttp = gwfft_weight_over_weight (gwdata->dd_data, grp, grp - k);
 					/* Compute the roots-of-minus-one premultiplier.  The root-of-minus-one */
 					/* premultiplier is for 2N, and a root-of-minus-one-of-2N is the same as */
 					/* a root unity for 4N (where N is the number of complex values = FFTLEN/2). */
 					else {
 						sine_word = i + j + avx512_word;
-						gwfft_weights_times_sine (gwdata->dd_data, grp, sine_word, gwdata->FFTLEN * 2, &ttp, NULL);
+						gwfft_weights3_times_sine (gwdata->dd_data, grp, sine_word, gwdata->FFTLEN * 2, &ttp, NULL, NULL);
 					}
 				}
 				else if ((delay_count == 8 && k != 0 && j != 0 && j <= 3 * (gwdata->FFTLEN / 2 / delay_count)) ||
-					 (delay_count == 12 && k != 0 && j != 0 && j <= 5 * (gwdata->FFTLEN / 2 / delay_count)))
+					(delay_count == 12 && k != 0 && j != 0 && j <= 5 * (gwdata->FFTLEN / 2 / delay_count)))
 					ttp = gwfft_weight_over_weight (gwdata->dd_data, grp, grp - k);
 				else
 					ttp = gwfft_weight (gwdata->dd_data, grp);
 				*weights++ = ttp;
 			}
-		    }
+			}
 		}
-	    }
+		}
 
 /* Second build of the tables.  The inverse group multipliers must be rebuilt in the same order as used the normalization code. */
 
-	    for (i = 0; i < gwdata->FFTLEN / 2; i += 8 * upper_avx512_word) {
+		for (i = 0; i < gwdata->FFTLEN / 2; i += 8 * upper_avx512_word) {
 		for (k = 0; k < gwdata->FFTLEN; k += gwdata->FFTLEN / 2) {
-		    for (avx512_word = 0; avx512_word < 8 * upper_avx512_word; avx512_word += upper_avx512_word) {
+			for (avx512_word = 0; avx512_word < 8 * upper_avx512_word; avx512_word += upper_avx512_word) {
 			double	ttmp;
 
 /* For zero-padded and rational FFTs the upper half of the FFT has the exact same multipliers as the lower half. */
@@ -1359,13 +1913,13 @@ double *zr4dwpn_build_norm_table (
 				/* premultiplier is for 2N, and a root-of-minus-one-of-2N is the same as */
 				/* a root unity for 4N (where N is the number of complex values = FFTLEN/2). */
 				unsigned long sine_word = i + avx512_word;
-				gwfft_weights_times_sine (gwdata->dd_data, grp, sine_word, gwdata->FFTLEN * 2, NULL, &ttmp);
+				gwfft_weights3_times_sine (gwdata->dd_data, grp, sine_word, gwdata->FFTLEN * 2, NULL, &ttmp, NULL);
 			} else
 				ttmp = gwfft_weight_inverse (gwdata->dd_data, grp);
 			*inverse_weights++ = ttmp;
-		    }
+			}
 		}
-	    }
+		}
 	}
 
 /* Return pointer to end of allocated area */
@@ -1464,19 +2018,19 @@ double *zr4dwpn_build_fudge_table (
 	mask = 0;
 	mask_bit = 1;
 	for (group = 0; group < upper_avx512_word; group += gwdata->PASS1_CACHE_LINES) {
-	    for (h = 0, xor_masks = compressed_fudges;
-		 h < gwdata->FFTLEN / 2 / delay_count;
-		 h += 8 * upper_avx512_word, xor_masks += delay_count / 4) {
+		for (h = 0, xor_masks = compressed_fudges;
+		h < gwdata->FFTLEN / 2 / delay_count;
+		h += 8 * upper_avx512_word, xor_masks += delay_count / 4) {
 		for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++, xor_masks -= delay_count / 4) {
-		    unsigned long col;
-		    double col_weight_exponent;
-		    col = group + i;
-		    col_weight_exponent = gwfft_weight_exponent (gwdata->dd_data, col);
-		    // Generate delay_count/4 64-bit masks each with a different XOR mask.  This corresponds
-		    // to one execution of zr8/zr12 first/last fft macro.
-		    for (j = 0; j < gwdata->FFTLEN / 2; j += gwdata->FFTLEN / 2 / delay_count) {
+			unsigned long col;
+			double col_weight_exponent;
+			col = group + i;
+			col_weight_exponent = gwfft_weight_exponent (gwdata->dd_data, col);
+			// Generate delay_count/4 64-bit masks each with a different XOR mask.  This corresponds
+			// to one execution of zr8/zr12 first/last fft macro.
+			for (j = 0; j < gwdata->FFTLEN / 2; j += gwdata->FFTLEN / 2 / delay_count) {
 			for (k = 0; k < gwdata->FFTLEN; k += gwdata->FFTLEN / 2) {
-			    for (avx512_word = 0; avx512_word < 8 * upper_avx512_word; avx512_word += upper_avx512_word) { // Build one byte
+				for (avx512_word = 0; avx512_word < 8 * upper_avx512_word; avx512_word += upper_avx512_word) { // Build one byte
 				unsigned long grp;
 				double	grp_weight_exponent;
 				grp = h + j + k + avx512_word;
@@ -1484,15 +2038,15 @@ double *zr4dwpn_build_fudge_table (
 				if (gwfft_weight_exponent (gwdata->dd_data, grp + col) + 0.5 < grp_weight_exponent + col_weight_exponent)
 					mask |= mask_bit;
 				mask_bit <<= 1;
-			    }
-			    // One-pass FFTs do not compress the fudge flags
-			    if (gwdata->PASS1_SIZE == 0) {
+				}
+				// One-pass FFTs do not compress the fudge flags
+				if (gwdata->PASS1_SIZE == 0) {
 				// The first col multiplier is always 1.0 and the one-pass wrapper takes advantage of this.
 				// Do not generate fudge flags when col = 0.  Otherwise, output the uncompressed fudge flags.
 				if (col != 0) *p++ = (unsigned char) mask;
-			    }
-			    // Two-pass FFTs compress the fudge flags using the XOR mask and index into the compressed fudges array
-			    else {
+				}
+				// Two-pass FFTs compress the fudge flags using the XOR mask and index into the compressed fudges array
+				else {
 				int	index;
 				if (mask_bit) continue;	// Still building the 64-bit mask
 				// Apply the XOR mask
@@ -1508,16 +2062,16 @@ double *zr4dwpn_build_fudge_table (
 				}
 				// Output the index into the compressed fudges array
 				*p++ = (unsigned char) index;
-			    }
-			    // Init for building next mask
-			    mask = 0;
-			    mask_bit = 1;
+				}
+				// Init for building next mask
+				mask = 0;
+				mask_bit = 1;
 			}
-		    }
+			}
 		}
-	    }
-	    // Calculate address of next pass 1 block's fudge flags
-	    p += gwdata->pass1_var_data_size - varblock_fudge_data_size;
+		}
+		// Calculate address of next pass 1 block's fudge flags
+		p += gwdata->pass1_var_data_size - varblock_fudge_data_size;
 	}
 
 /* Rebuild the group multipliers table.  For negacyclic FFTs, when first built we did not apply the roots-of-minus-one sine */
@@ -1577,13 +2131,18 @@ double *yr4_build_onepass_sincos_table (
 			size /= 4;
 		}
 
-/* For the yr4_eight_reals_four_complex_djbfft building block levels, output the */
-/* sin/cos values needed.  The eight_reals doubles N because the real part of the FFT */
-/* is one level behind the complex part of the FFT.  The four-complex sin/cos values */
-/* are the same for all 3 of the upper YMM doubles. */		
+/* For the yr4_eight_reals_four_complex_djbfft building block levels, output the sin/cos values needed.  The eight_reals doubles N because the real */
+/* part of the FFT is one level behind the complex part of the FFT.  The four-complex sin/cos values are the same for all 3 of the upper YMM doubles. */
 
 		if (!gwdata->NEGACYCLIC_FFT) {
 			for (j = 0; j < N / 4; j++) {
+				// This is really ugly.  Butterflies require bit-flipping powers of w and the real and complex powers use different powers of w.
+				// Computing powers of w for 8-reals			and matching 4-complex:
+				// r1a/r1b, w power = 0					r1/i1, w power = 0
+				// r3/i3, 3-1=2 flip=2					r2/i2, 2-1=1, flip=2
+				// r5/i5, 5-1=4 flip=1					r3/i3, 3-1=2, flip=1
+				// r6/i6, 6-1=5 flip=5 (aka -3)				r4/i4, 4-1=3, flip=3 (aka -1)
+				// so we need sincos125					and sincos123 or sincos12(-1)
 				gwsincos125by4 (j, N*2, table);				/* For the eight_reals */
 				gwsincos12by4 (j + avx_increment, N, table+1);		/* For the four-complex */
 				table[3] = table[2] = table[1];
@@ -1941,7 +2500,7 @@ double *yr4dwpn_build_pass1_table (
 	else if (pass1_size == 384 || pass1_size == 768)
 		delay_count = 12;
 	else if ((pass1_size == 640 && gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 1280 && gwdata->NEGACYCLIC_FFT))
+		(pass1_size == 1280 && gwdata->NEGACYCLIC_FFT))
 		delay_count = 20;
 	else if (pass1_size == 1280 && !gwdata->NEGACYCLIC_FFT)
 		delay_count = 40;
@@ -1950,12 +2509,12 @@ double *yr4dwpn_build_pass1_table (
 	else if (pass1_size % 5 == 0 && !gwdata->NEGACYCLIC_FFT)
 		delay_count = 10;
 	else if ((pass1_size == 256 && !gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 512 && !gwdata->NEGACYCLIC_FFT))
+		(pass1_size == 512 && !gwdata->NEGACYCLIC_FFT))
 		delay_count = 8;
 	else if ((pass1_size == 512 && gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 1536 && gwdata->NEGACYCLIC_FFT) ||
-		 pass1_size == 1024 ||
-		 pass1_size == 2048)
+		(pass1_size == 1536 && gwdata->NEGACYCLIC_FFT) ||
+		pass1_size == 1024 ||
+		pass1_size == 2048)
 		delay_count = 16;
 	else
 		delay_count = 4;
@@ -1964,17 +2523,17 @@ double *yr4dwpn_build_pass1_table (
 	if (pass1_size % 7 == 0)
 		delay_count = 14;
 	else if ((pass1_size == 384 && !gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 768 && !gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 1536 && !gwdata->NEGACYCLIC_FFT))
+		(pass1_size == 768 && !gwdata->NEGACYCLIC_FFT) ||
+		(pass1_size == 1536 && !gwdata->NEGACYCLIC_FFT))
 		delay_count = 12;
 	else if (pass1_size % 5 == 0 && !gwdata->NEGACYCLIC_FFT)
 		delay_count = 10;
 	else if (pass1_size == 256 && !gwdata->NEGACYCLIC_FFT)
 		delay_count = 8;
 	else if ((pass1_size == 512 && !gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 1024 && !gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 1536 && gwdata->NEGACYCLIC_FFT) ||
-		 pass1_size == 2048)
+		(pass1_size == 1024 && !gwdata->NEGACYCLIC_FFT) ||
+		(pass1_size == 1536 && gwdata->NEGACYCLIC_FFT) ||
+		pass1_size == 2048)
 		delay_count = 16;
 	else
 		delay_count = 4;
@@ -1995,8 +2554,8 @@ double *yr4dwpn_build_pass1_table (
 #else
 	if (pow2_count & 1) gwdata->wpn_count = 8;
 	else if ((gwdata->PASS1_SIZE == 1536 && !gwdata->NEGACYCLIC_FFT) ||
-		 gwdata->PASS1_SIZE == 1792 ||
-		 gwdata->PASS1_SIZE == 2048) gwdata->wpn_count = 16;
+		gwdata->PASS1_SIZE == 1792 ||
+		gwdata->PASS1_SIZE == 2048) gwdata->wpn_count = 16;
 	else gwdata->wpn_count = 4;
 #endif
 #ifdef USE_WPN4
@@ -2147,8 +2706,8 @@ double *yr4dwpn_build_pass1_table (
 						} else if (delay_count == 32) {
 							/* 0...7 combined with one 0,2,1,5 and three 0,2,1,-1 */
 							int	kmap[32] = {0,16,8,40,    1,33,17,-15,  2,34,18,-14,
-									    3,35,19,-13,  4,36,20,-12,  5,37,21,-11,
-									    6,38,22,-10,  7,39,23,-9};
+										3,35,19,-13,  4,36,20,-12,  5,37,21,-11,
+										6,38,22,-10,  7,39,23,-9};
 							if (kmap[k] >= 0)
 								ktemp = kmap[k] * final_group;
 							else
@@ -2156,8 +2715,8 @@ double *yr4dwpn_build_pass1_table (
 						} else if (delay_count == 40) {
 							/* 0...9 combined with one 0,2,1,5 and three 0,2,1,-1 */
 							int	kmap[40] = {0,20,10,50,   1,41,21,-19,  2,42,22,-18,
-									    3,43,23,-17,  4,44,24,-16,  5,45,25,-15,
-									    6,46,26,-14,  7,47,27,-13,  8,48,28,-12,  9,49,29,-11};
+										3,43,23,-17,  4,44,24,-16,  5,45,25,-15,
+										6,46,26,-14,  7,47,27,-13,  8,48,28,-12,  9,49,29,-11};
 							if (kmap[k] >= 0)
 								ktemp = kmap[k] * final_group;
 							else
@@ -2165,9 +2724,9 @@ double *yr4dwpn_build_pass1_table (
 						} else if (delay_count == 48) {
 							/* 0...11 combined with one 0,2,1,5 and three 0,2,1,-1 */
 							int	kmap[48] = {0,24,12,60,   1,49,25,-23,  2,50,26,-22,
-									    3,51,27,-21,  4,52,28,-20,  5,53,29,-19,
-									    6,54,30,-18,  7,55,31,-17,  8,56,32,-16,
-									    9,57,33,-15, 10,58,34,-14, 11,59,35,-13};
+										3,51,27,-21,  4,52,28,-20,  5,53,29,-19,
+										6,54,30,-18,  7,55,31,-17,  8,56,32,-16,
+										9,57,33,-15, 10,58,34,-14, 11,59,35,-13};
 							if (kmap[k] >= 0)
 								ktemp = kmap[k] * final_group;
 							else
@@ -2175,10 +2734,10 @@ double *yr4dwpn_build_pass1_table (
 						} else if (delay_count == 56) {
 							/* 0...13 combined with one 0,2,1,5 and three 0,2,1,-1 */
 							int	kmap[56] = {0,28,14,70,   1,57,29,-27,  2,58,30,-26,
-									    3,59,31,-25,  4,60,32,-24,  5,61,33,-23,
-									    6,62,34,-22,  7,63,35,-21,  8,64,36,-20,
-									    9,65,37,-19, 10,66,38,-18, 11,67,39,-17,
-									   12,68,40,-16, 13,69,41,-15};
+										3,59,31,-25,  4,60,32,-24,  5,61,33,-23,
+										6,62,34,-22,  7,63,35,-21,  8,64,36,-20,
+										9,65,37,-19, 10,66,38,-18, 11,67,39,-17,
+									12,68,40,-16, 13,69,41,-15};
 							if (kmap[k] >= 0)
 								ktemp = kmap[k] * final_group;
 							else
@@ -2312,8 +2871,8 @@ double *yr4dwpn_build_pass1_table (
 						} else if (delay_count == 32) {
 							/* 0...7 combined with one 0,2,1,5 and three 0,2,1,-1 */
 							int	kmap[32] = {0,16,8,40,    1,33,17,-15,  2,34,18,-14,
-									    3,35,19,-13,  4,36,20,-12,  5,37,21,-11,
-									    6,38,22,-10,  7,39,23,-9};
+										3,35,19,-13,  4,36,20,-12,  5,37,21,-11,
+										6,38,22,-10,  7,39,23,-9};
 							if (kmap[k] >= 0)
 								ktemp = kmap[k] * final_group;
 							else
@@ -2321,8 +2880,8 @@ double *yr4dwpn_build_pass1_table (
 						} else if (delay_count == 40) {
 							/* 0...9 combined with one 0,2,1,5 and three 0,2,1,-1 */
 							int	kmap[40] = {0,20,10,50,   1,41,21,-19,  2,42,22,-18,
-									    3,43,23,-17,  4,44,24,-16,  5,45,25,-15,
-									    6,46,26,-14,  7,47,27,-13,  8,48,28,-12,  9,49,29,-11};
+										3,43,23,-17,  4,44,24,-16,  5,45,25,-15,
+										6,46,26,-14,  7,47,27,-13,  8,48,28,-12,  9,49,29,-11};
 							if (kmap[k] >= 0)
 								ktemp = kmap[k] * final_group;
 							else
@@ -2330,9 +2889,9 @@ double *yr4dwpn_build_pass1_table (
 						} else if (delay_count == 48) {
 							/* 0...11 combined with one 0,2,1,5 and three 0,2,1,-1 */
 							int	kmap[48] = {0,24,12,60,   1,49,25,-23,  2,50,26,-22,
-									    3,51,27,-21,  4,52,28,-20,  5,53,29,-19,
-									    6,54,30,-18,  7,55,31,-17,  8,56,32,-16,
-									    9,57,33,-15, 10,58,34,-14, 11,59,35,-13};
+										3,51,27,-21,  4,52,28,-20,  5,53,29,-19,
+										6,54,30,-18,  7,55,31,-17,  8,56,32,-16,
+										9,57,33,-15, 10,58,34,-14, 11,59,35,-13};
 							if (kmap[k] >= 0)
 								ktemp = kmap[k] * final_group;
 							else
@@ -2340,10 +2899,10 @@ double *yr4dwpn_build_pass1_table (
 						} else if (delay_count == 56) {
 							/* 0...13 combined with one 0,2,1,5 and three 0,2,1,-1 */
 							int	kmap[56] = {0,28,14,70,   1,57,29,-27,  2,58,30,-26,
-									    3,59,31,-25,  4,60,32,-24,  5,61,33,-23,
-									    6,62,34,-22,  7,63,35,-21,  8,64,36,-20,
-									    9,65,37,-19, 10,66,38,-18, 11,67,39,-17,
-									   12,68,40,-16, 13,69,41,-15};
+										3,59,31,-25,  4,60,32,-24,  5,61,33,-23,
+										6,62,34,-22,  7,63,35,-21,  8,64,36,-20,
+										9,65,37,-19, 10,66,38,-18, 11,67,39,-17,
+									12,68,40,-16, 13,69,41,-15};
 							if (kmap[k] >= 0)
 								ktemp = kmap[k] * final_group;
 							else
@@ -2592,7 +3151,7 @@ double *yr4dwpn_build_pass1_table (
 /* for each AVX word from 16 to 5). */
 
 				for (j = 0; j < N / 4; j += pass1_increment) {
-				    for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
+					for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
 					temp = (group + j + i);
 					gwfft_weights3 (gwdata->dd_data, temp, weights, NULL, inv_weights);
 					gwfft_weights3 (gwdata->dd_data, temp + N/4, weights+1, NULL, inv_weights+1);
@@ -2600,7 +3159,7 @@ double *yr4dwpn_build_pass1_table (
 					gwfft_weights3 (gwdata->dd_data, temp + 3*N/4, weights+3, NULL, inv_weights+3);
 					weights += 4;
 					inv_weights += 4;
-				    }
+					}
 				}
 			}
 
@@ -2611,7 +3170,7 @@ double *yr4dwpn_build_pass1_table (
 /* Output the sin/cos value for the complex sections, used by the yr4_4cl_four_complex_djbfft macro */
 
 				for (j = 0; j < N / 4; j += pass1_increment) {
-				    for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
+					for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
 					temp = (group + j + i);
 					gwsincos12by4 (temp, N, table);
 					gwsincos12by4 (temp + upper_avx_word, N, table+1);
@@ -2631,7 +3190,7 @@ double *yr4dwpn_build_pass1_table (
 						table += 16;
 					}
 
-				    }
+					}
 				}
 			}
 
@@ -2654,7 +3213,7 @@ double *yr4dwpn_build_pass1_table (
 /* for each AVX word from 16 to 5). */
 
 				for (j = 0; j < N / 4; j += pass1_increment) {
-				    for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
+					for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
 					temp = (group + j + i);
 					gwsincos012by4_weighted (gwdata->dd_data, temp, upper_avx_word, N, temp, table);
 					*weights++ = table[24];
@@ -2669,7 +3228,7 @@ double *yr4dwpn_build_pass1_table (
 						gwsincos15by4_weighted (gwdata->dd_data, temp, upper_avx_word, N*2, temp, table);
 						table += 24;
 					}
-				    }
+					}
 				}
 			}
 
@@ -2829,11 +3388,11 @@ double *yr4dwpn_build_fixed_pass1_table (
 		/* the next FFT levels to further reduce memory usage. */
 		if (pass1_size == 1024 ||
 #ifdef USE_REDUCED_SINCOS_FFTS
-		    pass1_size == 1280 ||
-		    pass1_size == 1536 ||
-		    pass1_size == 1792 ||
+			pass1_size == 1280 ||
+			pass1_size == 1536 ||
+			pass1_size == 1792 ||
 #endif
-		    pass1_size == 2048) {
+			pass1_size == 2048) {
 			/* Output the sin/cos values for the complex data followed by sin/cos values for the real data */
 			for (j = 0; j < N / 4; j += pass1_increment) {
 				gwsincos12by4 (j, N, table);
@@ -3101,17 +3660,17 @@ double *yr4dwpn_build_norm_table (
 /* Now sort the four weights */
 
 			double1_sort = (double1_weight > double2_weight) +
-				       (double1_weight > double3_weight) +
-				       (double1_weight > double4_weight);
+					(double1_weight > double3_weight) +
+					(double1_weight > double4_weight);
 			double2_sort = (double2_weight > double1_weight) +
-				       (double2_weight > double3_weight) +
-				       (double2_weight > double4_weight);
+					(double2_weight > double3_weight) +
+					(double2_weight > double4_weight);
 			double3_sort = (double3_weight > double1_weight) +
-				       (double3_weight > double2_weight) +
-				       (double3_weight > double4_weight);
+					(double3_weight > double2_weight) +
+					(double3_weight > double4_weight);
 			double4_sort = (double4_weight > double1_weight) +
-				       (double4_weight > double2_weight) +
-				       (double4_weight > double3_weight);
+					(double4_weight > double2_weight) +
+					(double4_weight > double3_weight);
 
 /* Call quad-precision routine to compute set of multipliers. */
 /* We compute two-to-phi multiplied by the fudge factor so that normalize won't have to. */
@@ -3295,9 +3854,9 @@ GWASSERT (n <= 24);	// Lets see what the AVX limits really are!!!
 
 	p = (unsigned char *) table;
 	for (group = 0; group < upper_avx_word; group += gwdata->PASS1_CACHE_LINES) {
-	    for (n = 0; n < gwdata->FFTLEN / 2; n += num_cols) {
-	        for (j = 0; j < num_cols; j += gwdata->PASS2_SIZE * 4) {
-		    for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
+		for (n = 0; n < gwdata->FFTLEN / 2; n += num_cols) {
+			for (j = 0; j < num_cols; j += gwdata->PASS2_SIZE * 4) {
+			for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
 			for (k = 0; k < gwdata->FFTLEN; k += gwdata->FFTLEN / 2) {
 				unsigned long word;
 
@@ -3309,7 +3868,7 @@ GWASSERT (n <= 24);	// Lets see what the AVX limits really are!!!
 				if (is_big_word (gwdata, word + upper_avx_word)) *p += 2;
 				if (is_big_word (gwdata, word + 2 * upper_avx_word)) *p += 4;
 				if (is_big_word (gwdata, word + 3 * upper_avx_word)) *p += 8;
-   
+
 /* Set the ttp and ttmp fudge flags for two pass FFTs.  The fudge flag is */
 /* set if the col mult * the grp mult is b times the correct fft_weight, */
 /* meaning a mul by 1/b is required to generate the correct multiplier. */
@@ -3317,20 +3876,20 @@ GWASSERT (n <= 24);	// Lets see what the AVX limits really are!!!
 /* cryptic. */
 
 				if (gwfft_weight_exponent (gwdata->dd_data, word) + 0.5 <
-				    gwfft_weight_exponent (gwdata->dd_data, n + k) +
-				    gwfft_weight_exponent (gwdata->dd_data, group + j + i))
+					gwfft_weight_exponent (gwdata->dd_data, n + k) +
+					gwfft_weight_exponent (gwdata->dd_data, group + j + i))
 					*p += 16;
 				if (gwfft_weight_exponent (gwdata->dd_data, word + upper_avx_word) + 0.5 <
-				    gwfft_weight_exponent (gwdata->dd_data, n + k + upper_avx_word) +
-				    gwfft_weight_exponent (gwdata->dd_data, group + j + i))
+					gwfft_weight_exponent (gwdata->dd_data, n + k + upper_avx_word) +
+					gwfft_weight_exponent (gwdata->dd_data, group + j + i))
 					*p += 32;
 				if (gwfft_weight_exponent (gwdata->dd_data, word + 2 * upper_avx_word) + 0.5 <
-				    gwfft_weight_exponent (gwdata->dd_data, n + k + 2 * upper_avx_word) +
-				    gwfft_weight_exponent (gwdata->dd_data, group + j + i))
+					gwfft_weight_exponent (gwdata->dd_data, n + k + 2 * upper_avx_word) +
+					gwfft_weight_exponent (gwdata->dd_data, group + j + i))
 					*p += 64;
 				if (gwfft_weight_exponent (gwdata->dd_data, word + 3 * upper_avx_word) + 0.5 <
-				    gwfft_weight_exponent (gwdata->dd_data, n + k + 3 * upper_avx_word) +
-				    gwfft_weight_exponent (gwdata->dd_data, group + j + i))
+					gwfft_weight_exponent (gwdata->dd_data, n + k + 3 * upper_avx_word) +
+					gwfft_weight_exponent (gwdata->dd_data, group + j + i))
 					*p += 128;
 
 /* Apply our method for reducing fudge factor data from 16 combinations down to 5 possibilities. */
@@ -3346,7 +3905,7 @@ GWASSERT (n <= 24);	// Lets see what the AVX limits really are!!!
 			p -= 2;
 			for (m = 0; m <= 46; m++) {
 				if (((char *)gwdata->ASM_TIMERS)[m]   == (p[0] & 0xF) &&
-				    ((char *)gwdata->ASM_TIMERS)[m+1] == (p[1] & 0xF))
+					((char *)gwdata->ASM_TIMERS)[m+1] == (p[1] & 0xF))
 					break;
 			}
 			ASSERTG (m != 47);
@@ -3368,9 +3927,9 @@ GWASSERT (n <= 24);	// Lets see what the AVX limits really are!!!
 /* Move pointer to next big/lit table entry */
 
 			p += 2;
-		    }
+			}
 		}
-	    }
+		}
 	}
 	return ((double *) p);
 }
@@ -3830,11 +4389,11 @@ double *r4delay_build_pass1_table (
 		delay_count = 14;
 	else if (pass1_size % 5 == 0 && !gwdata->NEGACYCLIC_FFT)
 		delay_count = 10;
- 	else if ((pass1_size == 512 && !gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 1024 && !gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 2560 && gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 5120 && gwdata->NEGACYCLIC_FFT) ||
-		 pass1_size == 1536 || pass1_size == 2048 || pass1_size == 3072 || pass1_size == 4096)
+	else if ((pass1_size == 512 && !gwdata->NEGACYCLIC_FFT) ||
+		(pass1_size == 1024 && !gwdata->NEGACYCLIC_FFT) ||
+		(pass1_size == 2560 && gwdata->NEGACYCLIC_FFT) ||
+		(pass1_size == 5120 && gwdata->NEGACYCLIC_FFT) ||
+		pass1_size == 1536 || pass1_size == 2048 || pass1_size == 3072 || pass1_size == 4096)
 		delay_count = 16;
 	else
 		delay_count = 4;
@@ -4208,7 +4767,7 @@ double *r4delay_build_fixed_pass1_table (
 			/* Sometimes we also use a fixed sin/cos table for */
 			/* the next FFT levels to further reduce memory usage. */
 			if (pass1_size == 512 || pass1_size == 1024 || pass1_size == 1536 ||
-			    pass1_size == 2048 || pass1_size == 3072 || pass1_size == 4096) {
+				pass1_size == 2048 || pass1_size == 3072 || pass1_size == 4096) {
 				/* Output the sin/cos values for the real data */
 				for (j = 0; j < N*2 / 8; j += pass1_increment) {
 					gwsincos15by2 (j, N*2, table);
@@ -4240,7 +4799,7 @@ double *r4delay_build_fixed_pass1_table (
 		/* Sometimes we also use a fixed sin/cos table for */
 		/* the next FFT levels to further reduce memory usage. */
 		if (pass1_size == 1536 || pass1_size == 2048 || pass1_size == 2560 ||
-		    pass1_size == 3072 || pass1_size == 4096 || pass1_size == 5120) {
+			pass1_size == 3072 || pass1_size == 4096 || pass1_size == 5120) {
 			/* Output the sin/cos values for the complex data */
 			for (j = 0; j < N / 4; j += pass1_increment) {
 				gwsincos12by2 (j, N, table);
@@ -4283,11 +4842,11 @@ double *r4dwpn_build_pass1_table (
 		delay_count = 14;
 	else if (pass1_size % 5 == 0 && !gwdata->NEGACYCLIC_FFT)
 		delay_count = 10;
- 	else if ((pass1_size == 512 && !gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 1024 && !gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 2560 && gwdata->NEGACYCLIC_FFT) ||
-		 (pass1_size == 5120 && gwdata->NEGACYCLIC_FFT) ||
-		 pass1_size == 1536 || pass1_size == 2048 || pass1_size == 3072 || pass1_size == 4096)
+	else if ((pass1_size == 512 && !gwdata->NEGACYCLIC_FFT) ||
+		(pass1_size == 1024 && !gwdata->NEGACYCLIC_FFT) ||
+		(pass1_size == 2560 && gwdata->NEGACYCLIC_FFT) ||
+		(pass1_size == 5120 && gwdata->NEGACYCLIC_FFT) ||
+		pass1_size == 1536 || pass1_size == 2048 || pass1_size == 3072 || pass1_size == 4096)
 		delay_count = 16;
 	else
 		delay_count = 4;
@@ -4525,24 +5084,24 @@ double *r4dwpn_build_pass1_table (
 
 				if (!gwdata->NEGACYCLIC_FFT) {
 					for (j = 0; j < N*2 / 8; j += pass1_increment) {
-					    for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
+						for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
 						temp = (group + j + i);
 						gwsincos15by2 (temp, N*2, table);
 						gwsincos15by2 (temp + upper_sse2_word, N*2, table+1);
 						table += 8;
-					    }
+						}
 					}
 				}
 
 /* Output the sin/cos value for the complex sections, used by the r4_four_complex_djbfft macro */
 
 				for (j = 0; j < N / 4; j += pass1_increment) {
-				    for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
+					for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
 					temp = (group + j + i);
 					gwsincos12by2 (temp, N, table);
 					gwsincos12by2 (temp + upper_sse2_word, N, table+1);
 					table += 8;
-				    }
+					}
 				}
 			}
 
@@ -4556,11 +5115,11 @@ double *r4dwpn_build_pass1_table (
 
 				if (!gwdata->NEGACYCLIC_FFT) {
 					for (j = 0; j < N*2 / 8; j += pass1_increment) {
-					    for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
+						for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
 						temp = (group + j + i);
 						gwsincos15by2_weighted (gwdata->dd_data, temp, upper_sse2_word, N*2, temp, table);
 						table += 12;
-					    }
+						}
 					}
 				}
 
@@ -4570,11 +5129,11 @@ double *r4dwpn_build_pass1_table (
 /* for each SSE2 word from 4 to 3). */
 
 				for (j = 0; j < N / 4; j += pass1_increment) {
-				    for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
+					for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
 					temp = (group + j + i);
 					gwsincos012by2_weighted (gwdata->dd_data, temp, upper_sse2_word, N, temp, table);
 					table += 16;
-				    }
+					}
 				}
 			}
 
@@ -4786,17 +5345,17 @@ double *r4dwpn_build_norm_table (
 /* Now sort the four weights */
 
 			word1_lower_sort = (word1_lower_weight > word1_upper_weight) +
-					   (word1_lower_weight > word2_lower_weight) +
-					   (word1_lower_weight > word2_upper_weight);
+					(word1_lower_weight > word2_lower_weight) +
+					(word1_lower_weight > word2_upper_weight);
 			word1_upper_sort = (word1_upper_weight > word1_lower_weight) +
-					   (word1_upper_weight > word2_lower_weight) +
-					   (word1_upper_weight > word2_upper_weight);
+					(word1_upper_weight > word2_lower_weight) +
+					(word1_upper_weight > word2_upper_weight);
 			word2_lower_sort = (word2_lower_weight > word1_lower_weight) +
-					   (word2_lower_weight > word1_upper_weight) +
-					   (word2_lower_weight > word2_upper_weight);
+					(word2_lower_weight > word1_upper_weight) +
+					(word2_lower_weight > word2_upper_weight);
 			word2_upper_sort = (word2_upper_weight > word1_lower_weight) +
-					   (word2_upper_weight > word1_upper_weight) +
-					   (word2_upper_weight > word2_lower_weight);
+					(word2_upper_weight > word1_upper_weight) +
+					(word2_upper_weight > word2_lower_weight);
 
 /* Call double-precision routine to compute first set of multipliers. */
 /* We compute two-to-phi multiplied by the fudge factor so that normalize won't have to. */
@@ -4945,8 +5504,8 @@ double *r4_build_biglit_table (
 /* cryptic. */
 
 							if (gwfft_weight_exponent (gwdata->dd_data, word) + 0.5 <
-							    gwfft_weight_exponent (gwdata->dd_data, word % gap) +
-							    gwfft_weight_exponent (gwdata->dd_data, word - word % gap)) {
+								gwfft_weight_exponent (gwdata->dd_data, word % gap) +
+								gwfft_weight_exponent (gwdata->dd_data, word - word % gap)) {
 								if (k == 0) *p += 64;
 								else *p += 128;
 							}
@@ -5108,11 +5667,11 @@ const	int	CHAIN_1_COMMON = 0x0800;
 
 	p = (unsigned char *) table;
 	for (group = 0; group < upper_sse2_word; group += gwdata->PASS1_CACHE_LINES) {
-	    for (n = 0; n < gwdata->FFTLEN / 4; n += num_cols) {
-	        for (j = 0; j < num_cols; j += gwdata->PASS2_SIZE) {
-		    for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
+		for (n = 0; n < gwdata->FFTLEN / 4; n += num_cols) {
+			for (j = 0; j < num_cols; j += gwdata->PASS2_SIZE) {
+			for (i = 0; i < gwdata->PASS1_CACHE_LINES; i++) {
 			for (k = 0; k < gwdata->FFTLEN; k += gwdata->FFTLEN / 4) {
-			    for (m = 0; m < gwdata->PASS2_SIZE; m += upper_sse2_word) {
+				for (m = 0; m < gwdata->PASS2_SIZE; m += upper_sse2_word) {
 				unsigned long word;
 
 /* Now set the big/little flag for a LSW in an SSE2 pair */
@@ -5129,8 +5688,8 @@ const	int	CHAIN_1_COMMON = 0x0800;
 /* cryptic. */
 
 				if (gwfft_weight_exponent (gwdata->dd_data, word) + 0.5 <
-				    gwfft_weight_exponent (gwdata->dd_data, n + k + m) +
-				    gwfft_weight_exponent (gwdata->dd_data, group + j + i)) {
+					gwfft_weight_exponent (gwdata->dd_data, n + k + m) +
+					gwfft_weight_exponent (gwdata->dd_data, group + j + i)) {
 					if (m == 0) *p += 64;
 					else *p += 128;
 				}
@@ -5148,14 +5707,14 @@ const	int	CHAIN_1_COMMON = 0x0800;
 				if (word == 4)
 					((struct gwasm_data *) gwdata->asm_data)->BIGLIT_INCR4 =
 						(uint32_t) ((char *) p - (char *) table);
-			    }
+				}
 
 /* Apply our method for reducing fudge factor data by 25%.  We've observed that one */
 /* of the 4 combinations never occurs. */
 
-			    if (*p >= 128) *p -= 64;
+				if (*p >= 128) *p -= 64;
 
-			    p++;
+				p++;
 			}
 
 /* Combine last four big/lit 2-bit flag values into one 6-bit flags value. */
@@ -5163,9 +5722,9 @@ const	int	CHAIN_1_COMMON = 0x0800;
 			p -= 4;
 			for (m = 0; m <= 44; m++) {
 				if (((char *)gwdata->ASM_TIMERS)[m]   == (p[0] & 48) >> 4 &&
-				    ((char *)gwdata->ASM_TIMERS)[m+1] == (p[1] & 48) >> 4 &&
-				    ((char *)gwdata->ASM_TIMERS)[m+2] == (p[2] & 48) >> 4 &&
-				    ((char *)gwdata->ASM_TIMERS)[m+3] == (p[3] & 48) >> 4)
+					((char *)gwdata->ASM_TIMERS)[m+1] == (p[1] & 48) >> 4 &&
+					((char *)gwdata->ASM_TIMERS)[m+2] == (p[2] & 48) >> 4 &&
+					((char *)gwdata->ASM_TIMERS)[m+3] == (p[3] & 48) >> 4)
 					break;
 			}
 			ASSERTG (m != 45);
@@ -5178,9 +5737,9 @@ const	int	CHAIN_1_COMMON = 0x0800;
 			p[0] = ((p[1] >> 6) + (p[0] >> 6)) * 16 + ((p[3] >> 6) + (p[2] >> 6)) * 2;
 			p[1] = (unsigned char) (m << 2);
 			p += 2;
-		    }
+			}
 		}
-	    }
+		}
 	}
 	return ((double *) p);
 }
@@ -5309,7 +5868,7 @@ double *hg_build_premult_table (
 /* Mod 2^N+1 arithmetic starts at first data set, */
 /* mod 2^N-1 skips some data sets */
 
- 	if (gwdata->NEGACYCLIC_FFT) i = 0;
+	if (gwdata->NEGACYCLIC_FFT) i = 0;
 	else i = incr * 4;
 
 /* To add in the flipped_m component, we want the sin/cos of flipped_m */
@@ -5401,17 +5960,17 @@ double *hg_build_premult_table (
 /* than compensates for the 12 extra column multipliers. */
 
 		for (m = 0; m < 4; m++) {
-		    unsigned long flipped_m;
-		    flipped_m = ((m & 1) << 1) + ((m & 2) >> 1);
-		    for (k = 0; k < grouping_size; k++) {
+			unsigned long flipped_m;
+			flipped_m = ((m & 1) << 1) + ((m & 2) >> 1);
+			for (k = 0; k < grouping_size; k++) {
 			for (l = 0; l < 4; l++) {
 				unsigned long pm;
 
 /* Compute the sin/cos value (root of unity) */
 
 				pm = k * flipped_i +
-				     l * flipped_m * N/16 +
-				     (k & 3) * flipped_m * m_fudge;
+					l * flipped_m * N/16 +
+					(k & 3) * flipped_m * m_fudge;
 				if (!gwdata->NEGACYCLIC_FFT) {
 					gwsincos (pm % N, N, (double *) &sincos);
 				}
@@ -5430,12 +5989,12 @@ double *hg_build_premult_table (
 				table[l*4+2+type] = sincos[1];
 			}
 			table += 16;
-		    }
+			}
 		}
 
 		if (type == 0) table = table_start;
 		type = 1 - type;
- 	}
+	}
 
 	return (table);
 }
@@ -5503,7 +6062,7 @@ double *hg_build_plus1_table (
 		table += 4;
 		}
 	}
- 	}
+	}
 
 	return (table);
 }
@@ -5731,8 +6290,8 @@ double *hg_build_biglit_table (
 /* cryptic. */
 
 		if (gwfft_weight_exponent (gwdata->dd_data, word) + 0.5 <
-		    gwfft_weight_exponent (gwdata->dd_data, word % gap) +
-		    gwfft_weight_exponent (gwdata->dd_data, word - word % gap)) {
+			gwfft_weight_exponent (gwdata->dd_data, word % gap) +
+			gwfft_weight_exponent (gwdata->dd_data, word - word % gap)) {
 			if (k == 0) *p += 64;
 			else *p += 128;
 		}
@@ -5945,7 +6504,7 @@ double *x87_build_premult_table (
 			}
 			table += 8;
 		}
- 	}
+	}
 
 	return (table);
 }
@@ -6149,8 +6708,8 @@ double *x87_build_biglit_table (
 /* The fudge flag is set if col mult * grp mult will be greater than 2 */
 
 		if (gwfft_weight_exponent (gwdata->dd_data, word) + 0.5 <
-		    gwfft_weight_exponent (gwdata->dd_data, word % gwdata->PASS2_SIZE) +
-		    gwfft_weight_exponent (gwdata->dd_data, word - word % gwdata->PASS2_SIZE)) {
+			gwfft_weight_exponent (gwdata->dd_data, word % gwdata->PASS2_SIZE) +
+			gwfft_weight_exponent (gwdata->dd_data, word - word % gwdata->PASS2_SIZE)) {
 			if (m == 0) *p += 64;
 			else *p += 128;
 		}

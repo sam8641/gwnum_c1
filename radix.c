@@ -4,7 +4,7 @@
 | This file contains the C routines for radix conversion when required
 | by gianttogw or gwtogiant.
 | 
-|  Copyright 2020-2023 Mersenne Research, Inc.  All rights reserved.
+|  Copyright 2020-2026 Mersenne Research, Inc.  All rights reserved.
 +---------------------------------------------------------------------*/
 
 /* Include files */
@@ -17,8 +17,9 @@
 #include "gwutil.h"
 #include "radix.h"
 
-// IDEAS: Use libdivide library to increase BRUTE_WORDS to 4
+// IDEAS: Use libdivide library to increase BRUTE_FORCE_WORDS to 4
 //	Handle larger giants with brute force -- maybe 4 or 8 or 16 words?
+//	Use gwiter to reduce calls to addr()
 
 /* Forward declarations */
 
@@ -40,7 +41,7 @@ int nonbase2_gianttogw (	/* Returns an error code or zero for success */
 
 #define BRUTE_FORCE_WORDS		2
 #define giant_extract(s,off,len,d)	{if ((s)->sign <= (off)) (d)->sign = 0; \
-					 else { (d)->sign = intmin ((s)->sign - (off), (len)); \
+					else { (d)->sign = intmin ((s)->sign - (off), (len)); \
 						memcpy ((d)->n, (s)->n+(off), (d)->sign * sizeof (uint32_t)); \
 						while((d)->sign && (d)->n[(d)->sign-1] == 0) (d)->sign--;}}
 
@@ -77,8 +78,11 @@ int nonbase2_gianttogw (	/* Returns an error code or zero for success */
 		if (work_gwdata == NULL) goto oom;
 
 		// Calc how big each partial result is in radix-b (with no borrow from next result)
-		// This is the number of bits in a multiplication result plus one to avoid borrow divided by bits in radix b.
-		b_per_mult = (int) ceil ((double) (2 * BRUTE_FORCE_WORDS * 32 + 1) / log2 (gwdata->b));
+		// The maximum result is (2^(BRUTE_FORCE_WORDS * 32)) ^ 2.  To avoid a carry out of the top word, we need to handle results twice that size.
+		// Furthermore, there can be a carry out of the penultimate top word.  This scales the maximum result by 1/2 * 1/b^NUM_B_PER_SMALL_WORD.
+		// Finally, convert to base b.
+		b_per_mult = (int) ceil (log (pow(2.0, 2 * BRUTE_FORCE_WORDS * 32 + 1) * (1.0 + 0.5 * pow (gwdata->b, - (double) gwdata->NUM_B_PER_SMALL_WORD))) / log (gwdata->b));
+
 		// Calc number of chunks and pairs.  Allow for 32 extra bits so final result can't wrap-around carry.
 		num_chunks = (int) ceil ((gwdata->bit_length + 32.0) / (BRUTE_FORCE_WORDS * 32));	// Total num chunks
 		num_pairs = (num_chunks + 1) / 2;							// Number of pairs
@@ -202,10 +206,10 @@ int nonbase2_gianttogw (	/* Returns an error code or zero for success */
 		stackgiant(tmpg,BRUTE_FORCE_WORDS);
 
 		giant_extract (g, giant_offset, BRUTE_FORCE_WORDS, tmpg);
-	        brute_convert (work_gwdata, tmpg, t3, gwnum_offset, big_word_flags);
+			brute_convert (work_gwdata, tmpg, t3, gwnum_offset, big_word_flags);
 
 		giant_extract (g, giant_offset + BRUTE_FORCE_WORDS, BRUTE_FORCE_WORDS, tmpg);
-	        brute_convert (work_gwdata, tmpg, t1, gwnum_offset, big_word_flags);
+			brute_convert (work_gwdata, tmpg, t1, gwnum_offset, big_word_flags);
 
 		gwnum_offset += fft_words_per_mult;
 		giant_offset += BRUTE_FORCE_WORDS * 2;
@@ -213,6 +217,9 @@ int nonbase2_gianttogw (	/* Returns an error code or zero for success */
 
 	gwmul (work_gwdata, pow2_multiplier, t1);		// Multiply the upper halves by the power of two multiplier
 	gwaddquick (work_gwdata, t3, t1);			// Add the lower halves to the multiplied upper halves
+#ifdef GDEBUG
+	for(int h=0;h<(int)work_gwdata->FFTLEN;h+=fft_words_per_mult)ASSERTG(*addr(work_gwdata, t1, fft_words_per_mult-1) >= 0.0);
+#endif
 
 // Now we take our gwnum (t1) holding data converted to radix b and combine lower / upper pairs until we
 // get down to just one fully radix-converted value.
@@ -250,6 +257,9 @@ int nonbase2_gianttogw (	/* Returns an error code or zero for success */
 		gwmul (work_gwdata, pow2_multiplier, t3);		// Apply the power of two multiplier to the upper halves
 		gwaddquick (work_gwdata, t3, t1);			// Add the multiplied upper and the lower
 		fft_words_per_mult = fft_words_per_mult * 2;
+#ifdef GDEBUG
+		for(int h=0;h<(int)work_gwdata->FFTLEN;h+=fft_words_per_mult)ASSERTG(*addr(work_gwdata, t1, fft_words_per_mult-1) >= 0.0);
+#endif
 	}
 	ASSERTG (gw_get_maxerr(work_gwdata) < 0.43);
 
@@ -801,16 +811,27 @@ int nonbase2_gwtogiant (	/* Returns an error code or zero for success */
 		gwiter	iter;
 		int32_t	val;
 		int64_t accum;
-		int	bits, accumbits;
-		unsigned long limit;
-		uint32_t *outptr;
+		int	bits, accumbits, limit;
+		uint32_t *outptr, *outptr_end, outval;
+		uint64_t outcarry;
+
+/* Set variables based on k */
+
+		uint64_t k = (uint64_t) gwdata->k;
+		uint32_t khi = (uint32_t) (k >> 32);
+		uint32_t klo = (uint32_t) (k & 0xFFFFFFFFULL);
+		bool k_is_small = (khi == 0);
+		bool k_is_one = (k == 1);
 
 /* Collect bits until we have all of them */
 
 		accum = 0;
 		accumbits = 0;
+		outcarry = 0;
 		outptr = g->n;
-		limit = divide_rounding_up ((int) ceil (gwdata->bit_length), 32) + 1;
+		limit = divide_rounding_up ((int) ceil (gwdata->bit_length), 32) + 3;
+		if (limit > g->maxsize) limit = g->maxsize;
+		outptr_end = g->n + limit;
 		for (gwiter_init_zero (work_gwdata, &iter, t1); ; ) {
 			if (gwiter_index (&iter) < (int) work_gwdata->FFTLEN) {
 				err_code = gwiter_get_fft_value (&iter, &val);
@@ -822,23 +843,39 @@ int nonbase2_gwtogiant (	/* Returns an error code or zero for success */
 				gwiter_next (&iter);
 				if (accumbits < 32) continue;
 			}
-			*outptr++ = (uint32_t) accum;
+			// Extract the 32 output bits
+			outval = (uint32_t) accum;
 			accum >>= 32;
 			accumbits -= 32;
-			if (outptr == g->n + limit) break;
+
+			// Now mul by k
+			if (!k_is_one) {
+				if (k_is_small) {
+					uint64_t tmp = (uint64_t) outval * (uint64_t) klo + outcarry;
+					outval = (uint32_t) tmp;
+					outcarry = tmp >> 32;
+				} else {
+					uint64_t tmp = (uint64_t) outval * (uint64_t) klo;
+					uint64_t next_outcarry = tmp >> 32;
+					tmp = (tmp & 0xFFFFFFFFULL) + outcarry;
+					outcarry = next_outcarry + (tmp >> 32) + (uint64_t) outval * (uint64_t) khi;
+					outval = (uint32_t) tmp;
+				}
+			}
+
+			// Output the value
+			*outptr++ = outval;
+
+			// Check for end of output
+			if (outptr == outptr_end) break;
 		}
-		ASSERTG (accum == 0 || accum == -1);
+		ASSERTG (accum == 0);
 
 /* Set the length */
 
 		g->sign = (long) (outptr - g->n);
+		ASSERTG (g->maxsize >= g->sign);
 		while (g->sign && g->n[g->sign-1] == 0) g->sign--;
-
-/* Divide the upper bits by k, leave the remainder in the upper bits and multiply the quotient by c and subtract that from the lower bits. */
-
-		stackgiant(upper,5);					// Upper bits shouldn't be much more than k^2 (100 bits)
-		gtogshiftrightsplit (work_gwdata->n, g, upper, accum);	// Split v at bit n into two giants optionally negating upper bits
-		if (!isZero (upper)) addg (upper, g);			// Lower bits minus upper bits * c
 	}
 
 /* Finish cleanup */

@@ -113,38 +113,6 @@ void gwxaddsubq2(struct gwasm_data *__restrict g)
 }
 
 
-void gwxcopyzero2(struct gwasm_data *__restrict g)
-{
-	int32_t ecx = 0;
-	char *rsi = g->SRCARG;
-	char *rdi = g->DESTARG;
-	uintptr_t rbx = g->addcount1;
-	do{
-		unsigned int a = g->normval4;
-		do{
-			unsigned int carry;
-			do{
-				xcopyz(0, ((vec2f64*)rsi)[0], ((vec2f64*)rdi)[0]);
-				xcopyz(1, ((vec2f64*)rsi)[1], ((vec2f64*)rdi)[1]);
-				((vec4f64b*)rdi)[1] = ((vec4f64b*)rsi)[1];  // vec4[1]: copy vec2[2] and vec2[3]
-				ecx += 64;
-				rsi += 64;
-				rdi += 64;
-				a = __builtin_addc(a, 0x80000000u / 64u, 0, &carry);
-			}while(!carry);
-			ecx += 128;
-			rsi += 128;
-			rdi += 128;
-			a--;
-		}while(a);
-		ecx += g->pass2gapsize;
-		rsi += g->pass2gapsize;
-		rdi += g->pass2gapsize;
-		rbx--;
-	}while(rbx);
-}
-
-
 
 static void final_carries_2(struct gwasm_data *__restrict g, uintptr_t rsi, vec2f64 xmm6, vec2f64 xmm7) {
 	uintptr_t rax,rbx,rcx,rdi,rbp;

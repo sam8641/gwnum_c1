@@ -62,21 +62,20 @@ void gwxaddsubq1(struct gwasm_data *__restrict g)
 	}while(a != 0);
 }
 
-void gwxcopyzero1(struct gwasm_data *__restrict g)
+typedef unsigned long long __attribute__ ((vector_size (64), aligned(16))) vec8u64b;
+void gwxcopy4kb(struct gwasm_data *__restrict g)
 {
-	vec2f64 *rsi = g->SRCARG;
-	vec2f64 *rdi = g->DESTARG;
-	int32_t ecx = 0;
-	int a = g->addcount1;
+	vec8u64b *s1 = g->SRCARG;
+	vec8u64b *s2 = g->SRC2ARG;
+	vec8u64b *di = g->DESTARG;
+	int a = 4096/64; /* Count of 64 byte chunks in 4KB */
 	do{
-		xcopyz(0, rsi[0], rdi[0]);
-		xcopyz(1, rsi[1], rdi[1]);
-		rdi[2] = rsi[2];
-		rdi[3] = rsi[3];
-		rsi += 4; rdi += 4; ecx += 64;
+		di[0] = s1[0] & s2[0];
+		s1++; s2++; di++;
 		a--;
 	}while(a != 0);
 }
+
 
 
 
@@ -94,9 +93,9 @@ void gwxcopyzero1(struct gwasm_data *__restrict g)
 #else
 static void final_carries_1(struct gwasm_data *__restrict g, uintptr_t rsi, vec2f64 xmm2, vec2f64 xmm3) {
 	uintptr_t rdi,rbp;
-	rdi = (uintptr_t)g->norm_biglit_array;	// Addr of the big/little flags array
 	rbp = (uintptr_t)g->norm_col_mults;
-#if 1
+	rdi = (uintptr_t)g->norm_biglit_array;	// Addr of the big/little flags array
+#if 0
 	if(g->ZERO_PADDED_FFT == 0) {	/* Zero-padded FFT? */
 		xnorm_top_carry_1d;	/* No, do a very standard carry */
 		if(g->B_IS_2 == 0) {

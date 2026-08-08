@@ -401,22 +401,20 @@ no##base2(nobase2_round_zpad7_word(xmmvalin, xmmcarry, xmmvalout, basereg)); \
 \
 \
 /* For 1D macros, these registers are set on input: */ \
-/* xmm7 = sumout */ \
 /* xmm6 = MAXERR */ \
 /* xmm3 = carry #2 */ \
 /* xmm2 = carry #1 */ \
 /* rsi = pointer to the FFT data values */ \
 /* rbp = pointer two-to-phi multipliers */ \
 /* rdi = pointer to array of big vs. little flags */ \
-/* rcx = big vs. little word flag #2 */ \
-/* rax = big vs. little word flag #1 */ \
+/* ecx = big vs. little word flag #2 */ \
+/* eax = big vs. little word flag #1 */ \
 \
 \
 /* *************** 1D macro ****************** */ \
 /* A pipelined version of this code: */ \
 /*	movzx	rax, BYTE PTR [rdi]	;; Load big vs. little flags */ \
 /*	xload	xmm0, [rsi+0*dist1]	;; Load values */ \
-/*	addpd	sumout, xmm0		;; sumout += values */ \
 /*	mulpd	xmm0, [rbp+0]		;; Mul values1 by two-to-minus-phi */ \
 /*	addpd	xmm0, xmm4		;; x = values + carry */ \
 /*	xload	xmm2, XMM_LIMIT_BIGMAX[rax];; Load maximum * BIGVAL - BIGVAL */ \
@@ -429,18 +427,14 @@ no##base2(nobase2_round_zpad7_word(xmmvalin, xmmcarry, xmmvalout, basereg)); \
 /*	xstore	[rsi+0*dist1], xmm0	;; Save new value */ \
 \
 
-#define xnorm_1d(ttp, zero, echk, const1, base2, sse4){ \
-ttp(uintptr_t ax1, cx1); \
-/*no##ttp(const uintptr_t ax1=0, cx1=0);*/ \
-ttp(ax1 = u8ptr(rdi));	/* Load big vs. little flags */ \
-ttp(cx1 = u8ptr(rdi+2)); \
+#define xnorm_1d(ttp, echk, const1, base2, sse4) { \
+ttp(uintptr_t ax1 = u8ptr(rdi));	/* Load big vs. little flags */ \
+ttp(uintptr_t cx1 = u8ptr(rdi+2)); \
 	xmm0 = xptr(rsi);		/* Load values1 */ \
 	unpcklo(xmm0, xptr(rsi+16)); \
-	xmm7 += xmm0;		/* sumout += values1 */ \
 	xmm0 *= xptr(rbp);		/* Mul values1 by two-to-minus-phi */ \
 	xmm1 = xptr(rsi+32);		/* Load values2 */ \
 	unpcklo(xmm1, xptr(rsi+48)); \
-	xmm7 += xmm1;		/* sumout += values2 */ \
 	xmm1 *= xptr(rbp+64);		/* Mul values2 by two-to-minus-phi */ \
 no##const1(echk(error_check_interleaved(sse4, xmm0, xmm4, xmm1, xmm5, xmm6))); \
 const1(mul_by_const(ttp, base2, echk, sse4, xmm0, xmm4, xmm5, ax1, xmm6)); \
@@ -454,14 +448,11 @@ ttp(ax1 = u8ptr(rdi+1));	/* Load big vs. little flags */ \
 ttp(cx1 = u8ptr(rdi+3)); \
 	xmm0 = xptr(rsi);		/* Load values1 */ \
 	unpckhi(xmm0, xptr(rsi+16)); \
-	xmm7 += xmm0;		/* sumout += values1 */ \
 	xmm0 *= xptr(rbp+32);		/* Mul values1 by two-to-minus-phi */ \
 	xptr(rsi) = xmm2;		/* Save previous value1 */ \
 	xmm1 = xptr(rsi+32);		/* Load values2 */ \
 	unpckhi(xmm1, xptr(rsi+48)); \
-	xmm7 += xmm1;		/* sumout += values2 */ \
 	xmm1 *= xptr(rbp+96);		/* Mul values2 by two-to-minus-phi */ \
-zero(xmm3[1] = xmm3[0] = 0); \
 	xptr(rsi+32) = xmm3;		/* Save previous value2 */ \
 no##const1(echk(error_check_interleaved(sse4, xmm0, xmm2, xmm1, xmm3, xmm6))); \
 const1(mul_by_const(ttp, base2, echk, sse4, xmm0, xmm2, xmm3, ax1, xmm6)); \
@@ -472,36 +463,31 @@ const1(mul_by_const(ttp, base2, echk, sse4, xmm1, xmm3, xmm4, cx1, xmm6)); \
 ttp(xmm0 *= xptr(rbp+48));		/* new value1 = val * two-to-phi */ \
 ttp(xmm1 *= xptr(rbp+112));		/* new value2 = val * two-to-phi */ \
 	xptr(rsi+16) = xmm0;		/* Save new value1 */ \
-zero(xmm1[1] = xmm1[0] = 0); \
 	xptr(rsi+48) = xmm1;		/* Save new value2 */ \
 }
-
 
 /* This is the normalization routine when we are computing modulo k*b^n+c */ \
 /* with a zero-padded b^2n FFT.  We do this by multiplying the lower FFT */ \
 /* word by k and adding in the upper word times -c.  Of course, this is made */ \
 /* very tedious because we have to carefully avoid any loss of precision. */ \
 /* */ \
-/* xmm7 = sumout */ \
 /* xmm6 = MAXERR */ \
 /* xmm3 = carry #2 (previous high FFT data - not yet mul'ed by K) */ \
 /* xmm2 = carry #1 (traditional carry) */ \
 /* rsi = pointer to the FFT data values */ \
 /* rbp = pointer two-to-phi multipliers */ \
 /* rdi = pointer to array of big vs. little flags */ \
-/* rax = big vs. little word flag #1 */ \
+/* eax = big vs. little word flag #1 */ \
+\
 
-#define xnorm_1d_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1){ \
-ttp(uintptr_t ax1); \
+#define xnorm_1d_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1) { \
 no##ttp(const uintptr_t ax1=0); \
-ttp(ax1 = u8ptr(rdi));	/* Load big vs. little flags */ \
+ttp(uintptr_t ax1 = u8ptr(rdi));	/* Load big vs. little flags */ \
 	xmm0 = xptr(rsi);		/* Load values1 */ \
 	unpcklo(xmm0, xptr(rsi+16)); \
 	xmm1 = xptr(rsi+32);		/* Load values2 */ \
 	unpcklo(xmm1, xptr(rsi+48)); \
-	xmm7 += xmm0;		/* sumout += values1 */ \
 	xmm0 *= xptr(rbp);		/* Mul values1 by two-to-minus-phi */ \
-	xmm7 += xmm1;		/* sumout += values2 */ \
 	xmm1 *= xptr(rbp);		/* Mul values2 by two-to-minus-phi */ \
 \
 	split_lower_zpad_word(echk, base2, sse4, xmm0, xmm3, xmm4, ax1); \
@@ -538,9 +524,7 @@ ttp(ax1 = u8ptr(rdi+1));	/* Load big vs. little flags */ \
 	xptr(rsi) = xmm0;		/* Save previous value1 */ \
 	xmm1 = xptr(rsi+32);		/* Load values2 */ \
 	unpckhi(xmm1, xptr(rsi+48)); \
-	xmm7 += xmm5;		/* sumout += values1 */ \
 	xmm5 *= xptr(rbp+32);		/* Mul values1 by two-to-minus-phi */ \
-	xmm7 += xmm1;		/* sumout += values2 */ \
 	xmm1 *= xptr(rbp+32);		/* Mul values2 by two-to-minus-phi */ \
 \
 	split_lower_zpad_word(echk, base2, sse4, xmm5, xmm3, xmm2, ax1); \
@@ -588,7 +572,7 @@ ttp(xmm0 *= xptr(rbp+48));		/* new value1 = val * two-to-phi */ \
 /* These registers are destroyed! */ \
 
 
-#define xnorm012_1d_mid(ttp, zero, base2){ \
+#define xnorm012_1d_mid(ttp, base2){ \
 ttp(uintptr_t ax1, cx1); \
 no##ttp(const uintptr_t ax1=0, cx1=0); \
 ;	/* WARNING: Carry propagation into the 5th and 6th words does not work for */ \
@@ -615,7 +599,6 @@ if((g->FFTLEN & (64 | 16)) == (64 | 16)) { /* Length 80 and 112 have different *
 	ttp(xmm0[0] *= f64ptr(rbp+24));	/* new value1 = val * two-to-phi */ \
 	ttp(xmm1[0] *= f64ptr(rbp+88));	/* new value2 = val * two-to-phi */ \
 		f64ptr(rsi+8) = xmm0[0];		/* Save new value1 */ \
-	zero(xmm1[0] = 0); \
 		f64ptr(rsi+40) = xmm1[0];	/* Save new value2 */ \
 	\
 	ttp(ax1 = u8ptr(rdi+1));	/* Load big vs. little flags */ \
@@ -632,7 +615,6 @@ if((g->FFTLEN & (64 | 16)) == (64 | 16)) { /* Length 80 and 112 have different *
 	ttp(xmm0[0] *= f64ptr(rbp+56));	/* new value1 = val * two-to-phi */ \
 	ttp(xmm1[0] *= f64ptr(rbp+120));	/* new value2 = val * two-to-phi */ \
 		f64ptr(rsi+24) = xmm0[0];	/* Save new value1 */ \
-	zero(xmm1[0] = 0); \
 		f64ptr(rsi+56) = xmm1[0];	/* Save new value2 */ \
 } \
 /* only_do_4: */ \
@@ -650,7 +632,6 @@ ttp(xmm1[0] *= g->u.xmm.XMM_NORM012_FF[0]);	/* Mul by FFTLEN/2 */ \
 ttp(xmm0[0] *= f64ptr(rbp+128+24));	/* new value1 = val * two-to-phi */ \
 ttp(xmm1[0] *= f64ptr(rbp+128+88));	/* new value2 = val * two-to-phi */ \
 	f64ptr(rsi+64+8) = xmm0[0];	/* Save new value1 */ \
-zero(xmm1[0] = 0); \
 	f64ptr(rsi+64+40) = xmm1[0];	/* Save new value2 */ \
 \
 ttp(ax1 = u8ptr(rdi+5));	/* Load big vs. little flags */ \
@@ -667,7 +648,6 @@ ttp(xmm1[0] *= g->u.xmm.XMM_NORM012_FF[0]);	/* Mul by FFTLEN/2 */ \
 ttp(xmm0[0] *= f64ptr(rbp+128+56));	/* new value1 = val * two-to-phi */ \
 ttp(xmm1[0] *= f64ptr(rbp+128+120));	/* new value2 = val * two-to-phi */ \
 	f64ptr(rsi+64+24) = xmm0[0];	/* Save new value1 */ \
-zero(xmm1[0] = 0); \
 	f64ptr(rsi+64+56) = xmm1[0];	/* Save new value2 */ \
 \
 ttp(ax1 = u8ptr(rdi+8));	/* Load big vs. little flags */ \
@@ -684,7 +664,6 @@ ttp(xmm1[0] *= g->u.xmm.XMM_NORM012_FF[0]);	/* Mul by FFTLEN/2 */ \
 ttp(xmm0[0] *= f64ptr(rbp+256+24));	/* new value1 = val * two-to-phi */ \
 ttp(xmm1[0] *= f64ptr(rbp+256+88));	/* new value2 = val * two-to-phi */ \
 	f64ptr(rsi+128+8) = xmm0[0];	/* Save new value1 */ \
-zero(xmm1[0] = 0); \
 	f64ptr(rsi+128+40) = xmm1[0];	/* Save new value2 */ \
 \
 	xmm2[0] -= XMM_BIGVAL1;/* Remove integer rounding constant */ \
@@ -694,7 +673,6 @@ ttp(xmm3[0] *= f64ptr(rbp+256+120));	/* carry *= two-to-phi */ \
 	xmm2[0] += f64ptr(rsi+128+24);	/* value1 = values + carry */ \
 	xmm3[0] += f64ptr(rsi+128+56);	/* value2 = values + carry */ \
 	f64ptr(rsi+128+24) = xmm2[0];	/* Save new value1 */ \
-zero(xmm3[0] = 0); \
 	f64ptr(rsi+128+56) = xmm3[0];	/* Save new value2 */ \
 \
 	xmm2[0] = xmm2[1]; xmm2[1] = XMM_BIGVAL1; /* Rotate carry */ \
@@ -840,7 +818,7 @@ const1(xmm4[0] = g->u.xmm.XMM_K_TIMES_MULCONST_HI[0]); \
 /* NOTE: If RATIONAL_FFT we could eliminate 8 multiplies. */ \
 /* Input arguments are destroyed! */ \
 
-#define xnorm012_1d(zero, base2) { \
+#define xnorm012_1d(base2) { \
 	double f0, f1, f4, f5; \
 	uintptr_t rax, rcx; \
 	xmm3[0] -= XMM_BIGVAL1; \
@@ -871,7 +849,6 @@ if((g->FFTLEN & (64 | 16)) == (64 | 16)) { /* Length 80 and 112 have different *
 	f0 *= f64ptr(rbp+16);	/* new value1 = val * two-to-phi */ \
 	f1 *= f64ptr(rbp+80);	/* new value2 = val * two-to-phi */ \
 	f64ptr(rsi) = f0;		/* Save value1 */ \
-zero(f1 = 0); \
 	f64ptr(rsi+32) = f1;	/* Save value2 */ \
 \
 	rax = u8ptr(rdi+1);	/* Load big vs. little flags */ \
@@ -888,7 +865,6 @@ zero(f1 = 0); \
 	f0 *= f64ptr(rbp+48);	/* new value1 = val * two-to-phi */ \
 	f1 *= f64ptr(rbp+112);	/* new value2 = val * two-to-phi */ \
 	f64ptr(rsi+16) = f0;	/* Save value1 */ \
-zero(f1 = 0); \
 	f64ptr(rsi+48) = f1;	/* Save value2 */ \
 \
 } /*only_do_4:*/ \
@@ -906,7 +882,6 @@ zero(f1 = 0); \
 	f0 *= f64ptr(rbp+128+16);	/* new value1 = val * two-to-phi */ \
 	f1 *= f64ptr(rbp+128+80);	/* new value2 = val * two-to-phi */ \
 	f64ptr(rsi+64) = f0;	/* Save value1 */ \
-zero(f1 = 0); \
 	f64ptr(rsi+64+32) = f1;	/* Save value2 */ \
 \
 	rax = u8ptr(rdi+5);	/* Load big vs. little flags */ \
@@ -923,7 +898,6 @@ zero(f1 = 0); \
 	f0 *= f64ptr(rbp+128+48);	/* new value1 = val * two-to-phi */ \
 	f1 *= f64ptr(rbp+128+112);	/* new value2 = val * two-to-phi */ \
 	f64ptr(rsi+64+16) = f0;	/* Save value1 */ \
-zero(f1 = 0); \
 	f64ptr(rsi+64+48) = f1;	/* Save value2 */ \
 \
 	rax = u8ptr(rdi+8);	/* Load big vs. little flags */ \
@@ -940,7 +914,6 @@ zero(f1 = 0); \
 	f0 *= f64ptr(rbp+256+16);	/* new value1 = val * two-to-phi */ \
 	f1 *= f64ptr(rbp+256+80);	/* new value2 = val * two-to-phi */ \
 	f64ptr(rsi+128) = f0;	/* Save value1 */ \
-zero(f1 = 0); \
 	f64ptr(rsi+128+32) = f1;	/* Save value2 */ \
 \
 	xmm3[0] -= XMM_BIGVAL1;/* Remove integer rounding constant */ \
@@ -950,7 +923,6 @@ zero(f1 = 0); \
 	xmm3[0] += f64ptr(rsi+128+16);	/* value1 = values + carry */ \
 	xmm2[0] += f64ptr(rsi+128+48);	/* value2 = values + carry */ \
 	f64ptr(rsi+128+16) = xmm3[0];	/* Save value1 */ \
-zero(xmm2[0] = 0); \
 	f64ptr(rsi+128+48) = xmm2[0];	/* Save value2 */ \
 }
 
@@ -1277,18 +1249,21 @@ const1(f0 *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 /* xmm6 = maxerr */ \
 /* rbp = pointer to carries */ \
 /* rdi = pointer to big/little flags */ \
+/* For 2D macros, these registers are set on input: */ \
+/* xmm6 = maxerr */ \
+/* rbp = pointer to carries */ \
+/* rdi = pointer to big/little flags */ \
 /* rsi = pointer to the FFT data */ \
 /* rbx = pointer two-to-phi column multipliers */ \
 /* rdx = pointer two-to-phi group multipliers */ \
-/* rcx = big vs. little word flag #2 */ \
-/* rax = big vs. little word flag #1 */ \
+/* ecx = big vs. little word flag #2 */ \
+/* eax = big vs. little word flag #1 */ \
 \
 \
 /* *************** 2D macro ****************** */ \
 /* A pipelined version of this code: */ \
 /*	movzx	rax, BYTE PTR [rdi]	;; Load big vs. little flags */ \
 /*	xload	xmm0, [rsi+0*dist1]	;; Load values1 */ \
-/*	addpd	sumout, xmm0		;; sumout += values1 */ \
 /*	xload	xmm2, [rbx]		;; col two-to-minus-phi */ \
 /*	mulpd	xmm2, XMM_TTMP_FUDGE[rax];; Mul by fudge two-to-minus-phi */ \
 /*	mulpd	xmm0, [rdx]		;; Mul by grp two-to-minus-phi */ \
@@ -1307,10 +1282,10 @@ const1(f0 *= g->u.xmm.XMM_MINUS_C_TIMES_MULCONST[0]); \
 /*	xstore	[rsi+0*dist1], xmm0	;; Save new value1 */ \
 /*	xstore	[rbp+0*16], xmm2	;; Save carry */ \
 /* */ \
-
+\
 
 #define xnorm_2d_setup(ttp)	/* Precompute FUDGE * col multipliers */ \
-ttp(rbp = (rdi+256)); /* lea */	/* Create pointer for more one-byte offsets below */ \
+ttp(rbp = (rdi+256));		/* Create pointer for more one-byte offsets below */ \
 	xmm0 = xptr(rbx);		/* Load col two-to-minus-phi */ \
 	xptr(rdi-128) = xmm0;		/* Save ttmp * 1.0,1.0 */ \
 ttp(xptr(rdi-128+16) = xmm0);	/* Save ttmp * 1.0,1.0 */ \
@@ -1352,19 +1327,16 @@ ttp(xptr(rbp-128+192) = xmm1);	/* Save ttp * 1/B,1/B */ \
 ttp(xptr(rbp-128+192+16) = xmm1);	/* Save ttp * 1/B,1/B */ \
 ttp(xptr(rbp-128+192+32) = xmm1);	/* Save ttp * 1/B,1/B */ \
 ttp(xptr(rbp-128+192+48) = xmm1);	/* Save ttp * 1/B,1/B */ \
-\
 
 
 #if 0 // 32 bit
-#define xnorm_2d(ttp, zero, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) \
+#define xnorm_2d(ttp, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) \
 	xmm0 = xptr(rsi+0*16);	/* Load values1 */ \
-	xmm7 += xmm0;		/* sumout += values1 */ \
 ttp(xmm2 = xptr(rdx+0*32));	/* grp two-to-minus-phi */ \
 ttp(xmm2 *= xptr(rbx+rax));	/* Mul by col two-to-minus-phi */ \
 no##ttp(xmm2 = xptr(rbx));		/* two-to-minus-phi */ \
 	xmm0 *= xmm2;		/* Mul by fudged col two-to-minus-phi */ \
 	xmm1 = xptr(rsi+1*16);	/* Load values2 */ \
-	xmm7 += xmm1;		/* sumout += values2 */ \
 ttp(xmm3 = xptr(rdx+1*32));	/* grp two-to-minus-phi */ \
 ttp(xmm3 *= xptr(rbx+rcx));	/* Mul by col two-to-minus-phi */ \
 no##ttp(xmm3 = xptr(rbx));		/* two-to-minus-phi */ \
@@ -1406,13 +1378,11 @@ ttp(xmm1 *= xmm5);		/* value2 = rounded value * two-to-phi */ \
 	xptr(rsi+1*16) = xmm1;	/* Save new value2 */ \
 \
 	xmm0 = xptr(rsi+2*16);	/* Load values1 */ \
-	xmm7 += xmm0;		/* sumout += values1 */ \
 ttp(xmm2 = xptr(rdx+2*32));	/* grp two-to-minus-phi */ \
 ttp(xmm2 *= xptr(rbx+rax));	/* Mul by col two-to-minus-phi */ \
 no##ttp(xmm2 = xptr(rbx));		/* two-to-minus-phi */ \
 	xmm0 *= xmm2;		/* Mul by fudged col two-to-minus-phi */ \
 	xmm1 = xptr(rsi+3*16);	/* Load values2 */ \
-	xmm7 += xmm1;		/* sumout += values2 */ \
 ttp(xmm3 = xptr(rdx+3*32));	/* grp two-to-minus-phi */ \
 ttp(xmm3 *= xptr(rbx+rcx));	/* Mul by col two-to-minus-phi */ \
 no##ttp(xmm3 = xptr(rbx));		/* two-to-minus-phi */ \
@@ -1449,20 +1419,17 @@ ttp(rcx = u8ptr(rdi+5));	/* Load next big vs. little flags */ \
 base2(xmm0 -= xmm2);		/* rounded value = x1 - z1 */ \
 base2(xmm1 -= xmm3);		/* rounded value = x2 - z2 */ \
 ttp(xmm0 *= xmm4);		/* value1 *= rounded value * two-to-phi */ \
-zero(xmm0[1] = xmm0[0] = 0); \
 	xptr(rsi+2*16) = xmm0;	/* Save new value1 */ \
 ttp(xmm1 *= xmm5);		/* value2 = rounded value * two-to-phi */ \
-zero(xmm1[1] = xmm1[0] = 0); \
-	xptr(rsi+3*16) = xmm1;	/* Save new value2 */
+	xptr(rsi+3*16) = xmm1;	/* Save new value2 */ \
 
 #else // 64 bit
 
-#define xnorm_2d(ttp, zero, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) \
+#define xnorm_2d(ttp, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) \
 ttp(xmm10 = xptr(rdx+0*32));	/* grp two-to-minus-phi			;P4	;Core2 */ \
 ttp(xmm10 *= xptr(rbx+rax));	/* Mul by col two-to-minus-phi		;1-6	;1-5 */ \
 no##ttp(xmm10 = xptr(rbx));		/* two-to-minus-phi */ \
 	xmm8 = xptr(rsi+0*16);	/* Load values1 */ \
-	xmm7 += xmm8;		/* sumout += values1			;2-5	;1-3 */ \
 ttp(xmm11 = xptr(rdx+1*32));	/* grp two-to-minus-phi */ \
 ttp(xmm11 *= xptr(rbx+rcx));	/* Mul by col two-to-minus-phi		;3-8	;2-6 */ \
 no##ttp(xmm11 = xptr(rbx));		/* two-to-minus-phi */ \
@@ -1470,18 +1437,15 @@ ttp(xmm2 = xptr(rdx+2*32));	/* grp two-to-minus-phi */ \
 ttp(xmm2 *= xptr(rbx+r8));		/* Mul by col two-to-minus-phi		;5-10	;3-7 */ \
 no##ttp(xmm2 = xptr(rbx));		/* two-to-minus-phi */ \
 	xmm9 = xptr(rsi+1*16);	/* Load values2 */ \
-	xmm7 += xmm9;		/* sumout += values2			;6-9	;4-6 */ \
 ttp(xmm3 = xptr(rdx+3*32));	/* grp two-to-minus-phi */ \
 ttp(xmm3 *= xptr(rbx+r9));		/* Mul by col two-to-minus-phi		;7-12	;4-8 */ \
 no##ttp(xmm3 = xptr(rbx));		/* two-to-minus-phi */ \
 	xmm8 *= xmm10;		/* Mul by fudged col two-to-minus-phi	;9-14	;6-10 */ \
 	xmm1 = xptr(rsi+3*16);	/* Load values4 */ \
-	xmm7 += xmm1;		/* sumout += values4			;10-13	;7-9 */ \
 	xmm9 *= xmm11;		/* Mul by fudged col two-to-minus-phi	;11-16	;7-11 */ \
 no##const1(echk(error_check_interleaved(sse4, xmm8, xmm12, xmm9, xmm13, xmm6))); \
 const1(mul_by_const_interleaved(ttp, base2, echk, sse4, xmm8, xmm12, xmm10, rax, xmm9, xmm13, xmm11, rcx, xmm6)); \
 	xmm0 = xptr(rsi+2*16);	/* Load values3 */ \
-	xmm7 += xmm0;		/* sumout += values3			;14-17	;10-12 */ \
 	xmm0 *= xmm2;		/* Mul by fudged col two-to-minus-phi	;13-18	;8-12 */ \
 	xmm1 *= xmm3;		/* Mul by fudged col two-to-minus-phi	;15-20	;9-13 */ \
 no##const1(echk(error_check_interleaved(sse4, xmm0, xmm4, xmm1, xmm5, xmm6))); \
@@ -1547,13 +1511,11 @@ ttp(xmm8 *= xmm14);		/* value1 = rounded value * two-to-phi	;45-50	;26-30 */ \
 base2(xmm1 -= xmm3);		/* rounded value = x4 - z4		;46-49	;26-28 */ \
 ttp(xmm9 *= xmm15);		/* value2 = rounded value * two-to-phi	;47-52	;27-31 */ \
 ttp(xmm0 *= xmm12);		/* value3 = rounded value * two-to-phi	;49-54	;28-32 */ \
-zero(xmm0[1] = xmm0[0] = 0); \
 ttp(xmm1 *= xmm13);		/* value4 = rounded value * two-to-phi	;51-56	;29-33 */ \
-zero(xmm1[1] = xmm1[0] = 0); \
 	xptr(rsi+0*16) = xmm8;	/* Save new value1 */ \
 	xptr(rsi+1*16) = xmm9;	/* Save new value2 */ \
 	xptr(rsi+2*16) = xmm0;	/* Save new value3 */ \
-	xptr(rsi+3*16) = xmm1;	/* Save new value4 */
+	xptr(rsi+3*16) = xmm1;	/* Save new value4 */ \
 
 #endif
 \
@@ -1563,19 +1525,17 @@ zero(xmm1[1] = xmm1[0] = 0); \
 #if 0 // 0: 32bit   1: 64bit
 #define xnorm_2d_zpad_pre_loop
 #define xnorm_2d_zpad_post_loop
-#define xnorm_2d_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1, CARRY0, CARRY1, CARRY2, CARRY3) \
+#define xnorm_2d_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1) \
 	xmm2 = xptr(rbx+rax);	/* col two-to-minus-phi */ \
 ttp(xmm2 *= xptr(rdx+0*32));	/* Mul by grp two-to-minus-phi */ \
 	xmm0 = xptr(rsi);		/* Load values1 */ \
-	xmm7 += xmm0;		/* sumout += values1 */ \
 	xmm1 = xptr(rsi+2*16);	/* Load values2 */ \
-	xmm7 += xmm1;		/* sumout += values2 */ \
 	xmm0 *= xmm2;		/* Mul by fudged col two-to-minus-phi */ \
 	xmm1 *= xmm2;		/* Mul by fudged col two-to-minus-phi */ \
 \
-	xmm3 = CARRY2;	/* Add in previous high FFT data */ \
+	xmm3 = xptr(rbp+2*16);	/* Add in previous high FFT data */ \
 	split_lower_zpad_word(echk, base2, sse4, xmm0, xmm3, xmm4, rax); \
-	CARRY2 = xmm3; \
+	xptr(rbp+2*16) = xmm3; \
 \
 no##const1(xmm0 = g->u.xmm.XMM_K_LO); \
 const1(	xmm0 = g->u.xmm.XMM_K_TIMES_MULCONST_LO); \
@@ -1585,7 +1545,7 @@ khi(const1(xmm5 = g->u.xmm.XMM_K_TIMES_MULCONST_HI)); \
 khi(no##base2(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax))); /* Non-base2 rounding needs shifted carry */ \
 khi(	xmm5 *= xmm4); \
 ;  \
-		xmm0 += CARRY0;	/* x1 = values + carry */ \
+		xmm0 += xptr(rbp+0*16);	/* x1 = values + carry */ \
 \
 c1(	xmm1 *= g->u.xmm.XMM_MINUS_C);	/* Do one mul before split rather than two after split */ \
 \
@@ -1605,21 +1565,19 @@ ttp(xmm5 = xptr(rbx+256+rax));	/* col two-to-phi */ \
 ttp(xmm5 *= xptr(rdx+0*32+16));	/* new value1 = val * grp two-to-phi */ \
 ttp(rax = u8ptr(rdi+1));	/* Load next big vs. little flags */ \
 ttp(xmm0 *= xmm5);		/* new value1 *= fudged col two-to-phi */ \
-	CARRY0 = xmm4;	/* Save carry */ \
+	xptr(rbp+0*16) = xmm4;	/* Save carry */ \
 	xptr(rsi) = xmm0;		/* Save new value1 */ \
 \
 	xmm3 = xptr(rbx+rax);	/* col two-to-minus-phi */ \
 ttp(xmm3 *= xptr(rdx+1*32));	/* Mul by grp two-to-minus-phi */ \
 	xmm5 = xptr(rsi+16);		/* Load high values1 */ \
-	xmm7 += xmm5;		/* sumout += values1 */ \
 	xmm1 = xptr(rsi+3*16);	/* Load high values2 */ \
-	xmm7 += xmm1;		/* sumout += values2 */ \
 	xmm5 *= xmm3;		/* Mul by fudged col two-to-minus-phi */ \
 	xmm1 *= xmm3;		/* Mul by fudged col two-to-minus-phi */ \
 \
-	xmm3 = CARRY3;	/* Add in previous high FFT data */ \
+	xmm3 = xptr(rbp+3*16);	/* Add in previous high FFT data */ \
 	split_lower_zpad_word(echk, base2, sse4, xmm5, xmm3, xmm2, rax); \
-	CARRY3 = xmm3; \
+	xptr(rbp+3*16) = xmm3; \
 \
 no##const1(xmm0 = g->u.xmm.XMM_K_LO); \
 const1(	xmm0 = g->u.xmm.XMM_K_TIMES_MULCONST_LO); \
@@ -1629,7 +1587,7 @@ khi(const1(xmm5 = g->u.xmm.XMM_K_TIMES_MULCONST_HI)); \
 khi(no##base2(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax))); /* Non-base2 rounding needs shifted carry */ \
 khi(	xmm5 *= xmm2); \
 \
-		xmm0 += CARRY1;	/* x2 = values + carry */ \
+		xmm0 += xptr(rbp+1*16);	/* x2 = values + carry */ \
 \
 c1(	xmm1 *= g->u.xmm.XMM_MINUS_C);	/* Do one mul before split rather than two after split */ \
 \
@@ -1649,15 +1607,12 @@ ttp(xmm3 = xptr(rbx+256+rax));	/* col two-to-phi */ \
 ttp(xmm3 *= xptr(rdx+1*32+16));	/* new value2 = val * grp two-to-phi */ \
 ttp(rax = u8ptr(rdi+4));	/* Load next big vs. little flags */ \
 ttp(xmm0 *= xmm3);		/* new value2 *= fudged col two-to-phi */ \
-	CARRY1 = xmm2;	/* Save carry */ \
+	xptr(rbp+1*16) = xmm2;	/* Save carry */ \
 	xptr(rsi+1*16) = xmm0;	/* Save new value2 */ \
 \
-	xmm1[1] = xmm1[0] = 0;		/* new high values = zero */ \
+	xmm1 -= xmm1;		/* new high values = zero */ \
 	xptr(rsi+2*16) = xmm1;	/* Zero high value1 */ \
 	xptr(rsi+3*16) = xmm1;	/* Zero high value2 */ \
-\
-\
-\
 
 #else
 /* 64-bit implementation using extra registers */
@@ -1670,9 +1625,7 @@ ttp(xmm0 *= xmm3);		/* new value2 *= fudged col two-to-phi */ \
 	xmm2 = xptr(rbx+rax);	/* col two-to-minus-phi */ \
 ttp(xmm2 *= xptr(rdx+0*32));	/* Mul by grp two-to-minus-phi */ \
 	xmm0 = xptr(rsi);		/* Load values1 */ \
-	xmm7 += xmm0;		/* sumout += values1 */ \
 	xmm1 = xptr(rsi+2*16);	/* Load values2 */ \
-	xmm7 += xmm1;		/* sumout += values2 */ \
 	xmm0 *= xmm2;		/* Mul by fudged col two-to-minus-phi */ \
 	xmm1 *= xmm2;		/* Mul by fudged col two-to-minus-phi */ \
 \
@@ -1705,9 +1658,7 @@ ttp(rcx = u8ptr(rdi+1));	/* Load next big vs. little flags */ \
 	xmm10 = xptr(rbx+rcx);	/* col two-to-minus-phi */ \
 ttp(xmm10 *= xptr(rdx+1*32));	/* Mul by grp two-to-minus-phi */ \
 	xmm8 = xptr(rsi+16);		/* Load high values1 */ \
-	xmm7 += xmm8;		/* sumout += values1 */ \
 	xmm9 = xptr(rsi+3*16);	/* Load high values2 */ \
-	xmm7 += xmm9;		/* sumout += values2 */ \
 	xmm8 *= xmm10;		/* Mul by fudged col two-to-minus-phi */ \
 	xmm9 *= xmm10;		/* Mul by fudged col two-to-minus-phi */ \
 \
@@ -1749,7 +1700,7 @@ ttp(rax = u8ptr(rdi+4));	/* Load next big vs. little flags */ \
 ttp(xmm8 *= xmm13);		/* new value2 *= fudged col two-to-phi */ \
 	xptr(rsi+1*16) = xmm8;	/* Save new value2 */ \
 \
-	xmm1[1] = xmm1[0] = 0;		/* new high values = zero */ \
+	xmm1 -= xmm1;		/* new high values = zero */ \
 	xptr(rsi+2*16) = xmm1;	/* Zero high value1 */ \
 	xptr(rsi+3*16) = xmm1;	/* Zero high value2 */ \
 	CARRY0 = xmm4; /* Store carries */ \
@@ -2010,12 +1961,6 @@ if(g->SPREAD_CARRY_OVER_EXTRA_WORDS != 1) { /* Are there few bits per word? */ \
 	xmm5 += xptr(rbp+5*16);	/* Add carry and FFT data */ \
 	xptr(rbp+5*16) = xmm5;	/* Save FFT data */ \
 \
-;	/* If we are zeroing the high words, we skip adding the carries */ \
-;	/* into the high words. */ \
-\
-if(g->zero_fft != 1) {		/* Are we zeroing high words? */ \
-	/* je	done; */			/* Yes, skip high words */ \
-\
 	rax = u8ptr(rdi+2);	/* Load big vs. little flag */ \
 	rcx = u8ptr(rdi+6); \
 	xmm0 = xptr(rbp+2*16);	/* FFT data */ \
@@ -2055,7 +2000,6 @@ if(g->zero_fft != 1) {		/* Are we zeroing high words? */ \
 	xmm5 *= xmm3;	/* carry *= col two-to-phi */ \
 	xmm5 += xptr(rbp+7*16);	/* Add carry and FFT data */ \
 	xptr(rbp+7*16) = xmm5;	/* Save FFT data */ \
-} \
 }else{ \
 /* Same as above, but spread carry over 6 words */ \
 	rax = u8ptr(rdi+0);	/* Load big vs. little flag */ \
@@ -2209,12 +2153,6 @@ if(g->zero_fft != 1) {		/* Are we zeroing high words? */ \
 	xmm5 += xptr(rbp+21*16);	/* Add carry and FFT data */ \
 	xptr(rbp+21*16) = xmm5;	/* Save FFT data */ \
 \
-;	/* If we are zeroing the high words, we skip adding the carries */ \
-;	/* into the high words. */ \
-\
-	if(g->zero_fft != 1){		/* Are we zeroing high words? */ \
-	/* je	done; */			/* Yes, skip high words */ \
-\
 	rax = u8ptr(rdi+2);	/* Load big vs. little flag */ \
 	xmm2 = xptr(rbp+2*16);	/* FFT data */ \
 	xmm6 = xptr(rdx+2*32);	/* grp two-to-minus-phi */ \
@@ -2365,7 +2303,6 @@ if(g->zero_fft != 1) {		/* Are we zeroing high words? */ \
 	xmm5 *= xptr(rbx+5*32+16);	/* carry *= col two-to-phi */ \
 	xmm5 += xptr(rbp+23*16);	/* Add carry and FFT data */ \
 	xptr(rbp+23*16) = xmm5;	/* Save FFT data */ \
-} \
 } \
 	xmm4 = XMM_BIGVAL2; \
 	xptr(rsi+0*16) = xmm4;	/* Clear carry */ \
@@ -3018,10 +2955,10 @@ const1(xmm4 = g->u.xmm.XMM_K_TIMES_MULCONST_HI); \
 \
 
 #if 0
-#define xnorm_wpn_preload(ttp, zero, echk, const1, base2, sse4)
+#define xnorm_wpn_preload(ttp, echk, const1, base2, sse4)
 
 
-#define xnorm_wpn(ttp, zero, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) { \
+#define xnorm_wpn(ttp, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) { \
 ttp(	uintptr_t rcx = rbx & 0xFF);				/* Fudge flags 1-2 */ \
 ttp(	rcx &= 0xF0); \
 		xmm0 = xptr(rsi+0*16);		/* Load values1 */ \
@@ -3101,9 +3038,7 @@ base2(	xmm3 -= xmm7);			/* z2 = y2 - (maximum*BIGVAL-BIGVAL) */ \
 base2(	xmm0 -= xmm2);			/* rounded value = x1 - z1 */ \
 base2(	xmm1 -= xmm3);			/* rounded value = x2 - z2 */ \
 ttp(	xmm0 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rbx*8)); /* value1 *= rounded value * fudged grp two-to-phi */ \
-zero(	xmm0[1] = xmm0[0] = 0); \
 ttp(	xmm1 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rbx*8)); /* value2 = rounded value * fudged grp two-to-phi */ \
-zero(	xmm1[1] = xmm1[0] = 0); \
 ttp(	rbx = *(unsigned short*)(rdi+2));		/* Load next 4 big vs. little & fudge flags */ \
 		xptr(rsi+2*16) = xmm0;		/* Save new value1 */ \
 		xptr(rsi+3*16) = xmm1;		/* Save new value2 */ \
@@ -3113,11 +3048,11 @@ ttp(	rbx = *(unsigned short*)(rdi+2));		/* Load next 4 big vs. little & fudge fl
 
 #define error_check_interleaved_64 error_check_interleaved
 
-#define xnorm_wpn_preload(ttp, zero, echk, const1, base2, sse4) \
+#define xnorm_wpn_preload(ttp, echk, const1, base2, sse4) \
 /*echk(sse4(xmm15 = XMM_ABSVAL));*/ \
 /*echk(no##sse4(xmm15 = XMM_BIGVAL1));*/ \
 
-#define xnorm_wpn(ttp, zero, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) \
+#define xnorm_wpn(ttp, echk, const1, base2, sse4, CARRY0, CARRY1, CARRY2, CARRY3) \
 	no##const1(xmm12  = CARRY0);	/* Preload carries */ \
 	no##const1(xmm13 = CARRY1); \
 	no##const1(xmm4  = CARRY2); \
@@ -3202,9 +3137,7 @@ ttp(	xmm8 *= xptr(rdx+0*XMM_GMD+XMM_GMD/2+rcx)); /* value1 *= fudged grp two-to-
 base2(	xmm1 -= xmm3);			/* rounded value = x4 - z4		;36-39	;20-22 */ \
 ttp(	xmm9 *= xptr(rdx+1*XMM_GMD+XMM_GMD/2+rcx)); /* value2 *= fudged grp two-to-phi	;37-42	;21-25 */ \
 ttp(	xmm0 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rbx*8)); /* value3 *= fudged grp two-to-phi;38-41	;22-26 */ \
-zero(	xmm0[1] = xmm0[0] = 0); \
 ttp(	xmm1 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rbx*8)); /* value4 *= fudged grp two-to-phi;40-43	;23-27 */ \
-zero(	xmm1[1] = xmm1[0] = 0); \
 ttp(	rbx = *(unsigned short*)(rdi+2));		/* Load next 4 big vs. little & fudge flags */ \
 		xptr(rsi+0*16) = xmm8;		/* Save new value1 */ \
 		xptr(rsi+1*16) = xmm9;		/* Save new value2 */ \
@@ -3517,40 +3450,33 @@ if(g->SPREAD_CARRY_OVER_EXTRA_WORDS != 1){ /* Are there few bits per word? */ \
 	xptr(rbp+1*16) = xmm1;	/* Save FFT data */ \
 	xptr(rbp+5*16) = xmm5;	/* Save FFT data */ \
 \
-;	/* If we are zeroing the high words, we skip adding the carries */ \
-;	/* into the high words. */ \
+	rcx = u8ptr(rdi);	/* Load fudge factor flags 3,4 */ \
+	rcx &= 0x0F; \
+	xmm4 = xptr(rbp+2*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm2 = xptr(rsi+2*16);	/* Load carry */ \
+	xmm2 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm2, xmm5, xmm4, rax*4+32); \
+	xmm5 -= XMM_BIGVAL2; \
+	xmm2 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* value *= fudged grp two-to-phi */ \
+	rbx = u8ptr(rdi+2);	/* Load fudge factor flags 7,8 */ \
+	rbx &= 0x0F; \
+	xmm5 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rbx*8); /* high carry *= fudged grp two-to-phi */ \
+	xmm5 += xptr(rbp+6*16);	/* Add high carry and FFT data */ \
+	xptr(rbp+2*16) = xmm2;	/* Save FFT data */ \
+	xptr(rbp+6*16) = xmm5;	/* Save FFT data */ \
 \
-	if(g->zero_fft != 1){		/* Are we zeroing high words? */ \
-		/* je	done; */			/* Yes, skip high words */ \
-\
-		rcx = u8ptr(rdi);	/* Load fudge factor flags 3,4 */ \
-		rcx &= 0x0F; \
-		xmm4 = xptr(rbp+2*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm2 = xptr(rsi+2*16);	/* Load carry */ \
-		xmm2 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm2, xmm5, xmm4, rax*4+32); \
-		xmm5 -= XMM_BIGVAL2; \
-		xmm2 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* value *= fudged grp two-to-phi */ \
-		rbx = u8ptr(rdi+2);	/* Load fudge factor flags 7,8 */ \
-		rbx &= 0x0F; \
-		xmm5 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rbx*8); /* high carry *= fudged grp two-to-phi */ \
-		xmm5 += xptr(rbp+6*16);	/* Add high carry and FFT data */ \
-		xptr(rbp+2*16) = xmm2;	/* Save FFT data */ \
-		xptr(rbp+6*16) = xmm5;	/* Save FFT data */ \
-	\
-		xmm4 = xptr(rbp+3*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm3 = xptr(rsi+3*16);	/* Load carry */ \
-		xmm3 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm3, xmm5, xmm4, rax*4+48); \
-		xmm5 -= XMM_BIGVAL2; \
-		xmm3 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* value *= fudged grp two-to-phi */ \
-		xmm5 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rbx*8); /* high carry *= fudged grp two-to-phi */ \
-		xmm5 += xptr(rbp+7*16);	/* Add high carry and FFT data */ \
-		xptr(rbp+3*16) = xmm3;	/* Save FFT data */ \
-		xptr(rbp+7*16) = xmm5;	/* Save FFT data */ \
-	} \
+	xmm4 = xptr(rbp+3*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm3 = xptr(rsi+3*16);	/* Load carry */ \
+	xmm3 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm3, xmm5, xmm4, rax*4+48); \
+	xmm5 -= XMM_BIGVAL2; \
+	xmm3 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* value *= fudged grp two-to-phi */ \
+	xmm5 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rbx*8); /* high carry *= fudged grp two-to-phi */ \
+	xmm5 += xptr(rbp+7*16);	/* Add high carry and FFT data */ \
+	xptr(rbp+3*16) = xmm3;	/* Save FFT data */ \
+	xptr(rbp+7*16) = xmm5;	/* Save FFT data */ \
 \
 }else{ \
 	/* Same as above, but spread carry over 6 words */ \
@@ -3680,137 +3606,130 @@ if(g->SPREAD_CARRY_OVER_EXTRA_WORDS != 1){ /* Are there few bits per word? */ \
 	xmm5 += xptr(rbp+21*16);	/* Add high carry and FFT data */ \
 	xptr(rbp+21*16) = xmm5;	/* Save FFT data */ \
 \
-;	/* If we are zeroing the high words, we skip adding the carries */ \
-;	/* into the high words. */ \
+	rcx = u8ptr(rdi);	/* Load fudge factor flags 3,4 */ \
+	rcx &= 0x0F; \
+	rax = u8ptr(rdi+1);	/* Load 4 big vs. little flags */ \
+	xmm4 = xptr(rbp+2*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm2 = xptr(rsi+2*16);	/* Load carry */ \
+	xmm2 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm2, xmm5, xmm4, rax*4+32); \
+	xmm2 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
+	xptr(rbp+2*16) = xmm2;	/* Save FFT data */ \
 \
-	if(g->zero_fft != 1) {		/* Are we zeroing high words? */ \
-		/*je done;*/			/* Yes, skip high words */ \
-	\
-		rcx = u8ptr(rdi);	/* Load fudge factor flags 3,4 */ \
-		rcx &= 0x0F; \
-		rax = u8ptr(rdi+1);	/* Load 4 big vs. little flags */ \
-		xmm4 = xptr(rbp+2*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm2 = xptr(rsi+2*16);	/* Load carry */ \
-		xmm2 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm2, xmm5, xmm4, rax*4+32); \
-		xmm2 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
-		xptr(rbp+2*16) = xmm2;	/* Save FFT data */ \
-	\
-		rcx = u8ptr(rdi+2);	/* Load fudge factor flags */ \
-		rcx &= 0x0F; \
-		rax = u8ptr(rdi+3);	/* Load big vs. little flag */ \
-		xmm4 = xptr(rbp+6*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm5 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm5, xmm2, xmm4, rax*4+32); \
-		xmm5 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
-		xptr(rbp+6*16) = xmm5;	/* Save FFT data */ \
-	\
-		rbx = g->BIGLIT_INCR2;/* Different clm values step through */ \
-	;					/* big/lit array differently */ \
-		rcx = u8ptr(rdi+rbx);	/* Load fudge factor flags */ \
-		rcx &= 0x0F; \
-		rax = u8ptr(rdi+rbx+1); /* Load 4 big vs. little flags */ \
-		xmm4 = xptr(rbp+10*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm2 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm2, xmm5, xmm4, rax*4+32); \
-		xmm2 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
-		xptr(rbp+10*16) = xmm2;	/* Save FFT data */ \
-	\
-		rcx = u8ptr(rdi+rbx+2); /* Load fudge factor flags */ \
-		rcx &= 0x0F; \
-		rax = u8ptr(rdi+rbx+3); /* Load big vs. little flag */ \
-		xmm4 = xptr(rbp+14*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm5 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm5, xmm2, xmm4, rax*4+32); \
-		xmm5 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
-		xptr(rbp+14*16) = xmm5;	/* Save FFT data */ \
-	\
-		rbx = g->BIGLIT_INCR4;/* Different clm values step through */ \
-	;					/* big/lit array differently */ \
-		rcx = u8ptr(rdi+rbx);	/* Load fudge factor flags */ \
-		rcx &= 0x0F; \
-		rax = u8ptr(rdi+rbx+1); /* Load 4 big vs. little flags */ \
-		xmm4 = xptr(rbp+18*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm2 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm2, xmm5, xmm4, rax*4+32); \
-		xmm2 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
-		xptr(rbp+18*16) = xmm2;	/* Save FFT data */ \
-	\
-		rcx = u8ptr(rdi+rbx+2); /* Load fudge factor flags */ \
-		rcx &= 0x0F; \
-		xmm5 -= XMM_BIGVAL2; \
-		xmm5 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* high carry *= fudged grp two-to-phi */ \
-		xmm5 += xptr(rbp+22*16);	/* Add high carry and FFT data */ \
-		xptr(rbp+22*16) = xmm5;	/* Save FFT data */ \
-	\
-	\
-		rcx = u8ptr(rdi);	/* Load fudge factor flags 3,4 */ \
-		rcx &= 0x0F; \
-		rax = u8ptr(rdi+1);	/* Load 4 big vs. little flags */ \
-		xmm4 = xptr(rbp+3*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm3 = xptr(rsi+3*16);	/* Load carry */ \
-		xmm3 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm3, xmm5, xmm4, rax*4+48); \
-		xmm3 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
-		xptr(rbp+3*16) = xmm3;	/* Save FFT data */ \
-	\
-		rcx = u8ptr(rdi+2);	/* Load fudge factor flags */ \
-		rcx &= 0x0F; \
-		rax = u8ptr(rdi+3);	/* Load big vs. little flag */ \
-		xmm4 = xptr(rbp+7*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm5 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm5, xmm3, xmm4, rax*4+48); \
-		xmm5 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
-		xptr(rbp+7*16) = xmm5;	/* Save FFT data */ \
-	\
-		rbx = g->BIGLIT_INCR2;/* Different clm values step through */ \
-	;					/* big/lit array differently */ \
-		rcx = u8ptr(rdi+rbx);	/* Load fudge factor flags */ \
-		rcx &= 0x0F; \
-		rax = u8ptr(rdi+rbx+1); /* Load 4 big vs. little flags */ \
-		xmm4 = xptr(rbp+11*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm3 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm3, xmm5, xmm4, rax*4+48); \
-		xmm3 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
-		xptr(rbp+11*16) = xmm3;	/* Save FFT data */ \
-	\
-		rcx = u8ptr(rdi+rbx+2); /* Load fudge factor flags */ \
-		rcx &= 0x0F; \
-		rax = u8ptr(rdi+rbx+3); /* Load big vs. little flag */ \
-		xmm4 = xptr(rbp+15*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm5 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm5, xmm3, xmm4, rax*4+48); \
-		xmm5 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
-		xptr(rbp+15*16) = xmm5;	/* Save FFT data */ \
-	\
-		rbx = g->BIGLIT_INCR4;/* Different clm values step through */ \
-	;					/* big/lit array differently */ \
-		rcx = u8ptr(rdi+rbx);	/* Load fudge factor flags */ \
-		rcx &= 0x0F; \
-		rax = u8ptr(rdi+rbx+1); /* Load 4 big vs. little flags */ \
-		xmm4 = xptr(rbp+19*16);	/* FFT data */ \
-		xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
-		xmm3 += xmm4;		/* carry + FFT data */ \
-		rounding(exec, base2, noexec, noexec, xmm3, xmm5, xmm4, rax*4+48); \
-		xmm3 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
-		xptr(rbp+19*16) = xmm3;	/* Save FFT data */ \
-	\
-		rcx = u8ptr(rdi+rbx+2); /* Load fudge factor flags */ \
-		rcx &= 0x0F; \
-		xmm5 -= XMM_BIGVAL2; \
-		xmm5 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* high carry *= fudged grp two-to-phi */ \
-		xmm5 += xptr(rbp+23*16);	/* Add high carry and FFT data */ \
-		xptr(rbp+23*16) = xmm5;	/* Save FFT data */ \
-	} \
+	rcx = u8ptr(rdi+2);	/* Load fudge factor flags */ \
+	rcx &= 0x0F; \
+	rax = u8ptr(rdi+3);	/* Load big vs. little flag */ \
+	xmm4 = xptr(rbp+6*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm5 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm5, xmm2, xmm4, rax*4+32); \
+	xmm5 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
+	xptr(rbp+6*16) = xmm5;	/* Save FFT data */ \
+\
+	rbx = g->BIGLIT_INCR2;/* Different clm values step through */ \
+;					/* big/lit array differently */ \
+	rcx = u8ptr(rdi+rbx);	/* Load fudge factor flags */ \
+	rcx &= 0x0F; \
+	rax = u8ptr(rdi+rbx+1); /* Load 4 big vs. little flags */ \
+	xmm4 = xptr(rbp+10*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm2 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm2, xmm5, xmm4, rax*4+32); \
+	xmm2 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
+	xptr(rbp+10*16) = xmm2;	/* Save FFT data */ \
+\
+	rcx = u8ptr(rdi+rbx+2); /* Load fudge factor flags */ \
+	rcx &= 0x0F; \
+	rax = u8ptr(rdi+rbx+3); /* Load big vs. little flag */ \
+	xmm4 = xptr(rbp+14*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm5 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm5, xmm2, xmm4, rax*4+32); \
+	xmm5 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
+	xptr(rbp+14*16) = xmm5;	/* Save FFT data */ \
+\
+	rbx = g->BIGLIT_INCR4;/* Different clm values step through */ \
+;					/* big/lit array differently */ \
+	rcx = u8ptr(rdi+rbx);	/* Load fudge factor flags */ \
+	rcx &= 0x0F; \
+	rax = u8ptr(rdi+rbx+1); /* Load 4 big vs. little flags */ \
+	xmm4 = xptr(rbp+18*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+2*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm2 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm2, xmm5, xmm4, rax*4+32); \
+	xmm2 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
+	xptr(rbp+18*16) = xmm2;	/* Save FFT data */ \
+\
+	rcx = u8ptr(rdi+rbx+2); /* Load fudge factor flags */ \
+	rcx &= 0x0F; \
+	xmm5 -= XMM_BIGVAL2; \
+	xmm5 *= xptr(rdx+2*XMM_GMD+XMM_GMD/2+rcx*8); /* high carry *= fudged grp two-to-phi */ \
+	xmm5 += xptr(rbp+22*16);	/* Add high carry and FFT data */ \
+	xptr(rbp+22*16) = xmm5;	/* Save FFT data */ \
+\
+\
+	rcx = u8ptr(rdi);	/* Load fudge factor flags 3,4 */ \
+	rcx &= 0x0F; \
+	rax = u8ptr(rdi+1);	/* Load 4 big vs. little flags */ \
+	xmm4 = xptr(rbp+3*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm3 = xptr(rsi+3*16);	/* Load carry */ \
+	xmm3 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm3, xmm5, xmm4, rax*4+48); \
+	xmm3 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
+	xptr(rbp+3*16) = xmm3;	/* Save FFT data */ \
+\
+	rcx = u8ptr(rdi+2);	/* Load fudge factor flags */ \
+	rcx &= 0x0F; \
+	rax = u8ptr(rdi+3);	/* Load big vs. little flag */ \
+	xmm4 = xptr(rbp+7*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm5 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm5, xmm3, xmm4, rax*4+48); \
+	xmm5 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
+	xptr(rbp+7*16) = xmm5;	/* Save FFT data */ \
+\
+	rbx = g->BIGLIT_INCR2;/* Different clm values step through */ \
+;					/* big/lit array differently */ \
+	rcx = u8ptr(rdi+rbx);	/* Load fudge factor flags */ \
+	rcx &= 0x0F; \
+	rax = u8ptr(rdi+rbx+1); /* Load 4 big vs. little flags */ \
+	xmm4 = xptr(rbp+11*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm3 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm3, xmm5, xmm4, rax*4+48); \
+	xmm3 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
+	xptr(rbp+11*16) = xmm3;	/* Save FFT data */ \
+\
+	rcx = u8ptr(rdi+rbx+2); /* Load fudge factor flags */ \
+	rcx &= 0x0F; \
+	rax = u8ptr(rdi+rbx+3); /* Load big vs. little flag */ \
+	xmm4 = xptr(rbp+15*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm5 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm5, xmm3, xmm4, rax*4+48); \
+	xmm5 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
+	xptr(rbp+15*16) = xmm5;	/* Save FFT data */ \
+\
+	rbx = g->BIGLIT_INCR4;/* Different clm values step through */ \
+;					/* big/lit array differently */ \
+	rcx = u8ptr(rdi+rbx);	/* Load fudge factor flags */ \
+	rcx &= 0x0F; \
+	rax = u8ptr(rdi+rbx+1); /* Load 4 big vs. little flags */ \
+	xmm4 = xptr(rbp+19*16);	/* FFT data */ \
+	xmm4 *= xptr(rdx+3*XMM_GMD+rcx*8); /* mul by fudged grp two-to-minus-phi */ \
+	xmm3 += xmm4;		/* carry + FFT data */ \
+	rounding(exec, base2, noexec, noexec, xmm3, xmm5, xmm4, rax*4+48); \
+	xmm3 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* mul by fudged grp two-to-phi */ \
+	xptr(rbp+19*16) = xmm3;	/* Save FFT data */ \
+\
+	rcx = u8ptr(rdi+rbx+2); /* Load fudge factor flags */ \
+	rcx &= 0x0F; \
+	xmm5 -= XMM_BIGVAL2; \
+	xmm5 *= xptr(rdx+3*XMM_GMD+XMM_GMD/2+rcx*8); /* high carry *= fudged grp two-to-phi */ \
+	xmm5 += xptr(rbp+23*16);	/* Add high carry and FFT data */ \
+	xptr(rbp+23*16) = xmm5;	/* Save FFT data */ \
 } \
 	xmm4 = XMM_BIGVAL2; \
 	xptr(rsi+0*16) = xmm4;	/* Clear carry */ \
@@ -4665,7 +4584,7 @@ ttp(rbp += 128);		/* Next two-to-phi ptr */ \
 \
 
 #define xnorm_smallmul_1d_mid_cleanup(base2) \
-	xnorm012_1d_mid(exec, noexec, base2); \
+	xnorm012_1d_mid(exec, base2); \
 \
 \
 
@@ -4673,8 +4592,7 @@ ttp(rbp += 128);		/* Next two-to-phi ptr */ \
 \
 	if(g->ZERO_PADDED_FFT == 0) {	/* Zero-padded FFT? */ \
 		xnorm_top_carry_1d;		/* No, do a very standard carry */ \
-		rax = 0; \
-		xnorm012_1d(noexec, base2); \
+		xnorm012_1d(base2); \
 	}else{			/* Yes, do special zpad carry */ \
 		xnorm_smallmul_1d_zpad_cleanup(base2);/* Do the special zpad carry */ \
 	} \
@@ -6493,32 +6411,4 @@ ttp(rdi += 2);			/* Next flags ptr */ \
 	f2 -= XMM_BIGVAL1;/* Remove rounding constant */ \
 	f2 += f64ptr(rsi+6*64);	/* Add in FFT data */ \
 	f64ptr(rsi+6*64) = f2;	/* Save value6 */ \
-}
-
-
-/* */ \
-/* Macro to copy and possibly zero 4 or 8 doubles */ \
-/* */ \
-
-#define xcopyzero \
-	xcopyz(0, xmm0, u64ptr(rsi));		/* Load and copy first doubles */ \
-	xptr(rdi) = xmm0;		/* Save first doubles */ \
-	xcopyz(1, xmm1, u64ptr(rsi+16));	/* Load and copy second doubles */ \
-	xptr(rdi+16) = xmm1;		/* Save second doubles */ \
-	xmm2 = xptr(rsi+32);		/* Load and copy third doubles */ \
-	xptr(rdi+32) = xmm2;		/* Save third doubles */ \
-	xmm3 = xptr(rsi+48);		/* Load and copy fourth doubles */ \
-	xptr(rdi+48) = xmm3;		/* Save fourth doubles */ \
-
-// COPYZERO is unsigned, but signed comparison used. Assembly shown as jl, jge
-
-#define xcopyz(col, R, W) { \
-	vec2f64 xmm = {0.0, 0.0};\
-	if((int32_t)ecx >= (int32_t)g->COPYZERO[col*(uintptr_t)2+1]) {; \
-		xmm = R; \
-		if((int32_t)ecx < (int32_t)g->COPYZERO[col*(uintptr_t)2]) {; \
-			xmm[0] = 0.0; \
-		}; \
-	} \
-	W = xmm; \
 }

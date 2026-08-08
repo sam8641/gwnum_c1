@@ -9,9 +9,9 @@
 
 // From: pass1_normalize, in xmult.h; which is from hgpass1.h
 
-#define inorm(lab, ttp, zero, echk, const1, base2, sse4) \
+#define inorm(lab, ttp, echk, const1, base2, sse4) \
 void CONCAT(lab, ARCH1)(struct gwasm_data *__restrict g, uintptr_t rsi) { \
-	/*puts("inorm3-1 " #lab","#ttp","#zero","#echk","#const1","#base2","#sse4);*/ \
+	/*puts("inorm3-1 " #lab","#ttp","#echk","#const1","#base2","#sse4);*/ \
 	/*printf("inorm rsi: %p %p %p\n", (void*)rsi, g->data_addr, g->scratch_area);*/ \
 	uintptr_t rdi, rbp; \
 	ttp(uintptr_t rdx); \
@@ -22,7 +22,7 @@ void CONCAT(lab, ARCH1)(struct gwasm_data *__restrict g, uintptr_t rsi) { \
 	base2(const1(no##echk(vec2f64 xmm6, xmm15))); \
 	base2(vec2f64 xmm14); \
 	uintptr_t saved_rsi = rsi; \
-	xnorm_wpn_preload(ttp, zero, echk, const1, base2, sse4); \
+	xnorm_wpn_preload(ttp, echk, const1, base2, sse4); \
 echk(vec2f64 xmm6 = g->u.xmm.XMM_MAXERR); \
 ttp(rdx = (uintptr_t)g->norm_grp_mults); \
 	rbp = (uintptr_t)g->carries; \
@@ -42,7 +42,7 @@ ttp(rbx = u16ptr(rdi)); \
 			do{ /*ilp2:*/ \
 				/*xprefetchw [rsi+64]*/; \
 				/*ttp(printf("inorm3: %lu %lu %lu %lu %lu %x reg: %lx %lx \n", loopcount3, loopcount2, loopcount1, (rbx >> 8) & 255, rbx & 255, blk8_counter, rsi, rdi));*/ \
-				xnorm_wpn(ttp, zero, echk, const1, base2, sse4, carry0, carry1, carry2, carry3); \
+				xnorm_wpn(ttp, echk, const1, base2, sse4, carry0, carry1, carry2, carry3); \
 				rsi += 64; \
 				rdi += 2; \
 				loopcount1--; \
@@ -77,6 +77,9 @@ void CONCAT(lab, ARCH1)(struct gwasm_data *__restrict g, uintptr_t rsi) { \
 	unsigned int blk8_counterz; \
 	vec2f64 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm7; \
 	vec2f64 xmm8, xmm9, xmm10, xmm11, xmm12, xmm15; \
+\
+	/* Handled in C code by pass1_pre_carries */ \
+	zpad_sub7(g);		/* Subtract 7 ZPAD words from lowest FFT words */ \
 	no##const1(no##c1(no##cm1(vec2f64 xmm14))); \
 	no##const1(    c1(vec2f64 xmm14)); \
 	const1(vec2f64 xmm14); \

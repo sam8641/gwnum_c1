@@ -1,6 +1,6 @@
 #pragma once
 
-/* Copyright 2009-2023 - Mersenne Research, Inc.  All rights reserved */ \
+/* Copyright 2009-2024 - Mersenne Research, Inc.  All rights reserved */ \
 /* Author:  George Woltman */ \
 /* Email: woltman@alum.mit.edu */ \
 /* */ \
@@ -4369,7 +4369,6 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 #define r8_h8cl_sixteen_reals_eight_complex_with_square(srcreg,srcinc,d1,d2,d4) { \
 	vec2f64 XMM_COL_MULTS_1[16]; \
 	vec2f64 XMM_COL_MULTS_2[16]; \
-	xmult7(srcreg, srcreg); \
 	r8_x8c_simple_fft_part1(srcreg+32,d1,d2,d4,XMM_COL_MULTS_2); \
 	r8_h16r_simple_fft_part1_16r(srcreg+0,d1,d2,d4,XMM_COL_MULTS_1); \
 	r8_h16r_simple_fft_with_square_16r(XMM_COL_MULTS_1,d1,d2,srcreg); \
@@ -4385,7 +4384,6 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 #define r8_h8cl_sixteen_reals_eight_complex_with_square(srcreg,srcinc,d1,d2,d4) { \
 	vec2f64 XMM_COL_MULTS_1[16]; \
 	vec2f64 XMM_COL_MULTS_2[16]; \
-	xmult7(srcreg, srcreg); \
 	r8_h16r_simple_fft_part1(srcreg+0,d1,d2,d4,XMM_COL_MULTS_1); \
 	r8_x8c_simple_fft_part1(srcreg+32,d1,d2,d4,XMM_COL_MULTS_2); \
 	r8_x8c_simple_fft_with_square(XMM_COL_MULTS_2,d1,d2); \
@@ -4396,7 +4394,6 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 }
 #else
 #define r8_h8cl_sixteen_reals_eight_complex_with_square(srcreg,srcinc,d1,d2,d4) \
-	xmult7(srcreg, srcreg); \
 	r8_h16r_simple_fft_part1(srcreg+0,d1,d2,d4,(g->u.xmm.XMM_COL_MULTS)); \
 	r8_x8c_simple_fft_part1(srcreg+32,d1,d2,d4,(g->u.xmm.XMM_COL_MULTS+256/8)); \
 	r8_h16r_simple_fft_with_square((g->u.xmm.XMM_COL_MULTS),d1,d2,srcreg); \
@@ -5396,7 +5393,6 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 #define r8_h8cl_sixteen_reals_eight_complex_with_mult(srcreg,srcinc,d1,d2,d4) { \
 	vec2f64 XMM_COL_MULTS_1[16]; \
 	vec2f64 XMM_COL_MULTS_2[16]; \
-	xmult7(srcreg, srcreg+rbp); \
 	r8_x8c_simple_fft_part1(srcreg+32,d1,d2,d4,XMM_COL_MULTS_2); \
 	r8_h16r_simple_fft_part1_16r(srcreg+0,d1,d2,d4,XMM_COL_MULTS_1); \
 	r8_h16r_simple_fft_with_mult_16r(XMM_COL_MULTS_1,srcreg+rbp,d1,d2,srcreg); \
@@ -5413,7 +5409,6 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	vec2f64 XMM_COL_MULTS_1[16]; \
 	vec2f64 XMM_COL_MULTS_2[16]; \
 	uintptr_t src_rbp = srcreg+rbp; \
-	xmult7(srcreg, src_rbp); \
 	r8_h16r_simple_fft_part1(srcreg+0,d1,d2,d4,XMM_COL_MULTS_1); \
 	r8_x8c_simple_fft_part1(srcreg+32,d1,d2,d4,XMM_COL_MULTS_2); \
 	r8_x8c_simple_fft_with_mult(XMM_COL_MULTS_2,src_rbp+d4,d1,d2); \
@@ -5424,7 +5419,6 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 }
 #else
 #define r8_h8cl_sixteen_reals_eight_complex_with_mult(srcreg,srcinc,d1,d2,d4) \
-	xmult7(srcreg, srcreg+rbp); \
 	r8_h16r_simple_fft_part1(srcreg+0,d1,d2,d4,g->u.xmm.XMM_COL_MULTS); \
 	r8_x8c_simple_fft_part1(srcreg+32,d1,d2,d4,(g->u.xmm.XMM_COL_MULTS+256/8)); \
 	r8_h16r_simple_fft_with_mult(g->u.xmm.XMM_COL_MULTS,srcreg+rbp,d1,d2,srcreg); \
@@ -5829,7 +5823,6 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 #if 0
 #define r8_h8cl_sixteen_reals_eight_complex_with_mulf(srcreg,srcinc,d1,d2,d4) { \
 	vec2f64 XMM_COL_MULTS[16]; \
-	xmult7(srcreg+rbx, srcreg+rbp); \
 	r8_x8c_simple_fft_with_mulf(srcreg+d4,d1,d2,XMM_COL_MULTS); \
 	r8_x8c_simple_unfft(XMM_COL_MULTS,srcreg+d4,d1,d2); \
 	r8_h16r_simple_fft_with_mulf_16r(srcreg,d1,d2,XMM_COL_MULTS); \
@@ -5843,7 +5836,6 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	uintptr_t src_rbx = srcreg+rbx; \
 	uintptr_t src_rbp = srcreg+rbp; \
 	vec2f64 XMM_COL_MULTS[16]; \
-	xmult7(src_rbx, src_rbp); \
 	r8_h16r_simple_fft_with_mulf(srcreg,d1,d2,XMM_COL_MULTS); \
 	r8_h16r_simple_unfft(XMM_COL_MULTS,srcreg+0,d1,d2); \
 	r8_x8c_simple_fft_with_mulf(srcreg+d4,d1,d2,XMM_COL_MULTS); \
@@ -5852,7 +5844,6 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 }
 #else
 #define r8_h8cl_sixteen_reals_eight_complex_with_mulf(srcreg,srcinc,d1,d2,d4) \
-	xmult7(srcreg+rbx, srcreg+rbp); \
 	r8_h16r_simple_fft_with_mulf(srcreg,d1,d2,g->u.xmm.XMM_COL_MULTS); \
 	r8_x8c_simple_fft_with_mulf(srcreg+d4,d1,d2,(g->u.xmm.XMM_COL_MULTS+256/8)); \
 	r8_h16r_simple_unfft(g->u.xmm.XMM_COL_MULTS,srcreg+0,d1,d2); \

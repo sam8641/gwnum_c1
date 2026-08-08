@@ -2,27 +2,24 @@
 #include <ctype.h>
 
 #include "../gwnum.h"
+#include "../gwtables.h"
+#include "../gwnum_func.h"
 #include "../gwcommon.h"
 #include "../unravel.h"
-#include "../gwtables.h"
 #include "../xarch.h"
 #include "../xmult.h"
 #include "../xbasics.h"
 #include "xnormal.h"
 #include "xmult3a.h"
 
-inorm(xr3, noexec, noexec, noexec, noexec, exec, noexec)
-inorm(xr3e, noexec, noexec, exec, noexec, exec, noexec)
-inorm(xr3c, noexec, noexec, noexec, exec, exec, noexec)
-inorm(xr3ec, noexec, noexec, exec, exec, exec, noexec)
-inorm(xr3z, noexec, exec, noexec, noexec, exec, noexec)
-inorm(xr3ze, noexec, exec, exec, noexec, exec, noexec)
-inorm(xi3, exec, noexec, noexec, noexec, exec, noexec)
-inorm(xi3e, exec, noexec, exec, noexec, exec, noexec)
-inorm(xi3c, exec, noexec, noexec, exec, exec, noexec)
-inorm(xi3ec, exec, noexec, exec, exec, exec, noexec)
-inorm(xi3z, exec, exec, noexec, noexec, exec, noexec)
-inorm(xi3ze, exec, exec, exec, noexec, exec, noexec)
+inorm(xr3, noexec, noexec, noexec, exec, noexec)
+inorm(xr3e, noexec, exec, noexec, exec, noexec)
+inorm(xr3c, noexec, noexec, exec, exec, noexec)
+inorm(xr3ec, noexec, exec, exec, exec, noexec)
+inorm(xi3, exec, noexec, noexec, exec, noexec)
+inorm(xi3e, exec, exec, noexec, exec, noexec)
+inorm(xi3c, exec, noexec, exec, exec, noexec)
+inorm(xi3ec, exec, exec, exec, exec, noexec)
 zpnorm(xr3zp, noexec, noexec, noexec, exec, noexec, exec, noexec, noexec)
 zpnorm(xr3zpc1, noexec, noexec, noexec, exec, noexec, exec, exec, noexec)
 zpnorm(xr3zpcm1, noexec, noexec, noexec, exec, noexec, exec, noexec, exec)
@@ -56,14 +53,14 @@ zpnorm(xi3zpekcm1, exec, exec, noexec, exec, noexec, noexec, noexec, exec)
 zpnorm(xi3zpck, exec, noexec, exec, exec, noexec, noexec, noexec, noexec)
 zpnorm(xi3zpeck, exec, exec, exec, exec, noexec, noexec, noexec, noexec)
 
-inorm(xr3b, noexec, noexec, noexec, noexec, noexec, noexec)
-inorm(xr3eb, noexec, noexec, exec, noexec, noexec, noexec)
-inorm(xr3cb, noexec, noexec, noexec, exec, noexec, noexec)
-inorm(xr3ecb, noexec, noexec, exec, exec, noexec, noexec)
-inorm(xi3b, exec, noexec, noexec, noexec, noexec, noexec)
-inorm(xi3eb, exec, noexec, exec, noexec, noexec, noexec)
-inorm(xi3cb, exec, noexec, noexec, exec, noexec, noexec)
-inorm(xi3ecb, exec, noexec, exec, exec, noexec, noexec)
+inorm(xr3b, noexec, noexec, noexec, noexec, noexec)
+inorm(xr3eb, noexec, exec, noexec, noexec, noexec)
+inorm(xr3cb, noexec, noexec, exec, noexec, noexec)
+inorm(xr3ecb, noexec, exec, exec, noexec, noexec)
+inorm(xi3b, exec, noexec, noexec, noexec, noexec)
+inorm(xi3eb, exec, exec, noexec, noexec, noexec)
+inorm(xi3cb, exec, noexec, exec, noexec, noexec)
+inorm(xi3ecb, exec, exec, exec, noexec, noexec)
 zpnorm(xr3zpb, noexec, noexec, noexec, noexec, noexec, exec, noexec, noexec)
 zpnorm(xr3zpbc1, noexec, noexec, noexec, noexec, noexec, exec, exec, noexec)
 zpnorm(xr3zpbcm1, noexec, noexec, noexec, noexec, noexec, exec, noexec, exec)

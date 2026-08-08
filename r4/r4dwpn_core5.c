@@ -72,3 +72,4 @@ r4dwpn_pass1sc3584(xfft_r4dwpn_28M_13_4_CORE, xpass2_r4_13_levels, 13, 4);
 r4dwpn_pass1sc4096(xfft_r4dwpn_30M_7680_4_CORE, xpass2_r4_7680_levels, 7680, 4);
 r4dwpn_pass1sc1280(xfft_r4dwpn_32000K_25600_4_CORE, xpass2_r4_25600_levels, 25600, 4);
 r4dwpn_pass1sc4096(xfft_r4dwpn_32M_13_4_CORE, xpass2_r4_13_levels, 13, 4);
+r4dwpn_pass1sc3072(xfft_r4dwpn_75M_25600_4_CORE, xpass2_r4_25600_levels, 25600, 4);

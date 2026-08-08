@@ -2,23 +2,24 @@
 #include <ctype.h>
 
 #include "../gwnum.h"
+#include "../gwtables.h"
+#include "../gwnum_func.h"
 #include "../gwcommon.h"
 #include "../unravel.h"
-#include "../gwtables.h"
 #include "../xarch.h"
 #include "../xbasics.h"
 #include "xnormal.h"
 
 #include "xmult2a.h"
 
-inorm(xr2s4, noexec, noexec, noexec, noexec, exec, exec);
-inorm(xr2es4, noexec, noexec, exec, noexec, exec, exec);
-inorm(xr2cs4, noexec, noexec, noexec, exec, exec, exec);
-inorm(xr2ecs4, noexec, noexec, exec, exec, exec, exec);
-inorm(xi2s4, exec, noexec, noexec, noexec, exec, exec);
-inorm(xi2es4, exec, noexec, exec, noexec, exec, exec);
-inorm(xi2cs4, exec, noexec, noexec, exec, exec, exec);
-inorm(xi2ecs4, exec, noexec, exec, exec, exec, exec);
+inorm(xr2s4, noexec, noexec, noexec, exec, exec);
+inorm(xr2es4, noexec, exec, noexec, exec, exec);
+inorm(xr2cs4, noexec, noexec, exec, exec, exec);
+inorm(xr2ecs4, noexec, exec, exec, exec, exec);
+inorm(xi2s4, exec, noexec, noexec, exec, exec);
+inorm(xi2es4, exec, exec, noexec, exec, exec);
+inorm(xi2cs4, exec, noexec, exec, exec, exec);
+inorm(xi2ecs4, exec, exec, exec, exec, exec);
 zpnorm(xr2zps4, noexec, noexec, noexec, exec, exec, exec, noexec, noexec);
 zpnorm(xr2zps4c1, noexec, noexec, noexec, exec, exec, exec, exec, noexec);
 zpnorm(xr2zps4cm1, noexec, noexec, noexec, exec, exec, exec, noexec, exec);
@@ -52,14 +53,14 @@ zpnorm(xi2zpes4kcm1, exec, exec, noexec, exec, exec, noexec, noexec, exec);
 zpnorm(xi2zpcs4k, exec, noexec, exec, exec, exec, noexec, noexec, noexec);
 zpnorm(xi2zpecs4k, exec, exec, exec, exec, exec, noexec, noexec, noexec);
 
-inorm(xr2bs4, noexec, noexec, noexec, noexec, noexec, exec);
-inorm(xr2ebs4, noexec, noexec, exec, noexec, noexec, exec);
-inorm(xr2cbs4, noexec, noexec, noexec, exec, noexec, exec);
-inorm(xr2ecbs4, noexec, noexec, exec, exec, noexec, exec);
-inorm(xi2bs4, exec, noexec, noexec, noexec, noexec, exec);
-inorm(xi2ebs4, exec, noexec, exec, noexec, noexec, exec);
-inorm(xi2cbs4, exec, noexec, noexec, exec, noexec, exec);
-inorm(xi2ecbs4, exec, noexec, exec, exec, noexec, exec);
+inorm(xr2bs4, noexec, noexec, noexec, noexec, exec);
+inorm(xr2ebs4, noexec, exec, noexec, noexec, exec);
+inorm(xr2cbs4, noexec, noexec, exec, noexec, exec);
+inorm(xr2ecbs4, noexec, exec, exec, noexec, exec);
+inorm(xi2bs4, exec, noexec, noexec, noexec, exec);
+inorm(xi2ebs4, exec, exec, noexec, noexec, exec);
+inorm(xi2cbs4, exec, noexec, exec, noexec, exec);
+inorm(xi2ecbs4, exec, exec, exec, noexec, exec);
 zpnorm(xr2zpbs4, noexec, noexec, noexec, noexec, exec, exec, noexec, noexec);
 zpnorm(xr2zpbs4c1, noexec, noexec, noexec, noexec, exec, exec, exec, noexec);
 zpnorm(xr2zpbs4cm1, noexec, noexec, noexec, noexec, exec, exec, noexec, exec);

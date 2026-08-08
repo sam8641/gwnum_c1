@@ -2735,8 +2735,6 @@ dst2w(dst2 = xmm2); \
 /* a four_complex_with_square_2 on 8 doubles */ \
 
 #define s2cl_eight_reals_with_square_2(srcreg,srcinc,d1) { \
-	xmult7(srcreg, srcreg); \
-\
 	xmm0[0] = f64ptr(srcreg);	/* R1 */ \
 	xmm1[0] = f64ptr(srcreg+8);	/* R2 */ \
 	xmm2[0] = f64ptr(srcreg+d1);	/* R3 */ \
@@ -2801,8 +2799,6 @@ dst2w(dst2 = xmm2); \
 /* a four_complex_with_mult on 8 doubles */
 
 #define s2cl_eight_reals_with_mult_2(srcreg,srcinc,d1) \
-	xmult7(srcreg, srcreg+rbp); \
-\
 	xmm0[0] = f64ptr(srcreg);	/* R1 */ \
 	xmm1[0] = f64ptr(srcreg+8);	/* R2 */ \
 	xmm2[0] = f64ptr(srcreg+d1);	/* R3 */ \
@@ -2855,7 +2851,6 @@ dst2w(dst2 = xmm2); \
 
 #define s2cl_eight_reals_with_mulf_2(srcreg,srcinc,d1) \
 	uintptr_t src_rbx = srcreg+rbx; \
-	xmult7(src_rbx, srcreg+rbp); \
 \
 	xmm3[0] = f64ptr(src_rbx);	/* R1 */ \
 	xmm2[0] = f64ptr(src_rbx+8);	/* R2 */ \
@@ -4167,6 +4162,3 @@ dst2w(dst2 = xmm2); \
 	r4 *= xptr(rdi+off);		/* B1 = B1 * pre_imag (final I1) */ \
 \
 
-
-
-#include "hg64.h"

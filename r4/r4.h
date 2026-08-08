@@ -1,5 +1,5 @@
 #pragma once
-/* Copyright 2009-2023 - Mersenne Research, Inc.  All rights reserved */ \
+/* Copyright 2009-2024 - Mersenne Research, Inc.  All rights reserved */ \
 /* Author:  George Woltman */ \
 /* Email: woltman@alum.mit.edu */ \
 /* */ \
@@ -11332,7 +11332,6 @@ vec2f64 M1=mem1, M2=mem2, M3=mem3, M4=mem4, M5=mem5, M6=mem6, M7=mem7, M8=mem8; 
 
 
 #define r4_h4cl_eight_reals_four_complex_with_square(srcreg,srcinc,d1,d2) { \
-	xmult7(srcreg, srcreg); \
 	vec2f64 *sd0 = (vec2f64*)(srcreg); \
 	vec2f64 *sd1 = (vec2f64*)(srcreg+d1); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d2); \
@@ -11395,7 +11394,6 @@ vec2f64 M1=mem1, M2=mem2, M3=mem3, M4=mem4, M5=mem5, M6=mem6, M7=mem7, M8=mem8; 
 
 #define r4_h4cl_eight_reals_four_complex_with_mult(srcreg,srcinc,d1,d2) { \
 	uintptr_t src_rbp = srcreg+rbp; \
-	xmult7(srcreg, src_rbp); \
 	vec2f64 *sd0 = (vec2f64*)(srcreg); \
 	vec2f64 *sd1 = (vec2f64*)(srcreg+d1); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d2); \
@@ -11453,7 +11451,6 @@ vec2f64 M1=mem1, M2=mem2, M3=mem3, M4=mem4, M5=mem5, M6=mem6, M7=mem7, M8=mem8; 
 #define r4_h4cl_eight_reals_four_complex_with_mulf(srcreg,srcinc,d1,d2) { \
 	uintptr_t src_rbx = srcreg+rbx; \
 	uintptr_t src_rbp = srcreg+rbp; \
-	xmult7(src_rbx, src_rbp); \
 	vec2f64 *sd0 = (vec2f64*)(srcreg); \
 	vec2f64 *sd1 = (vec2f64*)(srcreg+d1); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d2); \

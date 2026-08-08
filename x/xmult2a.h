@@ -17,7 +17,7 @@
 #define A_OR_Bexecexec(C) C
 #define A_OR_B(A, B, C) A_OR_B##A##B(C)
 
-#define inorm(lab, ttp, zero, echk, const1, base2, sse4) \
+#define inorm(lab, ttp, echk, const1, base2, sse4) \
 void CONCAT(lab, ARCH1)(struct gwasm_data *__restrict g, uintptr_t rsi) { \
 	uintptr_t rax, rbx, rdi, rbp; \
 A_OR_B##base2##ttp(uintptr_t rcx); \
@@ -31,7 +31,6 @@ uintptr_t loopcount1, loopcount2; \
 ttp(vec2f64 xmm14); \
 ttp(vec2f64 xmm15); \
 	uintptr_t saved_rsi = rsi; \
-	xmm7 = g->u.xmm.XMM_SUMOUT; \
 echk(vec2f64 xmm6 = g->u.xmm.XMM_MAXERR); \
 	rbx = (uintptr_t) g->norm_ptr2;  \
 ttp(rax = g->cache_line_multiplier); \
@@ -68,7 +67,7 @@ no##ttp(base2(r9 = 0)); /*64b*/ \
 		vec2f64 carry3 = xptr(rbp+3*16); \
 		do{ /*ilp1:*/ \
 			/* xprefetchw [rsi+64] */ \
-			xnorm_2d(ttp, zero, echk, const1, base2, sse4, carry0, carry1, carry2, carry3); \
+			xnorm_2d(ttp, echk, const1, base2, sse4, carry0, carry1, carry2, carry3); \
 			rsi += 64; \
 		ttp(rbx += 512); \
 		ttp(rdi += 4); \
@@ -88,7 +87,6 @@ no##ttp(base2(r9 = 0)); /*64b*/ \
 		if(loopcount3 == 0) \
 			rsi += g->normblkdst8; /* Add 128 every 8 clmblkdsts */ \
 	}while(1); \
-	g->u.xmm.XMM_SUMOUT = xmm7; \
 	echk(g->u.xmm.XMM_MAXERR = xmm6); \
 	\
 	if(g->this_block == g->last_pass1_block) { \
@@ -103,10 +101,11 @@ void CONCAT(lab, ARCH1)(struct gwasm_data *__restrict g, uintptr_t rsi) { \
 ttp(uintptr_t rdx); \
 	uintptr_t loopcount1z, loopcount2z; \
 	unsigned int loopcount3z; \
-	vec2f64 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm7, \
+	vec2f64 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, \
 		xmm8, xmm9, xmm10, xmm11, xmm12, xmm13; \
-	\
-	xmm7 = g->u.xmm.XMM_SUMOUT; \
+\
+	/* Handled in C code by pass1_pre_carries */ \
+	zpad_sub7(g);		/* Subtract 7 ZPAD words from lowest FFT words */ \
 echk(vec2f64 xmm6 = g->u.xmm.XMM_MAXERR); \
 	rbx = (uintptr_t) g->norm_ptr2; \
 ttp(rax = g->cache_line_multiplier); \
@@ -158,6 +157,5 @@ no##ttp(rcx = 0); \
 		if(loopcount3z == 0) \
 			rsi += g->normblkdst8; /* Add 128 every 8 clmblkdsts */ \
 	}while(1); \
-	g->u.xmm.XMM_SUMOUT = xmm7; \
 echk(g->u.xmm.XMM_MAXERR = xmm6); \
 }

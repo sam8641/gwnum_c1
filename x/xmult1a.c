@@ -2,9 +2,10 @@
 #include <ctype.h>
 
 #include "../gwnum.h"
+#include "../gwtables.h"
+#include "../gwnum_func.h"
 #include "../gwcommon.h"
 #include "../unravel.h"
-#include "../gwtables.h"
 #include "../xarch.h"
 #include "../xbasics.h"
 #include "xnormal.h"
@@ -55,16 +56,7 @@ void non2dn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
 	xnorm_top_carry_1d;				// Adjust top carry when k > 1
 	rdi = (uintptr_t)g->norm_biglit_array;
 	rbp = (uintptr_t)g->norm_col_mults;
-	xnorm012_1d(noexec, noexec);
-	//cmnend;
-}
-void zdn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
-	//puts("zdn");
-	uintptr_t rax, rcx, rbp, rdi, rsi;
-	rsi = (uintptr_t)g->DESTARG;
-	rdi = (uintptr_t)g->norm_biglit_array;
-	rbp = (uintptr_t)g->norm_col_mults;
-	xnorm012_1d(exec, exec);
+	xnorm012_1d(noexec);
 	//cmnend;
 }
 void idn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
@@ -74,23 +66,19 @@ void idn(struct gwasm_data *__restrict g, vec2f64 xmm2, vec2f64 xmm3) {
 	xnorm_top_carry_1d;				// Adjust top carry when k > 1
 	rdi = (uintptr_t)g->norm_biglit_array; // Address of the big/little flags array
 	rbp = (uintptr_t)g->norm_col_mults; // Restart the column multipliers
-	xnorm012_1d(noexec, exec);		// Add in carries
+	xnorm012_1d(exec);		// Add in carries
 	//cmnend;
 }
 
 
-inorm(xr1, noexec, noexec, noexec, noexec, exec, noexec)
-inorm(xr1e, noexec, noexec, exec, noexec, exec, noexec)
-inorm(xr1c, noexec, noexec, noexec, exec, exec, noexec)
-inorm(xr1ec, noexec, noexec, exec, exec, exec, noexec)
-inorm(xr1z, noexec, exec, noexec, noexec, exec, noexec)
-inorm(xr1ze, noexec, exec, exec, noexec, exec, noexec)
-inorm(xi1, exec, noexec, noexec, noexec, exec, noexec)
-inorm(xi1e, exec, noexec, exec, noexec, exec, noexec)
-inorm(xi1c, exec, noexec, noexec, exec, exec, noexec)
-inorm(xi1ec, exec, noexec, exec, exec, exec, noexec)
-inorm(xi1z, exec, exec, noexec, noexec, exec, noexec)
-inorm(xi1ze, exec, exec, exec, noexec, exec, noexec)
+inorm(xr1, noexec, noexec, noexec, exec, noexec)
+inorm(xr1e, noexec, exec, noexec, exec, noexec)
+inorm(xr1c, noexec, noexec, exec, exec, noexec)
+inorm(xr1ec, noexec, exec, exec, exec, noexec)
+inorm(xi1, exec, noexec, noexec, exec, noexec)
+inorm(xi1e, exec, exec, noexec, exec, noexec)
+inorm(xi1c, exec, noexec, exec, exec, noexec)
+inorm(xi1ec, exec, exec, exec, exec, noexec)
 zpnorm(xr1zp, noexec, noexec, noexec, exec, noexec, exec, noexec, noexec)
 zpnorm(xr1zpc1, noexec, noexec, noexec, exec, noexec, exec, exec, noexec)
 zpnorm(xr1zpcm1, noexec, noexec, noexec, exec, noexec, exec, noexec, exec)
@@ -124,14 +112,14 @@ zpnorm(xi1zpekcm1, exec, exec, noexec, exec, noexec, noexec, noexec, exec)
 zpnorm(xi1zpck, exec, noexec, exec, exec, noexec, noexec, noexec, noexec)
 zpnorm(xi1zpeck, exec, exec, exec, exec, noexec, noexec, noexec, noexec)
 
-inorm(xr1b, noexec, noexec, noexec, noexec, noexec, noexec)
-inorm(xr1eb, noexec, noexec, exec, noexec, noexec, noexec)
-inorm(xr1cb, noexec, noexec, noexec, exec, noexec, noexec)
-inorm(xr1ecb, noexec, noexec, exec, exec, noexec, noexec)
-inorm(xi1b, exec, noexec, noexec, noexec, noexec, noexec)
-inorm(xi1eb, exec, noexec, exec, noexec, noexec, noexec)
-inorm(xi1cb, exec, noexec, noexec, exec, noexec, noexec)
-inorm(xi1ecb, exec, noexec, exec, exec, noexec, noexec)
+inorm(xr1b, noexec, noexec, noexec, noexec, noexec)
+inorm(xr1eb, noexec, exec, noexec, noexec, noexec)
+inorm(xr1cb, noexec, noexec, exec, noexec, noexec)
+inorm(xr1ecb, noexec, exec, exec, noexec, noexec)
+inorm(xi1b, exec, noexec, noexec, noexec, noexec)
+inorm(xi1eb, exec, exec, noexec, noexec, noexec)
+inorm(xi1cb, exec, noexec, exec, noexec, noexec)
+inorm(xi1ecb, exec, exec, exec, noexec, noexec)
 zpnorm(xr1zpb, noexec, noexec, noexec, noexec, noexec, exec, noexec, noexec)
 zpnorm(xr1zpbc1, noexec, noexec, noexec, noexec, noexec, exec, exec, noexec)
 zpnorm(xr1zpbcm1, noexec, noexec, noexec, noexec, noexec, exec, noexec, exec)

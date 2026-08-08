@@ -3,9 +3,9 @@
 #include <stdio.h>
 
 #include "../gwnum.h"
+#include "../gwtables.h"
 #include "../gwcommon.h"
 #include "../unravel.h"
-#include "../gwtables.h"
 //#define FROM_ASM
 #include "../xarch.h"
 #include "../xbasics.h"

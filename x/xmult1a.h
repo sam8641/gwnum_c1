@@ -1,14 +1,14 @@
 #pragma once
 
 // input: xmm7
-#define inorm(lab, ttp, zero, echk, const1, base2, sse4) \
+#define inorm(lab, ttp, echk, const1, base2, sse4) \
 void lab##BLEND(struct gwasm_data *__restrict g, vec2f64 xmm7) { \
 	uintptr_t rdx, rsi, rbp, tmp1; \
 	vec2f64 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5; \
 	rsi = (uintptr_t)g->DESTARG; \
-	/*puts("inorm1-1 " #lab","#ttp","#zero","#echk","#const1","#base2","#sse4);*/ \
-	no##zero(f64ptr(rsi+g->ADDIN_OFFSET) += g->ADDIN_VALUE); \
-	no##zero(xmm7[0] -= g->ADDIN_VALUE); \
+	/*puts("inorm1-1 " #lab","#ttp","#echk","#const1","#base2","#sse4);*/ \
+	f64ptr(rsi+g->ADDIN_OFFSET) += g->ADDIN_VALUE; \
+	xmm7[0] -= g->ADDIN_VALUE; \
 	xmm2 = XMM_BIGVAL2; \
 	xmm3 = xmm2; \
 echk(vec2f64 xmm6 = {0.0, 0.0}); \
@@ -23,7 +23,7 @@ ttp(uintptr_t saved_reg1 = rbp); \
 	do{ \
 		unsigned int ebx = rdx & 0x7FF; \
 		do{ \
-			xnorm_1d(ttp, zero, echk, const1, base2, sse4); \
+			xnorm_1d(ttp, echk, const1, base2, sse4); \
 			rsi += 64; \
 			ttp(rbp += 128); \
 			ttp(rdi += 4); \
@@ -32,7 +32,7 @@ ttp(uintptr_t saved_reg1 = rbp); \
 		tmp1 = rsi; rsi = saved_reg3; saved_reg3 = tmp1; \
 		ttp(tmp1 = rdi); ttp(rdi = saved_reg2); ttp(saved_reg2 = tmp1); \
 		ttp(tmp1 = rbp); ttp(rbp = saved_reg1); ttp(saved_reg1 = tmp1); \
-		xnorm012_1d_mid(ttp, zero, base2); \
+		xnorm012_1d_mid(ttp, base2); \
 		rsi = saved_reg3; \
 		ttp(rdi = saved_reg2); \
 		ttp(rbp = saved_reg1); \
@@ -42,11 +42,6 @@ ttp(uintptr_t saved_reg1 = rbp); \
 /*echk(printf("----- e2 %f %f\n", xmm6[0], xmm6[1]));*/ \
 /* printf("err %f\n", xmm6[0], xmm6[1]); */ \
 echk(g->MAXERR = vec2reducemax(xmm6)); \
-	inorm_zero##zero; \
-	cmnend; \
-	inorm_end_##base2##zero(g, xmm2, xmm3); \
-}
-#define inorm_zeronoexec \
 	rsi = (uintptr_t)g->DESTARG; \
 	uintptr_t rdi2 = (uintptr_t)g->ADDIN_OFFSET; \
 	/* Unlike AVX, FMA, and AVX512 FFTs, one pass SSE2 FFT's ADDIN_OFFSET can be different than POST_ADDIN_OFFSET */ \
@@ -54,13 +49,11 @@ echk(g->MAXERR = vec2reducemax(xmm6)); \
 	rdx = rdi2 & 0b11000; \
 	if(rdx != 0 && rdx != 0b11000) \
 		rdi2 ^= 0b11000; \
-	f64ptr(rsi+rdi2) += g->POSTADDIN_VALUE;
-
-#define inorm_zeroexec
-#define inorm_end_noexecexec non2dn
-#define inorm_end_noexecnoexec non2dn
-#define inorm_end_execexec zdn
-#define inorm_end_execnoexec idn
+	f64ptr(rsi+rdi2) += g->POSTADDIN_VALUE; \
+	inorm_end_##base2(g, xmm2, xmm3); \
+}
+#define inorm_end_noexec non2dn
+#define inorm_end_exec idn
 
 // input: xmm7
 #define zpnorm(lab, ttp, echk, const1, base2, sse4, khi, c1, cm1) \
@@ -69,6 +62,7 @@ void lab##BLEND(struct gwasm_data *__restrict g, vec2f64 xmm7) { \
 	uintptr_t rdx, rbx, rsi, rdi, rbp, tmp1; \
 	uintptr_t saved_reg3, saved_reg2, saved_reg1; \
 	vec2f64 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5; \
+	zpad_sub7(g);		/* Subtract 7 ZPAD words from lowest FFT words */ \
 	rsi = (uintptr_t)g->DESTARG;		/* Addr of multiplied number */ \
 	xmm2 = XMM_BIGVAL2; \
 	xmm3[1] = xmm3[0] = 0; \
@@ -101,7 +95,6 @@ void lab##BLEND(struct gwasm_data *__restrict g, vec2f64 xmm7) { \
 	\
 /*echk(printf("--- err %f %f\n", xmm6[0], xmm6[1]));*/ \
 echk(g->MAXERR = vec2reducemax(xmm6)); \
-	cmnend; \
 	zpnorm_end_##base2##const1(g, xmm2, xmm3); \
 }
 
@@ -110,14 +103,6 @@ echk(g->MAXERR = vec2reducemax(xmm6)); \
 #define zpnorm_end_execexec zpcdn
 #define zpnorm_end_execnoexec zpdn
 
-
-
-#define cmnend {\
-	rsi = (uintptr_t)g->DESTARG; \
-	double f = xmm7[0] + xmm7[1]; \
-	f *= g->ttmp_ff_inv; \
-	f64ptr(rsi-24) = f; \
-}
 
 
 

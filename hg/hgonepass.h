@@ -8,7 +8,7 @@ void hgonepass_xmiddle_3p(struct gwasm_data *__restrict g);
 void hgonepass_xmiddle_4(struct gwasm_data *__restrict g);
 void hgonepass_xmiddle_4p(struct gwasm_data *__restrict g);
 
-/* Copyright 2001-2023 - Mersenne Research, Inc.  All rights reserved */ \
+/* Copyright 2001-2024 - Mersenne Research, Inc.  All rights reserved */ \
 /* Author:  George Woltman */ \
 /* Email: woltman@alum.mit.edu */ \
 /* */ \
@@ -62,7 +62,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 4 */ \
 	/*	do 2 macros each processing 16 data values */ \
 	\
-	xcopy_7_words; \
 	for(unsigned int loop=2; loop != 0; loop--){ \
 		s2cl_eight_reals_first_fft(rsi, 64, 2*64); \
 	} \
@@ -92,7 +91,6 @@ if(g->ffttype == 4) { \
 \
 x4cl_eight_reals_last_unfft(rsi, 0, 64, 2*64); \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -192,7 +190,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 8 */ \
 	/*	do 2 macros each processing 24 data values */ \
 	\
-	xcopy_7_words; \
 	xsix_reals_fft_preload; \
 	for(unsigned int loop=2; loop != 0; loop--){ \
 		s3cl_six_reals_first_fft(rsi, 64, 2*64); \
@@ -286,7 +283,6 @@ for(unsigned int loop=2; loop != 0; loop--){ \
 	x3cl_six_reals_last_unfft(rsi, 64, 2*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -439,7 +435,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 8 */ \
 	/*	do 4 macros each processing 16 data values */ \
 	\
-	xcopy_7_words; \
 	for(unsigned int loop=4; loop != 0; loop--){ \
 		s2cl_eight_reals_first_fft(rsi, 64, 4*64); \
 	} \
@@ -540,7 +535,6 @@ for(unsigned int loop=2; loop != 0; loop--){ \
 	x4cl_eight_reals_last_unfft(rsi, 64, 2*64, 4*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -701,7 +695,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 16 */ \
 	/*	do 2 macros each processing 40 data values */ \
 	\
-	xcopy_7_words; \
 	xfive_reals_fft_preload;		/* Preload const1s for five real macros */ \
 	for(unsigned int loop=2; loop != 0; loop--){ \
 		s5cl_five_reals_first_fft(rsi, 64, 2*64); \
@@ -795,7 +788,6 @@ xfive_reals_unfft_preload;	/* Preload const1s for five real macros */ \
 for(unsigned int loop=2; loop != 0; loop--){ \
 	x5cl_five_reals_last_unfft(rsi, 64, 2*64); \
 } \
-xsub_7_words(16); \
 xfft_3_ret; \
 \
 \
@@ -833,7 +825,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 16 */ \
 	/*	do 4 macros each processing 24 data values */ \
 	\
-	xcopy_7_words; \
 	xsix_reals_fft_preload; \
 	for(unsigned int loop=4; loop != 0; loop--){ \
 		s3cl_six_reals_first_fft(rsi, 64, 4*64); \
@@ -939,7 +930,6 @@ xsix_reals_unfft_preload; \
 for(unsigned int loop=4; loop != 0; loop--){ \
 	x3cl_six_reals_last_unfft(rsi, 64, 4*64); \
 } \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -1119,7 +1109,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 16 */ \
 	/*	do 2 macros each processing 56 data values */ \
 	\
-	xcopy_7_words; \
 	xseven_reals_fft_preload; \
 	for(unsigned int loop=2; loop != 0; loop--){ \
 		s7cl_seven_reals_first_fft(rsi, 64, 2*64); \
@@ -1220,7 +1209,6 @@ for(unsigned int loop=2; loop != 0; loop--){ \
 	x7cl_seven_reals_last_unfft(rsi, 64, 2*64); \
 } \
 \
-xsub_7_words(16); \
 xfft_3_ret; \
 \
 \
@@ -1256,7 +1244,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 16 */ \
 	/*	do 8 macros each processing 16 data values */ \
 	\
-	xcopy_7_words; \
 	for(unsigned int loop=8; loop != 0; loop--){ \
 		s2cl_eight_reals_first_fft(rsi, 64, 8*64); \
 	} \
@@ -1363,7 +1350,6 @@ for(unsigned int loop=4; loop != 0; loop--){ \
 	x4cl_eight_reals_last_unfft(rsi, 64, 4*64, 8*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -1522,7 +1508,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 32 */ \
 	/*	do 4 macros each processing 40 data values */ \
 	\
-	xcopy_7_words; \
 	xfive_reals_fft_preload;		/* Preload const1s for five real macros */ \
 	for(unsigned int loop=4; loop != 0; loop--){ \
 		s5cl_five_reals_first_fft(rsi, 64, 4*64); \
@@ -1587,7 +1572,6 @@ for(unsigned int loop=4; loop != 0; loop--){ \
 	x5cl_five_reals_last_unfft(rsi, 64, 4*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -1625,7 +1609,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 32 */ \
 	/*	do 8 macros each processing 24 data values */ \
 	\
-	xcopy_7_words; \
 	xsix_reals_fft_preload; \
 	for(unsigned int loop=8; loop != 0; loop--){ \
 		s3cl_six_reals_first_fft(rsi, 64, 8*64); \
@@ -1715,7 +1698,6 @@ for(unsigned int loop=8; loop != 0; loop--){ \
 	x3cl_six_reals_last_unfft(rsi, 64, 8*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -1874,7 +1856,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 32 */ \
 	/*	do 4 macros each processing 56 data values */ \
 	\
-	xcopy_7_words; \
 	xseven_reals_fft_preload; \
 	for(unsigned int loop=4; loop != 0; loop--){ \
 		s7cl_seven_reals_first_fft(rsi, 64, 4*64); \
@@ -1959,7 +1940,6 @@ for(unsigned int loop=4; loop != 0; loop--){ \
 	x7cl_seven_reals_last_unfft(rsi, 64, 4*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -1995,7 +1975,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 32 */ \
 	/*	do 16 macros each processing 16 data values */ \
 	\
-	xcopy_7_words; \
 	for(unsigned int loop=16; loop != 0; loop--){ \
 		s2cl_eight_reals_first_fft(rsi, 64, 16*64); \
 	} \
@@ -2082,7 +2061,6 @@ for(unsigned int loop=8; loop != 0; loop--){ \
 	x4cl_eight_reals_last_unfft(rsi, 64, 8*64, 16*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 
 
@@ -2408,7 +2386,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 64 */ \
 	/*	do 8 macros each processing 40 data values */ \
 	\
-	xcopy_7_words; \
 	xfive_reals_fft_preload;		/* Preload const1s for five real macros */ \
 	for(unsigned int loop=8; loop != 0; loop--){ \
 		s5cl_five_reals_first_fft(rsi, 64, 8*64); \
@@ -2473,7 +2450,6 @@ for(unsigned int loop=8; loop != 0; loop--){ \
 	x5cl_five_reals_last_unfft(rsi, 64, 8*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -2511,7 +2487,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 64 */ \
 	/*	do 16 macros each processing 24 data values */ \
 	\
-	xcopy_7_words; \
 	xsix_reals_fft_preload; \
 	for(unsigned int loop=16; loop != 0; loop--){ \
 		s3cl_six_reals_first_fft(rsi, 64, 16*64); \
@@ -2600,7 +2575,6 @@ xsix_reals_unfft_preload; \
 for(unsigned int loop=16; loop != 0; loop--){ \
 	x3cl_six_reals_last_unfft(rsi, 64, 16*64); \
 } \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -2758,7 +2732,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 64 */ \
 	/*	do 8 macros each processing 56 data values */ \
 	\
-	xcopy_7_words; \
 	xseven_reals_fft_preload; \
 	for(unsigned int loop=8; loop != 0; loop--){ \
 		s7cl_seven_reals_first_fft(rsi, 64, 8*64); \
@@ -2847,7 +2820,6 @@ for(unsigned int loop=8; loop != 0; loop--){ \
 	x7cl_seven_reals_last_unfft(rsi, 64, 8*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -2883,7 +2855,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 64 */ \
 	/*	do 32 macros each processing 16 data values */ \
 	\
-	xcopy_7_words; \
 	for(unsigned int loop=32; loop != 0; loop--){ \
 		s2cl_eight_reals_first_fft(rsi, 64, 32*64); \
 	} \
@@ -2975,7 +2946,6 @@ for(unsigned int loop=16; loop != 0; loop--){ \
 	x4cl_eight_reals_last_unfft(rsi, 64, 16*64, 32*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -3247,7 +3217,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 128 */ \
 	/*	do 16 macros each processing 40 data values */ \
 	\
-	xcopy_7_words; \
 	xfive_reals_fft_preload;		/* Preload const1s for five real macros */ \
 	for(unsigned int loop=16; loop != 0; loop--){ \
 		s5cl_five_reals_first_fft(rsi, 64, 16*64); \
@@ -3312,7 +3281,6 @@ for(unsigned int loop=16; loop != 0; loop--){ \
 	x5cl_five_reals_last_unfft(rsi, 64, 16*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -3350,7 +3318,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 128 */ \
 	/*	do 32 macros each processing 24 data values */ \
 	\
-	xcopy_7_words; \
 	xsix_reals_fft_preload; \
 	for(unsigned int loop=32; loop != 0; loop--){ \
 		s3cl_six_reals_first_fft(rsi, 64, 32*64); \
@@ -3440,7 +3407,6 @@ for(unsigned int loop=32; loop != 0; loop--){ \
 	x3cl_six_reals_last_unfft(rsi, 64, 32*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -3597,7 +3563,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 128 */ \
 	/*	do 16 macros each processing 56 data values */ \
 	\
-	xcopy_7_words; \
 	xseven_reals_fft_preload; \
 	for(unsigned int loop=16; loop != 0; loop--){ \
 		s7cl_seven_reals_first_fft(rsi, 64, 16*64); \
@@ -3683,7 +3648,6 @@ for(unsigned int loop=16; loop != 0; loop--){ \
 	x7cl_seven_reals_last_unfft(rsi, 64, 16*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -3719,7 +3683,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 128 */ \
 	/*	do 64 macros each processing 16 data values */ \
 	\
-	xcopy_7_words; \
 	for(unsigned int loop=64; loop != 0; loop--){ \
 		s2cl_eight_reals_first_fft(rsi, 64, 64*64); \
 	} \
@@ -3810,7 +3773,6 @@ for(unsigned int loop=32; loop != 0; loop--){ \
 	x4cl_eight_reals_last_unfft(rsi, 64, 32*64, 64*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 
 /* Common code for length 640, 768, 896, and 1024 FFTs */ \
@@ -4215,7 +4177,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 256 */ \
 	/*	do 32 macros each processing 40 data values */ \
 	\
-	xcopy_7_words; \
 	xfive_reals_fft_preload;		/* Preload const1s for five real macros */ \
 	for(unsigned int loop=32; loop != 0; loop--){ \
 		s5cl_five_reals_first_fft(rsi, 64, 32*64); \
@@ -4280,7 +4241,6 @@ for(unsigned int loop=32; loop != 0; loop--){ \
 	x5cl_five_reals_last_unfft(rsi, 64, 32*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -4318,7 +4278,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 256 */ \
 	/*	do 64 macros each processing 24 data values */ \
 	\
-	xcopy_7_words; \
 	xsix_reals_fft_preload; \
 	for(unsigned int loop=64; loop != 0; loop--){ \
 		s3cl_six_reals_first_fft(rsi, 64, 64*64); \
@@ -4408,7 +4367,6 @@ for(unsigned int loop=64; loop != 0; loop--){ \
 	x3cl_six_reals_last_unfft(rsi, 64, 64*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -4566,7 +4524,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 256 */ \
 	/*	do 32 macros each processing 56 data values */ \
 	\
-	xcopy_7_words; \
 	xseven_reals_fft_preload; \
 	for(unsigned int loop=32; loop != 0; loop--){ \
 		s7cl_seven_reals_first_fft(rsi, 64, 32*64); \
@@ -4657,7 +4614,6 @@ for(unsigned int loop=32; loop != 0; loop--){ \
 	x7cl_seven_reals_last_unfft(rsi, 64, 32*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -4693,7 +4649,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 256 */ \
 	/*	do 128 macros each processing 16 data values */ \
 	\
-	xcopy_7_words; \
 	for(unsigned int loop=128; loop != 0; loop--){ \
 		s2cl_eight_reals_first_fft(rsi, 64, 128*64); \
 	} \
@@ -4788,7 +4743,6 @@ for(unsigned int loop=64; loop != 0; loop--){ \
 	x4cl_eight_reals_last_unfft(rsi, 64, 64*64, 128*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 
 /* Common inverse FFT code for lengths 1280, 1536, 1792, 2048 */ \
@@ -5135,7 +5089,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 512 */ \
 	/*	do 64 macros each processing 40 data values */ \
 	\
-	xcopy_7_words; \
 	xfive_reals_fft_preload;		/* Preload const1s for five real macros */ \
 	for(unsigned int loop=64; loop != 0; loop--){ \
 		s5cl_five_reals_first_fft(rsi, 64, 64*64); \
@@ -5201,7 +5154,6 @@ for(unsigned int loop=64; loop != 0; loop--){ \
 	x5cl_five_reals_last_unfft(rsi, 64, 64*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -5239,7 +5191,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 512 */ \
 	/*	do 128 macros each processing 24 data values */ \
 	\
-	xcopy_7_words; \
 	xsix_reals_fft_preload; \
 	for(unsigned int loop=128; loop != 0; loop--){ \
 		s3cl_six_reals_first_fft(rsi, 64, 128*64); \
@@ -5330,7 +5281,6 @@ for(unsigned int loop=128; loop != 0; loop--){ \
 	x3cl_six_reals_last_unfft(rsi, 64, 128*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -5487,7 +5437,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 512 */ \
 	/*	do 64 macros each processing 56 data values */ \
 	\
-	xcopy_7_words; \
 	xseven_reals_fft_preload; \
 	for(unsigned int loop=64; loop != 0; loop--){ \
 		s7cl_seven_reals_first_fft(rsi, 64, 64*64); \
@@ -5574,7 +5523,6 @@ for(unsigned int loop=64; loop != 0; loop--){ \
 	x7cl_seven_reals_last_unfft(rsi, 64, 64*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -5610,7 +5558,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 512 */ \
 	/*	do 256 macros each processing 16 data values */ \
 	\
-	xcopy_7_words; \
 	for(unsigned int loop=256; loop != 0; loop--){ \
 		s2cl_eight_reals_first_fft(rsi, 64, 256*64); \
 	} \
@@ -5698,7 +5645,6 @@ for(unsigned int loop=128; loop != 0; loop--){ \
 	x4cl_eight_reals_last_unfft(rsi, 64, 128*64, 256*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 
 
@@ -6190,7 +6136,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 1024 */ \
 	/*	do 128 macros each processing 40 data values */ \
 	\
-	xcopy_7_words; \
 	xfive_reals_fft_preload;		/* Preload const1s for five real macros */ \
 	for(unsigned int loop=128; loop != 0; loop--){ \
 		s5cl_five_reals_first_fft(rsi, 64, 128*64); \
@@ -6256,7 +6201,6 @@ for(unsigned int loop=128; loop != 0; loop--){ \
 	x5cl_five_reals_last_unfft(rsi, 64, 128*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -6293,7 +6237,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 1024 */ \
 	/*	do 256 macros each processing 24 data values */ \
 	\
-	xcopy_7_words; \
 	xsix_reals_fft_preload; \
 	for(unsigned int loop=256; loop != 0; loop--){ \
 		s3cl_six_reals_first_fft(rsi, 64, 256*64); \
@@ -6383,7 +6326,6 @@ for(unsigned int loop=256; loop != 0; loop--){ \
 	x3cl_six_reals_last_unfft(rsi, 64, 256*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -6538,7 +6480,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 1024 */ \
 	/*	do 128 macros each processing 56 data values */ \
 	\
-	xcopy_7_words; \
 	xseven_reals_fft_preload; \
 	for(unsigned int loop=128; loop != 0; loop--){ \
 		s7cl_seven_reals_first_fft(rsi, 64, 128*64); \
@@ -6625,7 +6566,6 @@ for(unsigned int loop=128; loop != 0; loop--){ \
 	x7cl_seven_reals_last_unfft(rsi, 64, 128*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -6661,7 +6601,6 @@ if(g->ffttype == 4) { \
 	/*	distance between fft data elements is 1024 */ \
 	/*	do 512 macros each processing 16 data values */ \
 	\
-	xcopy_7_words; \
 	for(unsigned int loop=512; loop != 0; loop--){ \
 		s2cl_eight_reals_first_fft(rsi, 64, 512*64); \
 	} \
@@ -6749,7 +6688,6 @@ for(unsigned int loop=256; loop != 0; loop--){ \
 	x4cl_eight_reals_last_unfft(rsi, 64, 256*64, 512*64); \
 } \
 \
-xsub_7_words(128); \
 xfft_3_ret; \
 \
 \
@@ -7481,65 +7419,4 @@ rsi = (uintptr_t)g->DESTARG;/* Next source pointer */ \
 \
 /* This ends the common inverse FFT code */ \
 \
-/* ret; */ \
-
-
-/* When doing zero-padded FFTs, the 7 words around the halfway point must */
-/* be copied for later processing.  This macro does that. */
-
-#define xcopy_7_words \
-if(g->ZERO_PADDED_FFT != 0)	/* Is this a zero-padded FFT? */ \
-{	uintptr_t rax; \
-	xmm0[0] = f64ptr(rsi+rbx+32);	/* Copy 1st word above half-way point */ \
-	f64ptr(rsi-64) = xmm0[0]; \
-	xmm1[0] = f64ptr(rsi+rbx+48);	/* Copy 2nd word */ \
-	f64ptr(rsi-56) = xmm1[0]; \
-	xmm2[0] = f64ptr(rsi+rbx+96);	/* Copy 3rd word */ \
-	f64ptr(rsi-48) = xmm2[0]; \
-	xmm3[0] = f64ptr(rsi+rbx+112);	/* Copy 4th word */ \
-	f64ptr(rsi-40) = xmm3[0]; \
-	rax = rsi + g->HIGH_WORD1_OFFSET;	/* Copy 1st word below half-way */ \
-	xmm0[0] = f64ptr(rax+rbx); \
-	f64ptr(rsi-72) = xmm0[0]; \
-	rax = rsi + g->HIGH_WORD2_OFFSET;	/* Copy 2nd word below */ \
-	xmm1[0] = f64ptr(rax+rbx); \
-	f64ptr(rsi-80) = xmm1[0]; \
-	rax = rsi + g->HIGH_WORD3_OFFSET;	/* Copy 3rd word below */ \
-	xmm2[0] = f64ptr(rax+rbx); \
-	f64ptr(rsi-88) = xmm2[0]; \
-}
-
-/* When doing zero-padded FFTs, the multiplied 7 words around the halfway point */
-/* must be subtracted from the bottom of the FFT.  This must be done before */
-/* normalization multiplies the FFT data by k.  This macro does that and also */
-/* initializes the sumout reg. */
-
-#define xsub_7_words(dist4) \
-	xmm7[1] = xmm7[0] = 0;	/* Clear sumout */ \
-if(g->ZERO_PADDED_FFT != 0) {	/* Is this a zero-padded FFT? */ \
-	rsi = (uintptr_t)g->DESTARG; \
-	xmm0 = xptr(rsi);		/* Subtract 1st, 2nd word */ \
-	xmm1 = *(vec2f64*)&g->ZPAD0_6[0];		/* Load ZPAD data */ \
-	xmm1 *= g->u.xmm.XMM_NORM012_FF;	/* Scale by FFTLEN/2 */ \
-	xmm0 -= xmm1; \
-	xmm7 /*+=*/ = xmm1;		/* Adjust sumout */ /* skip add, zeroed from above */ \
-	xptr(rsi) = xmm0; \
-	xmm0 = xptr(rsi+64);		/* Subtract 3rd, 4th word */ \
-	xmm1 = *(vec2f64*)&g->ZPAD0_6[2];		/* Load ZPAD data */ \
-	xmm1 *= g->u.xmm.XMM_NORM012_FF;	/* Scale by FFTLEN/2 */ \
-	xmm0 -= xmm1; \
-	xmm7 += xmm1;		/* Adjust sumout */ \
-	xptr(rsi+64) = xmm0; \
-	xmm0 = xptr(rsi+dist4);	/* Subtract 5th, 6th word */ \
-	xmm1 = *(vec2f64*)&g->ZPAD0_6[4];		/* Load ZPAD data */ \
-	xmm1 *= g->u.xmm.XMM_NORM012_FF;	/* Scale by FFTLEN/2 */ \
-	xmm0 -= xmm1; \
-	xmm7 += xmm1;		/* Adjust sumout */ \
-	xptr(rsi+dist4) = xmm0; \
-	xmm0[0] = f64ptr(rsi+dist4+64);	/* Subtract 7th word */ \
-	xmm1[0] = g->ZPAD0_6[6];		/* Load ZPAD data */ \
-	xmm1[0] *= g->u.xmm.XMM_NORM012_FF[0];	/* Scale by FFTLEN/2 */ \
-	xmm0[0] -= xmm1[0]; \
-	xmm7[0] += xmm1[0];		/* Adjust sumout */ \
-	f64ptr(rsi+dist4+64) = xmm0[0]; \
-}
+/* ret; */

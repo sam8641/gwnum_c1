@@ -1,3 +1,10 @@
+/* Contains converted code in gcdhlp(...)  */
+/* Copyright 1995-2026 Mersenne Research, Inc.  All rights reserved */
+/* Author:  George Woltman */
+/*  Email: woltman@alum.mit.edu */
+
+/*  This file implements helper routines for the ECM code */
+
 #include "inttypes.h"
 #include <stdio.h>
 
@@ -195,7 +202,6 @@ void mulsubhlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val1
 const double TWOPOW32 = 4294967296.0;		 // 2^32
 const double BIGVAL = 9223372036854775808.0;  // 2^63
 
-#if 1
 int gcdhlp (uint32_t ulen, uint32_t *udata, uint32_t vlen, uint32_t *vdata, unsigned int *struct_ptr) {
 	//puts("         gcdhlp");
 	uint64_t rax,rcx,rdx,rbx,rsi,rbp,r8,r9,r10,r12,r13,r14,r15,t;
@@ -208,10 +214,10 @@ int gcdhlp (uint32_t ulen, uint32_t *udata, uint32_t vlen, uint32_t *vdata, unsi
 		goto noload;
 	r15 = vdata[c-1];	/* V[Ulen-1] */
 
+	noload:
 	if(c == 1)			/* Are there more words to shift */
 		goto simple;			/* bits from? */
 
-	noload:
 	r14 <<= 32;
 	r15 <<= 32;
 	rax = udata[c-2];	/* U[Ulen-2] */
@@ -392,4 +398,3 @@ int gcdhlp (uint32_t ulen, uint32_t *udata, uint32_t vlen, uint32_t *vdata, unsi
 
 	return r9 != 0 ? 1 : 0;
 }
-#endif
