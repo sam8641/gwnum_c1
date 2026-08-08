@@ -1525,7 +1525,7 @@ ttp(xmm1 *= xmm13);		/* value4 = rounded value * two-to-phi	;51-56	;29-33 */ \
 #if 0 // 0: 32bit   1: 64bit
 #define xnorm_2d_zpad_pre_loop
 #define xnorm_2d_zpad_post_loop
-#define xnorm_2d_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1) \
+#define xnorm_2d_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1, CARRY0, CARRY1, CARRY2, CARRY3) \
 	xmm2 = xptr(rbx+rax);	/* col two-to-minus-phi */ \
 ttp(xmm2 *= xptr(rdx+0*32));	/* Mul by grp two-to-minus-phi */ \
 	xmm0 = xptr(rsi);		/* Load values1 */ \
@@ -1533,9 +1533,9 @@ ttp(xmm2 *= xptr(rdx+0*32));	/* Mul by grp two-to-minus-phi */ \
 	xmm0 *= xmm2;		/* Mul by fudged col two-to-minus-phi */ \
 	xmm1 *= xmm2;		/* Mul by fudged col two-to-minus-phi */ \
 \
-	xmm3 = xptr(rbp+2*16);	/* Add in previous high FFT data */ \
+	xmm3 = CARRY2;	/* Add in previous high FFT data */ \
 	split_lower_zpad_word(echk, base2, sse4, xmm0, xmm3, xmm4, rax); \
-	xptr(rbp+2*16) = xmm3; \
+	CARRY2 = xmm3; \
 \
 no##const1(xmm0 = g->u.xmm.XMM_K_LO); \
 const1(	xmm0 = g->u.xmm.XMM_K_TIMES_MULCONST_LO); \
@@ -1545,7 +1545,7 @@ khi(const1(xmm5 = g->u.xmm.XMM_K_TIMES_MULCONST_HI)); \
 khi(no##base2(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax))); /* Non-base2 rounding needs shifted carry */ \
 khi(	xmm5 *= xmm4); \
 ;  \
-		xmm0 += xptr(rbp+0*16);	/* x1 = values + carry */ \
+		xmm0 += CARRY0;	/* x1 = values + carry */ \
 \
 c1(	xmm1 *= g->u.xmm.XMM_MINUS_C);	/* Do one mul before split rather than two after split */ \
 \
@@ -1565,7 +1565,7 @@ ttp(xmm5 = xptr(rbx+256+rax));	/* col two-to-phi */ \
 ttp(xmm5 *= xptr(rdx+0*32+16));	/* new value1 = val * grp two-to-phi */ \
 ttp(rax = u8ptr(rdi+1));	/* Load next big vs. little flags */ \
 ttp(xmm0 *= xmm5);		/* new value1 *= fudged col two-to-phi */ \
-	xptr(rbp+0*16) = xmm4;	/* Save carry */ \
+	CARRY0 = xmm4;	/* Save carry */ \
 	xptr(rsi) = xmm0;		/* Save new value1 */ \
 \
 	xmm3 = xptr(rbx+rax);	/* col two-to-minus-phi */ \
@@ -1575,9 +1575,9 @@ ttp(xmm3 *= xptr(rdx+1*32));	/* Mul by grp two-to-minus-phi */ \
 	xmm5 *= xmm3;		/* Mul by fudged col two-to-minus-phi */ \
 	xmm1 *= xmm3;		/* Mul by fudged col two-to-minus-phi */ \
 \
-	xmm3 = xptr(rbp+3*16);	/* Add in previous high FFT data */ \
+	xmm3 = CARRY3;	/* Add in previous high FFT data */ \
 	split_lower_zpad_word(echk, base2, sse4, xmm5, xmm3, xmm2, rax); \
-	xptr(rbp+3*16) = xmm3; \
+	CARRY3 = xmm3; \
 \
 no##const1(xmm0 = g->u.xmm.XMM_K_LO); \
 const1(	xmm0 = g->u.xmm.XMM_K_TIMES_MULCONST_LO); \
@@ -1587,7 +1587,7 @@ khi(const1(xmm5 = g->u.xmm.XMM_K_TIMES_MULCONST_HI)); \
 khi(no##base2(xmm5 *= xptr2(g->u.xmm.XMM_LIMIT_INVERSE,rax))); /* Non-base2 rounding needs shifted carry */ \
 khi(	xmm5 *= xmm2); \
 \
-		xmm0 += xptr(rbp+1*16);	/* x2 = values + carry */ \
+		xmm0 += CARRY1;	/* x2 = values + carry */ \
 \
 c1(	xmm1 *= g->u.xmm.XMM_MINUS_C);	/* Do one mul before split rather than two after split */ \
 \
@@ -1607,7 +1607,7 @@ ttp(xmm3 = xptr(rbx+256+rax));	/* col two-to-phi */ \
 ttp(xmm3 *= xptr(rdx+1*32+16));	/* new value2 = val * grp two-to-phi */ \
 ttp(rax = u8ptr(rdi+4));	/* Load next big vs. little flags */ \
 ttp(xmm0 *= xmm3);		/* new value2 *= fudged col two-to-phi */ \
-	xptr(rbp+1*16) = xmm2;	/* Save carry */ \
+	CARRY1 = xmm2;	/* Save carry */ \
 	xptr(rsi+1*16) = xmm0;	/* Save new value2 */ \
 \
 	xmm1 -= xmm1;		/* new high values = zero */ \

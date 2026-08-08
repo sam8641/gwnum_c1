@@ -142,7 +142,8 @@ void gwxadd2(struct gwasm_data *__restrict g) {
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi;
-	uintptr_t loopcount1, loopcount2, loopcount3, loopcount4, loopcount5, saved_reg;
+	unsigned int loopcount1, loopcount2, loopcount3, loopcount4, loopcount5;
+	uintptr_t saved_reg;
 	rcx = (uintptr_t)g->SRCARG;
 	rdx = (uintptr_t)g->SRC2ARG;
 	rsi = (uintptr_t)g->DESTARG;
@@ -231,7 +232,8 @@ void gwxsub2(struct gwasm_data *__restrict g) {
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi;
-	uintptr_t loopcount1, loopcount2, loopcount3, loopcount4, loopcount5, saved_reg;
+	unsigned int loopcount1, loopcount2, loopcount3, loopcount4, loopcount5;
+	uintptr_t saved_reg;
 	rcx = (uintptr_t)g->SRCARG;
 	rdx = (uintptr_t)g->SRC2ARG;
 	rsi = (uintptr_t)g->DESTARG;
@@ -331,8 +333,8 @@ void gwxaddsub2(struct gwasm_data *__restrict g) {
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4,t5,t6,t7,t8;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi;
-	uintptr_t loopcount1, loopcount2, loopcount3, loopcount4, loopcount5, saved_reg;
-	uintptr_t saved_grp_ptr, saved_dest1_ptr, saved_dest2_ptr;
+	unsigned int loopcount1, loopcount2, loopcount3, loopcount4, loopcount5;
+	uintptr_t saved_grp_ptr, saved_dest1_ptr, saved_dest2_ptr, saved_reg;
 	rcx = (uintptr_t)g->SRCARG;
 	rdx = (uintptr_t)g->SRC2ARG;
 	rsi = (uintptr_t)g->DESTARG;
@@ -441,12 +443,11 @@ void gwxaddsub2(struct gwasm_data *__restrict g) {
 
 
 
-
 void gwxmuls2(struct gwasm_data *__restrict g) {
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4,t5;
 	uintptr_t rax, rcx, rbx, rbp, rdi, rsi, tmp1;
-	uintptr_t loopcount1, loopcount2, loopcount3, loopcount4, loopcount5;
+	unsigned int loopcount1, loopcount2, loopcount3, loopcount4, loopcount5;
 	uintptr_t saved_sec_biglit, saved_blk_start, saved_blk_biglit;
 	rsi = (uintptr_t)g->DESTARG;
 	rbp = (uintptr_t)g->norm_grp_mults;
@@ -510,10 +511,11 @@ void gwxmuls2(struct gwasm_data *__restrict g) {
 							rdi += g->normval2;
 						}while(--loopcount4);
 					}
-				} // chunk done
+				} // Chunk done
 				rsi += 128;
 				loopcount3--;
 			}while(loopcount3);
+			// Block done
 			tmp1 = rsi; rsi = saved_blk_start; saved_blk_start = tmp1;
 			tmp1 = rdi; rdi = saved_blk_biglit; saved_blk_biglit = tmp1;
 			rbx = (uintptr_t)g->norm_col_mults;
@@ -531,6 +533,7 @@ void gwxmuls2(struct gwasm_data *__restrict g) {
 			}
 			loopcount2--;
 		}while(loopcount2);
+		// Section done
 		tmp1 = rsi; rsi = (intptr_t)g->norm_ptr1; g->norm_ptr1 = (void*)tmp1;
 		tmp1 = rbp; rbp = (intptr_t)g->norm_ptr2; g->norm_ptr2 = (void*)tmp1;
 		tmp1 = rdi; rdi = saved_sec_biglit; saved_sec_biglit = tmp1;
@@ -542,6 +545,7 @@ void gwxmuls2(struct gwasm_data *__restrict g) {
 		}
 		rsi = (intptr_t)g->norm_ptr1;
 		rbp = (intptr_t)g->norm_ptr2;
+		rdi = saved_sec_biglit;
 		loopcount1 >>= 11;
 	}while(loopcount1 != 0);
 	rsi = (uintptr_t)g->DESTARG;
@@ -549,6 +553,4 @@ void gwxmuls2(struct gwasm_data *__restrict g) {
 	xmm7 = t3;
 	final_carries_2(g, rsi, xmm6, xmm7);
 }
-
-
 

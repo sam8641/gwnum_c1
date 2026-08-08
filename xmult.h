@@ -1,6 +1,6 @@
 #pragma once
 
-typedef void (*NORMRTN_pass1)(struct gwasm_data *__restrict g, vec2f64 xmm7);
+typedef void (*NORMRTN_pass1)(struct gwasm_data *__restrict g);
 
 #ifndef FROM_ASM
 void xgw_carries(struct gwasm_data *__restrict g);
@@ -25,7 +25,7 @@ __asm__ volatile ( \
 	"xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15" ); \
 }
 #else  // To converted C code.
-#define xfft_3_ret (*(NORMRTN_pass1)g->NORMRTN)(g, xmm7);
+#define xfft_3_ret (*(NORMRTN_pass1)g->NORMRTN)(g);
 #endif
 
 #define set_data_prefetch_ptrs

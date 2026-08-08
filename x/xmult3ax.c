@@ -38,7 +38,8 @@ void gwxadd3(struct gwasm_data *__restrict g) {
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi, tmp1;
-	uintptr_t loopcount1, loopcount2, loopcount3, loopcount4, loopcount5, saved_blk_start, saved_blk_biglit;
+	unsigned int loopcount1, loopcount2, loopcount3, loopcount4, loopcount5;
+	uintptr_t saved_blk_start, saved_blk_biglit;
 	rcx = (uintptr_t)g->SRCARG;
 	rdx = (uintptr_t)g->SRC2ARG;
 	rsi = (uintptr_t)g->DESTARG;
@@ -129,7 +130,8 @@ void gwxsub3(struct gwasm_data *__restrict g) {
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi, tmp1;
-	uintptr_t loopcount1, loopcount2, loopcount3, loopcount4, loopcount5, saved_blk_start, saved_blk_biglit;
+	unsigned int loopcount1, loopcount2, loopcount3, loopcount4, loopcount5;
+	uintptr_t saved_blk_start, saved_blk_biglit;
 	rcx = (uintptr_t)g->SRCARG;
 	rdx = (uintptr_t)g->SRC2ARG;
 	rsi = (uintptr_t)g->DESTARG;
@@ -220,7 +222,7 @@ void gwxaddsub3(struct gwasm_data *__restrict g) {
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4,t5,t6,t7,t8;
 	uintptr_t rax, rcx, rdx, rbx, rbp, rdi, rsi, tmp1;
-	uintptr_t loopcount1, loopcount2, loopcount3, loopcount4, loopcount5;
+	unsigned int loopcount1, loopcount2, loopcount3, loopcount4, loopcount5;
 	uintptr_t saved_blk_start, saved_blk_start2, saved_blk_biglit;
 	rcx = (uintptr_t)g->SRCARG;
 	rdx = (uintptr_t)g->SRC2ARG;
@@ -331,7 +333,8 @@ void gwxmuls3(struct gwasm_data *__restrict g) {
 	vec2f64 xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 	vec2f64 t1,t2,t3,t4,t5;
 	uintptr_t rax, rcx, rbp, rdi, rsi, tmp1;
-	uintptr_t loopcount1, loopcount2, loopcount3, loopcount4, loopcount5, saved_blk_start, saved_blk_biglit;
+	unsigned int loopcount1, loopcount2, loopcount3, loopcount4, loopcount5;
+	uintptr_t saved_blk_start, saved_blk_biglit;
 	rsi = (uintptr_t)g->DESTARG;
 	rbp = (uintptr_t)g->norm_grp_mults;
 	rdi = (uintptr_t)g->norm_biglit_array;
