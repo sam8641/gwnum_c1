@@ -74,6 +74,20 @@ static inline uint64_t _udiv128(uint64_t high, uint64_t low, uint64_t d, uint64_
 #endif
 }
 
+static inline int64_t div_u64_by_s64(uint64_t n, int64_t d) {
+#ifdef __x86_64__
+	uint64_t q;
+	__asm__ ("xor %%edx,%%edx\n idivq %[v]": "=a" (q) : [v] "r" (d), "a" (n) : "cc", "%rdx");
+	return q;
+#else
+	// Good for ARM64 CPU.
+	int64_t r1 = n / (uint64_t)(d < 0 ? -d : d);
+	if(d < 0)
+		r1 = -r1;
+	return r1;
+#endif
+}
+
 #endif
 
 #if 1
@@ -204,17 +218,15 @@ const double BIGVAL = 9223372036854775808.0;  // 2^63
 
 int gcdhlp (uint32_t ulen, uint32_t *udata, uint32_t vlen, uint32_t *vdata, unsigned int *struct_ptr) {
 	//puts("         gcdhlp");
-	uint64_t rax,rcx,rdx,rbx,rsi,rbp,r8,r9,r10,r12,r13,r14,r15,t;
+	uint64_t rax,rcx,rbx,rsi,rbp,r8,r9,r10,r12,r13,r14,r15,t;
 	uintptr_t c = ulen;
 	r8 = vlen;
 
 	r14 = udata[c-1];	/* U[Ulen-1] */
 	r15 = 0;		/* Zero V in case U and V not same len */
-	if(c != vlen)			/* Load top V word if U and V same len */
-		goto noload;
-	r15 = vdata[c-1];	/* V[Ulen-1] */
+	if(c == vlen)			/* Load top V word if U and V same len */
+		r15 = vdata[c-1];	/* V[Ulen-1] */
 
-	noload:
 	if(c == 1)			/* Are there more words to shift */
 		goto simple;			/* bits from? */
 
@@ -266,8 +278,7 @@ int gcdhlp (uint32_t ulen, uint32_t *udata, uint32_t vlen, uint32_t *vdata, unsi
 	rax -= r9;			/* U-B */
 	rcx = r15;		/* V */
 	rcx += r13;		/* V+D */
-	rdx = 0;
-	rax = _div128(rdx, rax, rcx, (int64_t*)&rdx);	/* Q = (U-B)/(V+D) */
+	rax = div_u64_by_s64(rax, (intptr_t)rcx);	/* Q = (U-B)/(V+D) */
 
 	rcx = r15;		/* V */
 	rcx -= r10;		/* V-C */
@@ -308,8 +319,7 @@ int gcdhlp (uint32_t ulen, uint32_t *udata, uint32_t vlen, uint32_t *vdata, unsi
 	rax -= r8;			/* U-A */
 	rcx = r15;		/* V */
 	rcx += r10;		/* V+C */
-	rdx = 0;
-	rax = _div128(rdx, rax, rcx, (int64_t*)&rdx); /* Q = (U-A)/(V+C) */
+	rax = div_u64_by_s64(rax, (intptr_t)rcx); /* Q = (U-A)/(V+C) */
 
 	rcx = r15;		/* V */
 	rcx -= r13;		/* V-D */
@@ -360,7 +370,6 @@ int gcdhlp (uint32_t ulen, uint32_t *udata, uint32_t vlen, uint32_t *vdata, unsi
 	rsi <<= 32;
 	sloop:
 	rax = r14;		/* U */
-	rdx = 0;
 	rax = rax / r15;			/* Q = U/V */
 	rbp = rax;		/* Copy Q */
 
