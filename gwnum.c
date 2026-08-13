@@ -5936,10 +5936,10 @@ void auxiliary_thread (void *arg)
 				asm_data->u.zmm.ZMM_K_TIMES_MULCONST_LO = main_thread_asm_data->u.zmm.ZMM_K_TIMES_MULCONST_LO;
 				asm_data->u.zmm.ZMM_MINUS_C_TIMES_MULCONST = main_thread_asm_data->u.zmm.ZMM_MINUS_C_TIMES_MULCONST;
 			} else if (gwdata->cpu_flags & CPU_AVX) {
-				memcpy (asm_data->u.ymm.YMM_MULCONST, main_thread_asm_data->u.ymm.YMM_MULCONST, 4 * sizeof (double));
-				memcpy (asm_data->u.ymm.YMM_K_TIMES_MULCONST_HI, main_thread_asm_data->u.ymm.YMM_K_TIMES_MULCONST_HI, 4 * sizeof (double));
-				memcpy (asm_data->u.ymm.YMM_K_TIMES_MULCONST_LO, main_thread_asm_data->u.ymm.YMM_K_TIMES_MULCONST_LO, 4 * sizeof (double));
-				memcpy (asm_data->u.ymm.YMM_MINUS_C_TIMES_MULCONST, main_thread_asm_data->u.ymm.YMM_MINUS_C_TIMES_MULCONST, 4 * sizeof (double));
+				memcpy_vec4f64 (asm_data->u.ymm.YMM_MULCONST, main_thread_asm_data->u.ymm.YMM_MULCONST);
+				memcpy_vec4f64 (asm_data->u.ymm.YMM_K_TIMES_MULCONST_HI, main_thread_asm_data->u.ymm.YMM_K_TIMES_MULCONST_HI);
+				memcpy_vec4f64 (asm_data->u.ymm.YMM_K_TIMES_MULCONST_LO, main_thread_asm_data->u.ymm.YMM_K_TIMES_MULCONST_LO);
+				memcpy_vec4f64 (asm_data->u.ymm.YMM_MINUS_C_TIMES_MULCONST, main_thread_asm_data->u.ymm.YMM_MINUS_C_TIMES_MULCONST);
 			} else if (gwdata->cpu_flags & CPU_SSE2) {
 				memcpy_vec2f64 (asm_data->u.xmm.XMM_MULCONST, main_thread_asm_data->u.xmm.XMM_MULCONST);
 				memcpy_vec2f64 (asm_data->u.xmm.XMM_K_TIMES_MULCONST_HI, main_thread_asm_data->u.xmm.XMM_K_TIMES_MULCONST_HI);
@@ -5950,7 +5950,7 @@ void auxiliary_thread (void *arg)
 			if (gwdata->cpu_flags & CPU_AVX512F) {
 				asm_data->MAXERR = main_thread_asm_data->MAXERR;
 			} else if (gwdata->cpu_flags & CPU_AVX) {
-				memcpy (asm_data->u.ymm.YMM_MAXERR, &main_thread_asm_data->u.ymm.YMM_MAXERR, 4 * sizeof (double));
+				memcpy_vec4f64 (asm_data->u.ymm.YMM_MAXERR, main_thread_asm_data->u.ymm.YMM_MAXERR);
 			} else {
 				memcpy_vec2f64 (asm_data->u.xmm.XMM_MAXERR, main_thread_asm_data->u.xmm.XMM_MAXERR);
 			}

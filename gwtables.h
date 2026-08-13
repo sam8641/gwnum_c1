@@ -7,11 +7,24 @@
 #ifndef _GWTABLES_H
 #define _GWTABLES_H
 
+
+#if defined(__has_attribute) && __has_attribute(vector_size)
 typedef double __attribute__ ((vector_size (16))) vec2f64;
 typedef double __attribute__ ((vector_size (32))) vec4f64;
 typedef double __attribute__ ((vector_size (64))) vec8f64;
-
 #define memcpy_vec2f64(A,B) A = B
+#define memcpy_vec4f64(A,B) A = B
+
+#elif defined(_MSC_VER) /* Some compatibility */
+typedef __declspec(align(16)) double vec2f64[2];
+typedef __declspec(align(32)) double vec4f64[4];
+typedef __declspec(align(64)) double vec8f64[8];
+#define memcpy_vec2f64(A,B) memcpy(A,B,16)
+#define memcpy_vec4f64(A,B) memcpy(A,B,32)
+
+#else
+#error vector_size
+#endif
 
 /* This is a C library.  If used in a C++ program, don't let the C++ */
 /* compiler mangle names. */
@@ -36,7 +49,7 @@ extern "C" {
 /* occupy a full cache line (or two cache lines in 64-bit mode).  Similarly, */
 /* doubles are grouped in blocks of 8. 32-bit ints are grouped in blocks of 16. */
 
-struct __attribute__ ((aligned(64))) gwasm_data {
+struct gwasm_data {
 	void	*DESTARG;		/* Function destination argument */
 	intptr_t DIST_TO_FFTSRCARG;	/* SRCARG - DESTARG */
 	intptr_t DIST_TO_MULSRCARG;	/* SRC2ARG - DESTARG */
@@ -290,66 +303,66 @@ struct __attribute__ ((aligned(64))) gwasm_data {
 		void	*YMM_CARRIES_ROUTINE;	/* Routine to propagate carries in 2-pass FFTs */
 		void	*YMM_PASS2_ROUTINE;	/* Routine to call to do pass 2 of the FFT */
 
-		double	YMM_MINUS_C[4];	/* -c stored as double */
-		double	YMM_HALF[4];	/* 0.5 */
+		vec4f64	YMM_MINUS_C;	/* -c stored as double */
+		vec4f64	YMM_HALF;	/* 0.5 */
 
-		double	YMM_SQRTHALF[4];/* SQRT(0.5) */
+		vec4f64	YMM_SQRTHALF;/* SQRT(0.5) */
 		double	YMM_UNUSED_DOUBLES1[4];
 
-		double	YMM_MAXERR[4];	/* Used in normalization macros */
+		vec4f64	YMM_MAXERR;	/* Used in normalization macros */
 		int32_t	YMM_ABSVAL[8];	/* Used to compute absolute values */
 
-		double	YMM_BIGVAL[4];	/* Used to round double to integer */
-		double	YMM_BIGBIGVAL[4]; /* Used to round to big word multiple */
+		vec4f64	YMM_BIGVAL;	/* Used to round double to integer */
+		vec4f64	YMM_BIGBIGVAL; /* Used to round to big word multiple */
 
-		double	YMM_NORM012_FF[4]; /* Used in xnorm012 macros (FFTLEN/2) */
-		double	YMM_MULCONST[4];
+		vec4f64	YMM_NORM012_FF; /* Used in xnorm012 macros (FFTLEN/2) */
+		vec4f64	YMM_MULCONST;
 
-		double	YMM_K_LO[4];	/* k, bottom big word bits */
-		double	YMM_K_HI[4];	/* k, top bits */
+		vec4f64	YMM_K_LO;	/* k, bottom big word bits */
+		vec4f64	YMM_K_HI;	/* k, top bits */
 
-		double	YMM_K_TIMES_MULCONST_LO[4]; /* k*mulconst, low big word bits */
-		double	YMM_K_TIMES_MULCONST_HI[4]; /* k*mulconst, top bits */
+		vec4f64	YMM_K_TIMES_MULCONST_LO; /* k*mulconst, low big word bits */
+		vec4f64	YMM_K_TIMES_MULCONST_HI; /* k*mulconst, top bits */
 
-		double	YMM_MINUS_C_TIMES_MULCONST[4];
+		vec4f64	YMM_MINUS_C_TIMES_MULCONST;
 		char	YMM_FIRST_BIGLIT_VALUES[8];  /* Big/lit flags for first 8 values */
 		double	UNUSED_YMM_DOUBLES[3];
 
 		double	UNUSED_YMM_DOUBLES2[4];
-		double	YMM_P924_P383[4]; /* Used in FMA versions of 16-reals macros */
+		vec4f64	YMM_P924_P383; /* Used in FMA versions of 16-reals macros */
 
-		double	YMM_P383[4];	/* Used in one-pass negacyclic premultipliers */
-		double	YMM_P924[4];	/* and in the sixteen reals macros. */
+		vec4f64	YMM_P383;	/* Used in one-pass negacyclic premultipliers */
+		vec4f64	YMM_P924;	/* and in the sixteen reals macros. */
 
-		double	YMM_P866[4];	/* Used in three-complex building blocks */
-		double	YMM_P588[4];	/* Used in five-complex and 20-reals macros */
+		vec4f64	YMM_P866;	/* Used in three-complex building blocks */
+		vec4f64	YMM_P588;	/* Used in five-complex and 20-reals macros */
 
-		double	YMM_P309[4];
-		double	YMM_P809[4];
+		vec4f64	YMM_P309;
+		vec4f64	YMM_P809;
 
-		double	YMM_P951[4];
-		double	YMM_P618[4];	/* only used in FMA version of five-complex and 20-reals (.588/.951) */
+		vec4f64	YMM_P951;
+		vec4f64	YMM_P618;	/* only used in FMA version of five-complex and 20-reals (.588/.951) */
 
-		double	YMM_ONE[4];	/* 1.0 - used in FMA3 code */
-		double	YMM_TWO[4];	/* 2.0 */
+		vec4f64	YMM_ONE;	/* 1.0 - used in FMA3 code */
+		vec4f64	YMM_TWO;	/* 2.0 */
 
-		double	YMM_P975[4];	/* Used in radix-28 macros */
-		double	YMM_P782[4];
+		vec4f64	YMM_P975;	/* Used in radix-28 macros */
+		vec4f64	YMM_P782;
 
-		double	YMM_P623[4];
-		double	YMM_P901[4];
+		vec4f64	YMM_P623;
+		vec4f64	YMM_P901;
 
-		double	YMM_P434[4];
-		double	YMM_P223[4];
+		vec4f64	YMM_P434;
+		vec4f64	YMM_P223;
 
-		double	YMM_P975_P434[4];	/* only used in FMA version of radix-28 macros */
-		double	YMM_P782_P434[4];
+		vec4f64	YMM_P975_P434;	/* only used in FMA version of radix-28 macros */
+		vec4f64	YMM_P782_P434;
 
-		double	YMM_P259[4];		/* Used in radix-24 macros */
-		double	YMM_P966[4];
+		vec4f64	YMM_P259;		/* Used in radix-24 macros */
+		vec4f64	YMM_P966;
 
-		double	YMM_P259_P707[4];	/* Used in FMA versions of radix-24 macros */
-		double	YMM_P966_P707[4];
+		vec4f64	YMM_P259_P707;	/* Used in FMA versions of radix-24 macros */
+		vec4f64	YMM_P966_P707;
 
 		double	YMM_LIMIT_BIGMAX[192];	/* Normalization constants */
 		double	YMM_LIMIT_INVERSE[192];
