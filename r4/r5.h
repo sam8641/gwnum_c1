@@ -2894,7 +2894,7 @@
 \
 
 #define r5_x5cl_20_reals_first_fft_scratch(srcreg,srcinc,d1,screg) \
-	r5_x5cl_20_reals_first_fft_cmn(srcreg,0,srcinc,d1,screg); \
+	r5_x5cl_20_reals_first_fft_cmn(srcreg,srcinc,d1,screg); \
 \
 \
 /* To calculate a 20-reals FFT, we calculate 20 complex values in a brute force way (using a shorthand notation): */ \
@@ -2958,29 +2958,33 @@
 /* Store intermediate results in g->u.xmm.XMM_COL_MULTS (an 8KB buffer used in normalization) */ \
 \
 
+#if 1
 #define r5_x5cl_20_reals_first_fft_cmn_preload \
-\
-\
 
-#define r5_x5cl_20_reals_first_fft_cmn(srcreg,off,srcinc,d1,screg) \
+#define r5_x5cl_20_reals_first_fft_cmn(srcreg,srcinc,d1,screg) { \
+	vec2f64 *sd0 = (vec2f64*)(srcreg); \
+	vec2f64 *sd1 = (vec2f64*)(srcreg+d1*1); \
+	vec2f64 *sd2 = (vec2f64*)(srcreg+d1*2); \
+	vec2f64 *sd3 = (vec2f64*)(srcreg+d1*3); \
+	vec2f64 *sd4 = (vec2f64*)(srcreg+d1*4); \
 	vec2f64 t0,t1,t2,t3,t4,t5,t6,t7,t8,t9; \
 	vec2f64 t10,t11,t12,t13,t14,t15,t16,t17; \
 \
 ;	/* Do the odd columns for the real results */ \
 \
-	xmm0 = xptr(srcreg+off+4*d1);		/* r5 */ \
-	xmm0 += xptr(srcreg+off+d1+48);	/* r5+r17 */ \
+	xmm0 = sd4[0];			/* r5 */ \
+	xmm0 += sd1[3];			/* r5+r17 */ \
 	xmm1 = CONST2_P309; \
 	xmm1 *= xmm0;			/* .309(r5+r17) */ \
 	xmm4 = CONST2_P809; \
 	xmm4 *= xmm0;			/* .809(r5+r17) */ \
-	xmm2 = xptr(srcreg+off);		/* r1 */ \
+	xmm2 = sd0[0];			/* r1 */ \
 	xmm0 += xmm2;			/* r1+(r5+r17) */ \
 	xmm1 += xmm2;			/* r1+.309(r5+r17) */ \
 	xmm2 -= xmm4;			/* r1-.809(r5+r17) */ \
 \
-	xmm4 = xptr(srcreg+off+3*d1+16);	/* r9 */ \
-	xmm4 += xptr(srcreg+off+2*d1+32);	/* r9+r13 */ \
+	xmm4 = sd3[1];			/* r9 */ \
+	xmm4 += sd2[2];			/* r9+r13 */ \
 	xmm5 = CONST2_P809; \
 	xmm5 *= xmm4;			/* .809(r9+r13) */ \
 	xmm0 += xmm4;			/* r1+(r5+r17)+(r9+r13) */ \
@@ -2988,19 +2992,19 @@
 	xmm1 -= xmm5;			/* r1+.309(r5+r17)-.809(r9+r13) */ \
 	xmm2 += xmm4;			/* r1-.809(r5+r17)+.309(r9+r13) */ \
 \
-	xmm5 = xptr(srcreg+off+2*d1);		/* r3 */ \
-	xmm5 += xptr(srcreg+off+3*d1+48);	/* r3+r19 */ \
+	xmm5 = sd2[0];			/* r3 */ \
+	xmm5 += sd3[3];			/* r3+r19 */ \
 	xmm6 = CONST2_P809; \
 	xmm6 *= xmm5;			/* .809(r3+r19) */ \
 	xmm7 = CONST2_P309; \
 	xmm7 *= xmm5;			/* .309(r3+r19) */ \
-	xmm4 = xptr(srcreg+off+32);		/* r11 */ \
+	xmm4 = sd0[2];			/* r11 */ \
 	xmm5 += xmm4;			/* (r3+r19)+r11 */ \
 	xmm6 -= xmm4;			/* .809(r3+r19)-r11 */ \
 	xmm7 += xmm4;			/* .309(r3+r19)+r11 */ \
 \
-	xmm4 = xptr(srcreg+off+d1+16);	/* r7 */ \
-	xmm4 += xptr(srcreg+off+4*d1+32);	/* r7+r15 */ \
+	xmm4 = sd1[1];			/* r7 */ \
+	xmm4 += sd4[2];			/* r7+r15 */ \
 	xmm3 = CONST2_P309; \
 	xmm3 *= xmm4;			/* .309(r7+r15) */ \
 	xmm5 += xmm4;			/* (r3+r19)+(r7+r15)+r11 */ \
@@ -3020,19 +3024,19 @@
 	xmm2 -= xmm7;			/* Real odd-cols row #4 */ \
 	xmm7 += xmm4;			/* Real odd-cols row #3 */ \
 \
-	t4 =xmm0;		/* Real #6 */ \
-	xptr(srcreg) = xmm5;			/* Final real #1A */ \
-	t3 = xmm1;		/* Real odd-cols row #5 */ \
-	t0 = xmm6;		/* Real odd-cols row #2 */ \
-	t2 = xmm2;		/* Real odd-cols row #4 */ \
-	t1 = xmm7;		/* Real odd-cols row #3 */ \
+	t4 =xmm0;				/* Real #6 */ \
+	sd0[0] = xmm5;			/* Final real #1A */ \
+	t3 = xmm1;				/* Real odd-cols row #5 */ \
+	t0 = xmm6;				/* Real odd-cols row #2 */ \
+	t2 = xmm2;				/* Real odd-cols row #4 */ \
+	t1 = xmm7;				/* Real odd-cols row #3 */ \
 \
 ;	/* Do the even columns for the real results */ \
 \
-	xmm7 = xptr(srcreg+off+d1);		/* r2 */ \
-	xmm7 += xptr(srcreg+off+4*d1+48);	/* r2+r20 */ \
-	xmm0 = xptr(srcreg+off+4*d1+16);	/* r10 */ \
-	xmm0 += xptr(srcreg+off+d1+32);	/* r10+r12 */ \
+	xmm7 = sd1[0];			/* r2 */ \
+	xmm7 += sd4[3];			/* r2+r20 */ \
+	xmm0 = sd4[1];			/* r10 */ \
+	xmm0 += sd1[2];			/* r10+r12 */ \
 	xmm2 = xmm7; \
 	xmm7 -= xmm0;			/* (r2+r20)-(r10+r12) */ \
 	xmm0 += xmm2;			/* (r2+r20)+(r10+r12) */ \
@@ -3041,10 +3045,10 @@
 	xmm6 *= xmm7;			/* .951((r2+r20)-(r10+r12)) */ \
 	xmm7 *= CONST2_P588;			/* .588((r2+r20)-(r10+r12)) */ \
 \
-	xmm4 = xptr(srcreg+off+3*d1);		/* r4 */ \
-	xmm4 += xptr(srcreg+off+2*d1+48);	/* r4+r18 */ \
-	xmm1 = xptr(srcreg+off+2*d1+16);	/* r8 */ \
-	xmm1 += xptr(srcreg+off+3*d1+32);	/* r8+r14 */ \
+	xmm4 = sd3[0];			/* r4 */ \
+	xmm4 += sd2[3];			/* r4+r18 */ \
+	xmm1 = sd2[1];			/* r8 */ \
+	xmm1 += sd3[2];			/* r8+r14 */ \
 	xmm2 = xmm4; \
 	xmm4 -= xmm1;			/* (r4+r18)-(r8+r14) */ \
 	xmm1 += xmm2;			/* (r4+r18)+(r8+r14) */ \
@@ -3055,8 +3059,8 @@
 	xmm4 *= CONST2_P951;			/* .951((r4+r18)-(r8+r14)) */ \
 	xmm7 -= xmm4;			/* .588((r2+r20)-(r10+r12))-.951((r4+r18)-(r8+r14)) */ \
 \
-	t5 = xmm6;		/* Save real even-cols row #2 */ \
-	t6 = xmm7;		/* Save real even-cols row #4 */ \
+	t5 = xmm6;				/* Save real even-cols row #2 */ \
+	t6 = xmm7;				/* Save real even-cols row #4 */ \
 \
 	xmm4 = CONST2_P809; \
 	xmm4 *= xmm0;			/* .809((r2+r20)+(r10+r12)) */ \
@@ -3070,24 +3074,24 @@
 	xmm1 *= CONST2_P809;			/* .809((r4+r18)+(r8+r14)) */ \
 	xmm5 -= xmm1;			/* .309((r2+r20)+(r10+r12))-.809((r4+r18)+(r8+r14)) */ \
 \
-	xmm2 = xptr(srcreg+off+16);		/* r6 */ \
-	xmm3 = xptr(srcreg+off+48);		/* r16 */ \
+	xmm2 = sd0[1];			/* r6 */ \
+	xmm3 = sd0[3];			/* r16 */ \
 	xmm2 -= xmm3;			/* r6-r16 */ \
-	xmm3 += xptr(srcreg+off+16);		/* r6+r16 */ \
+	xmm3 += sd0[1];			/* r6+r16 */ \
 	xmm0 += xmm3;			/* ((r2+r20)+(r10+r12))+((r4+r18)+(r8+r14))+(r6+r16) */ \
 	xmm4 -= xmm3;			/* .809((r2+r20)+(r10+r12))-.309((r4+r18)+(r8+r14))-(r6+r16) */ \
 	xmm5 += xmm3;			/* .309((r2+r20)+(r10+r12))-.809((r4+r18)+(r8+r14))+(r6+r16) */ \
 \
-	xptr(srcreg+16) = xmm0;		/* Save final real #1B (real even-cols row #1) */ \
-	t7 = xmm4;	/* Save real even-cols row #3 */ \
-	t8 = xmm5;	/* Save real even-cols row #5 */ \
+	sd0[1] = xmm0;			/* Save final real #1B (real even-cols row #1) */ \
+	t7 = xmm4;				/* Save real even-cols row #3 */ \
+	t8 = xmm5;				/* Save real even-cols row #5 */ \
 \
 ;	/* Do the even columns for the imaginary results */ \
 \
-	xmm0 = xptr(srcreg+off+d1);		/* r2 */ \
-	xmm0 -= xptr(srcreg+off+4*d1+48);	/* r2-r20 */ \
-	xmm4 = xptr(srcreg+off+4*d1+16);	/* r10 */ \
-	xmm4 -= xptr(srcreg+off+d1+32);	/* r10-r12 */ \
+	xmm0 = sd1[0];			/* r2 */ \
+	xmm0 -= sd4[3];			/* r2-r20 */ \
+	xmm4 = sd4[1];			/* r10 */ \
+	xmm4 -= sd1[2];			/* r10-r12 */ \
 	xmm3 = xmm4; \
 	xmm4 += xmm0;			/* (r2-r20)+(r10-r12) */ \
 	xmm0 -= xmm3;			/* (r2-r20)-(r10-r12) */ \
@@ -3101,10 +3105,10 @@
 	xmm6 += xmm2;			/* .309((r2-r20)+(r10-r12))+(r6-r16) */ \
 	xmm7 -= xmm2;			/* .809((r2-r20)+(r10-r12))-(r6-r16) */ \
 \
-	xmm1 = xptr(srcreg+off+3*d1);		/* r4 */ \
-	xmm1 -= xptr(srcreg+off+2*d1+48);	/* r4-r18 */ \
-	xmm3 = xptr(srcreg+off+2*d1+16);	/* r8 */ \
-	xmm3 -= xptr(srcreg+off+3*d1+32);	/* r8-r14 */ \
+	xmm1 = sd3[0];			/* r4 */ \
+	xmm1 -= sd2[3];			/* r4-r18 */ \
+	xmm3 = sd2[1];			/* r8 */ \
+	xmm3 -= sd3[2];			/* r8-r14 */ \
 	xmm2 = xmm3; \
 	xmm3 += xmm1;			/* (r4-r18)+(r8-r14) */ \
 	xmm1 -= xmm2;			/* (r4-r18)-(r8-r14) */ \
@@ -3122,12 +3126,12 @@
 \
 	xmm5 = CONST2_P588; \
 	xmm5 *= xmm0;			/* .588((r2-r20)-(r10-r12)) */ \
-	xmm0 *= CONST2_P951;			/* .951((r2-r20)-(r10-r12)) */ \
+	xmm0 *= CONST2_P951;	/* .951((r2-r20)-(r10-r12)) */ \
 \
 	xmm3 = CONST2_P951; \
 	xmm3 *= xmm1;			/* .951((r4-r18)-(r8-r14)) */ \
 	xmm5 += xmm3;			/* .588((r2-r20)-(r10-r12))+.951((r4-r18)-(r8-r14)) */ \
-	xmm1 *= CONST2_P588;			/* .588((r4-r18)-(r8-r14)) */ \
+	xmm1 *= CONST2_P588;	/* .588((r4-r18)-(r8-r14)) */ \
 	xmm0 -= xmm1;			/* .951((r2-r20)-(r10-r12))-.588((r4-r18)-(r8-r14)) */ \
 \
 	t12 = xmm5;	/* Save imag even-cols row #3 */ \
@@ -3135,31 +3139,31 @@
 \
 ;	/* Do the odd columns for the imag results */ \
 \
-	xmm1 = xptr(srcreg+off+4*d1);		/* r5 */ \
-	xmm1 -= xptr(srcreg+off+1*d1+48);	/* r5-r17 */ \
+	xmm1 = sd4[0];			/* r5 */ \
+	xmm1 -= sd1[3];			/* r5-r17 */ \
 	xmm0 = CONST2_P951; \
 	xmm0 *= xmm1;			/* .951(r5-r17) */ \
-	xmm1 *= CONST2_P588;			/* .588(r5-r17) */ \
+	xmm1 *= CONST2_P588;	/* .588(r5-r17) */ \
 \
-	xmm7 = xptr(srcreg+off+3*d1+16);	/* r9 */ \
-	xmm7 -= xptr(srcreg+off+2*d1+32);	/* r9-r13 */ \
+	xmm7 = sd3[1];			/* r9 */ \
+	xmm7 -= sd2[2];			/* r9-r13 */ \
 	xmm5 = CONST2_P588; \
 	xmm5 *= xmm7;			/* .588(r9-r13) */ \
-	xmm7 *= CONST2_P951;			/* .951(r9-r13) */ \
+	xmm7 *= CONST2_P951;	/* .951(r9-r13) */ \
 	xmm0 += xmm5;			/* .951(r5-r17)+.588(r9-r13) */ \
 	xmm1 -= xmm7;			/* .588(r5-r17)-.951(r9-r13) */ \
 \
-	xmm7 = xptr(srcreg+off+2*d1);		/* r3 */ \
-	xmm7 -= xptr(srcreg+off+3*d1+48);	/* r3-r19 */ \
+	xmm7 = sd2[0];			/* r3 */ \
+	xmm7 -= sd3[3];			/* r3-r19 */ \
 	xmm6 = CONST2_P588; \
 	xmm6 *= xmm7;			/* .588(r3-r19) */ \
-	xmm7 *= CONST2_P951;			/* .951(r3-r19) */ \
+	xmm7 *= CONST2_P951;	/* .951(r3-r19) */ \
 \
-	xmm2 = xptr(srcreg+off+d1+16);	/* r7 */ \
-	xmm2 -= xptr(srcreg+off+4*d1+32);	/* r7-r15 */ \
+	xmm2 = sd1[1];			/* r7 */ \
+	xmm2 -= sd4[2];			/* r7-r15 */ \
 	xmm5 = CONST2_P951; \
 	xmm5 *= xmm2;			/* .951(r7-r15) */ \
-	xmm2 *= CONST2_P588;			/* .588(r7-r15) */ \
+	xmm2 *= CONST2_P588;	/* .588(r7-r15) */ \
 	xmm6 += xmm5;			/* .588(r3-r19)+.951(r7-r15) */ \
 	xmm7 -= xmm2;			/* .951(r3-r19)-.588(r7-r15) */ \
 \
@@ -3178,14 +3182,14 @@
 \
 ;	/* Now combine the even and odd columns then do the post-multiply by twiddle factors. */ \
 \
-	xmm0 = t0;		/* Real odd-cols row #2 */ \
-	xmm1 = t5;		/* Real even-cols row #2 */ \
+	xmm0 = t0;				/* Real odd-cols row #2 */ \
+	xmm1 = t5;				/* Real even-cols row #2 */ \
 	xmm0 -= xmm1;			/* Real #10 */ \
-	xmm1 += t0;		/* Real #2 */ \
-	xmm2 = t10;	/* Imag even-cols row #2 */ \
-	xmm3 = t14;	/* Imag odd-cols row #2 */ \
+	xmm1 += t0;				/* Real #2 */ \
+	xmm2 = t10;				/* Imag even-cols row #2 */ \
+	xmm3 = t14;				/* Imag odd-cols row #2 */ \
 	xmm2 -= xmm3;			/* Imag #10 */ \
-	xmm3 += t10;	/* Imag #2 */ \
+	xmm3 += t10;			/* Imag #2 */ \
 \
 	xmm5 = xptr(screg+8*32+16);		/* cosine/sine */ \
 	xmm7 = xmm0;			/* Copy R10 */ \
@@ -3193,30 +3197,30 @@
 	xmm0 -= xmm2;			/* A10 = A10 - I10 */ \
 	xmm2 *= xmm5;			/* B10 = I10 * cosine/sine */ \
 	xmm2 += xmm7;			/* B10 = B10 + R10 */ \
-	xmm0 *= xptr(screg+8*32);		/* A10 = A10 * sine (final R10) */ \
-	xmm2 *= xptr(screg+8*32);		/* B10 = B10 * sine (final I10) */ \
-	xptr(srcreg+4*d1+32) = xmm0;		/* Save final R10 */ \
-	xptr(srcreg+4*d1+48) = xmm2;		/* Save final I10 */ \
+	xmm0 *= xptr(screg+8*32);	/* A10 = A10 * sine (final R10) */ \
+	xmm2 *= xptr(screg+8*32);	/* B10 = B10 * sine (final I10) */ \
+	sd4[2] = xmm0;			/* Save final R10 */ \
+	sd4[3] = xmm2;			/* Save final I10 */ \
 \
-	xmm4 = xptr(screg+16);		/* cosine/sine */ \
+	xmm4 = xptr(screg+16);	/* cosine/sine */ \
 	xmm6 = xmm1;			/* Copy R2 */ \
 	xmm1 *= xmm4;			/* A2 = R2 * cosine/sine */ \
 	xmm1 -= xmm3;			/* A2 = A2 - I2 */ \
 	xmm3 *= xmm4;			/* B2 = I2 * cosine/sine */ \
 	xmm3 += xmm6;			/* B2 = B2 + R2 */ \
-	xmm1 *= xptr(screg);			/* A2 = A2 * sine (final R2) */ \
-	xmm3 *= xptr(screg);			/* B2 = B2 * sine (final I2) */ \
-	xptr(srcreg+32) = xmm1;		/* Save final R2 */ \
-	xptr(srcreg+48) = xmm3;		/* Save final I2 */ \
+	xmm1 *= xptr(screg);	/* A2 = A2 * sine (final R2) */ \
+	xmm3 *= xptr(screg);	/* B2 = B2 * sine (final I2) */ \
+	sd0[2] = xmm1;			/* Save final R2 */ \
+	sd0[3] = xmm3;			/* Save final I2 */ \
 \
-	xmm0 = t1;		/* Real odd-cols row #3 */ \
-	xmm1 = t7;	/* Real even-cols row #3 */ \
+	xmm0 = t1;				/* Real odd-cols row #3 */ \
+	xmm1 = t7;				/* Real even-cols row #3 */ \
 	xmm0 -= xmm1;			/* Real #9 */ \
-	xmm1 += t1;		/* Real #3 */ \
-	xmm2 = t12;	/* Imag even-cols row #3 */ \
-	xmm3 = t15;	/* Imag odd-cols row #3 */ \
+	xmm1 += t1;				/* Real #3 */ \
+	xmm2 = t12;				/* Imag even-cols row #3 */ \
+	xmm3 = t15;				/* Imag odd-cols row #3 */ \
 	xmm2 -= xmm3;			/* Imag #9 */ \
-	xmm3 += t12;	/* Imag #3 */ \
+	xmm3 += t12;			/* Imag #3 */ \
 \
 	xmm5 = xptr(screg+7*32+16);		/* cosine/sine */ \
 	xmm7 = xmm0;			/* Copy R9 */ \
@@ -3224,12 +3228,12 @@
 	xmm0 -= xmm2;			/* A9 = A9 - I9 */ \
 	xmm2 *= xmm5;			/* B9 = I9 * cosine/sine */ \
 	xmm2 += xmm7;			/* B9 = B9 + R9 */ \
-	xmm0 *= xptr(screg+7*32);		/* A9 = A9 * sine (final R9) */ \
-	xmm2 *= xptr(screg+7*32);		/* B9 = B9 * sine (final I9) */ \
-	xptr(srcreg+4*d1) = xmm0;		/* Save final R9 */ \
-	xptr(srcreg+4*d1+16) = xmm2;		/* Save final I9 */ \
+	xmm0 *= xptr(screg+7*32);	/* A9 = A9 * sine (final R9) */ \
+	xmm2 *= xptr(screg+7*32);	/* B9 = B9 * sine (final I9) */ \
+	sd4[0] = xmm0;			/* Save final R9 */ \
+	sd4[1] = xmm2;			/* Save final I9 */ \
 \
-	xmm4 = xptr(screg+32+16);		/* cosine/sine */ \
+	xmm4 = xptr(screg+32+16);	/* cosine/sine */ \
 	xmm6 = xmm1;			/* Copy R3 */ \
 	xmm1 *= xmm4;			/* A3 = R3 * cosine/sine */ \
 	xmm1 -= xmm3;			/* A3 = A3 - I3 */ \
@@ -3237,17 +3241,17 @@
 	xmm3 += xmm6;			/* B3 = B3 + R3 */ \
 	xmm1 *= xptr(screg+32);		/* A3 = A3 * sine (final R3) */ \
 	xmm3 *= xptr(screg+32);		/* B3 = B3 * sine (final I3) */ \
-	xptr(srcreg+d1) = xmm1;		/* Save final R3 */ \
-	xptr(srcreg+d1+16) = xmm3;		/* Save final I3 */ \
+	sd1[0] = xmm1;			/* Save final R3 */ \
+	sd1[1] = xmm3;			/* Save final I3 */ \
 \
-	xmm0 = t2;		/* Real odd-cols row #4 */ \
-	xmm1 = t6;		/* Real even-cols row #4 */ \
+	xmm0 = t2;				/* Real odd-cols row #4 */ \
+	xmm1 = t6;				/* Real even-cols row #4 */ \
 	xmm0 -= xmm1;			/* Real #8 */ \
-	xmm1 += t2;		/* Real #4 */ \
-	xmm2 = t11;	/* Imag even-cols row #4 */ \
-	xmm3 = t16;	/* Imag odd-cols row #4 */ \
+	xmm1 += t2;				/* Real #4 */ \
+	xmm2 = t11;				/* Imag even-cols row #4 */ \
+	xmm3 = t16;				/* Imag odd-cols row #4 */ \
 	xmm2 -= xmm3;			/* Imag #8 */ \
-	xmm3 += t11;	/* Imag #4 */ \
+	xmm3 += t11;			/* Imag #4 */ \
 \
 	xmm5 = xptr(screg+6*32+16);		/* cosine/sine */ \
 	xmm7 = xmm0;			/* Copy R8 */ \
@@ -3255,10 +3259,10 @@
 	xmm0 -= xmm2;			/* A8 = A8 - I8 */ \
 	xmm2 *= xmm5;			/* B8 = I8 * cosine/sine */ \
 	xmm2 += xmm7;			/* B8 = B8 + R8 */ \
-	xmm0 *= xptr(screg+6*32);		/* A8 = A8 * sine (final R8) */ \
-	xmm2 *= xptr(screg+6*32);		/* B8 = B8 * sine (final I8) */ \
-	xptr(srcreg+3*d1+32) = xmm0;		/* Save final R8 */ \
-	xptr(srcreg+3*d1+48) = xmm2;		/* Save final I8 */ \
+	xmm0 *= xptr(screg+6*32);	/* A8 = A8 * sine (final R8) */ \
+	xmm2 *= xptr(screg+6*32);	/* B8 = B8 * sine (final I8) */ \
+	sd3[2] = xmm0;			/* Save final R8 */ \
+	sd3[3] = xmm2;			/* Save final I8 */ \
 \
 	xmm4 = xptr(screg+2*32+16);		/* cosine/sine */ \
 	xmm6 = xmm1;			/* Copy R4 */ \
@@ -3268,17 +3272,17 @@
 	xmm3 += xmm6;			/* B4 = B4 + R4 */ \
 	xmm1 *= xptr(screg+2*32);		/* A4 = A4 * sine (final R4) */ \
 	xmm3 *= xptr(screg+2*32);		/* B4 = B4 * sine (final I4) */ \
-	xptr(srcreg+d1+32) = xmm1;		/* Save final R4 */ \
-	xptr(srcreg+d1+48) = xmm3;		/* Save final I4 */ \
+	sd1[2] = xmm1;			/* Save final R4 */ \
+	sd1[3] = xmm3;			/* Save final I4 */ \
 \
-	xmm0 = t3;		/* Real odd-cols row #5 */ \
-	xmm1 = t8;	/* Real even-cols row #5 */ \
+	xmm0 = t3;				/* Real odd-cols row #5 */ \
+	xmm1 = t8;				/* Real even-cols row #5 */ \
 	xmm0 -= xmm1;			/* Real #7 */ \
-	xmm1 += t3;		/* Real #5 */ \
-	xmm2 = t13;	/* Imag even-cols row #5 */ \
-	xmm3 = t17;	/* Imag odd-cols row #5 */ \
+	xmm1 += t3;				/* Real #5 */ \
+	xmm2 = t13;				/* Imag even-cols row #5 */ \
+	xmm3 = t17;				/* Imag odd-cols row #5 */ \
 	xmm2 -= xmm3;			/* Imag #7 */ \
-	xmm3 += t13;	/* Imag #5 */ \
+	xmm3 += t13;			/* Imag #5 */ \
 \
 	xmm5 = xptr(screg+5*32+16);		/* cosine/sine */ \
 	xmm7 = xmm0;			/* Copy R7 */ \
@@ -3288,8 +3292,8 @@
 	xmm2 += xmm7;			/* B7 = B7 + R7 */ \
 	xmm0 *= xptr(screg+5*32);		/* A7 = A7 * sine (final R7) */ \
 	xmm2 *= xptr(screg+5*32);		/* B7 = B7 * sine (final I7) */ \
-	xptr(srcreg+3*d1) = xmm0;		/* Save final R7 */ \
-	xptr(srcreg+3*d1+16) = xmm2;		/* Save final I7 */ \
+	sd3[0] = xmm0;			/* Save final R7 */ \
+	sd3[1] = xmm2;			/* Save final I7 */ \
 \
 	xmm4 = xptr(screg+3*32+16);		/* cosine/sine */ \
 	xmm6 = xmm1;			/* Copy R5 */ \
@@ -3299,96 +3303,100 @@
 	xmm3 += xmm6;			/* B5 = B5 + R5 */ \
 	xmm1 *= xptr(screg+3*32);		/* A5 = A5 * sine (final R5) */ \
 	xmm3 *= xptr(screg+3*32);		/* B5 = B5 * sine (final I5) */ \
-	xptr(srcreg+2*d1) = xmm1;		/* Save final R5 */ \
-	xptr(srcreg+2*d1+16) = xmm3;		/* Save final I5 */ \
+	sd2[0] = xmm1;			/* Save final R5 */ \
+	sd2[1] = xmm3;			/* Save final I5 */ \
 \
-	xmm0 = t4;		/* Real #6 */ \
-	xmm2 = t9;	/* Imag #6 */ \
+	xmm0 = t4;				/* Real #6 */ \
+	xmm2 = t9;				/* Imag #6 */ \
 	xmm5 = xptr(screg+4*32+16);		/* cosine/sine */ \
 	xmm0 *= xmm5;			/* A6 = R6 * cosine/sine */ \
 	xmm0 -= xmm2;			/* A6 = A6 - I6 */ \
 	xmm2 *= xmm5;			/* B6 = I6 * cosine/sine */ \
-	xmm2 += t4;		/* B6 = B6 + R6 */ \
+	xmm2 += t4;				/* B6 = B6 + R6 */ \
 	xmm0 *= xptr(screg+4*32);		/* A6 = A6 * sine (final R6) */ \
 	xmm2 *= xptr(screg+4*32);		/* B6 = B6 * sine (final I6) */ \
-	xptr(srcreg+2*d1+32) = xmm0;		/* Save final R6 */ \
-	xptr(srcreg+2*d1+48) = xmm2;		/* Save final I6 */ \
+	sd2[2] = xmm0;			/* Save final R6 */ \
+	sd2[3] = xmm2;			/* Save final I6 */ \
 \
 	srcreg += srcinc; \
-\
-\
-/* 64-bit version of the above using more registers for better instruction scheduling */ \
+}
 
-#if 0 //DEF X86_64;
-\
+/* 64-bit version of the above using more registers for better instruction scheduling */
+#else //DEF X86_64;
 
 #define r5_x5cl_20_reals_first_fft_cmn_preload \
-	xmm15 = CONST2_P309; \
-	xmm14 = CONST2_P809; \
-\
-\
+/*	xmm15 = CONST2_P309;*/ \
+/*	xmm14 = CONST2_P809;*/ \
 
-#define r5_x5cl_20_reals_first_fft_cmn(srcreg,off,srcinc,d1,screg) \
+#define r5_x5cl_20_reals_first_fft_cmn(srcreg,srcinc,d1,screg) { \
+	vec2f64 *sd0 = (vec2f64*)(srcreg); \
+	vec2f64 *sd1 = (vec2f64*)(srcreg+d1*1); \
+	vec2f64 *sd2 = (vec2f64*)(srcreg+d1*2); \
+	vec2f64 *sd3 = (vec2f64*)(srcreg+d1*3); \
+	vec2f64 *sd4 = (vec2f64*)(srcreg+d1*4); \
+	vec2f64 xmm8,xmm9,xmm10,xmm11,xmm12,xmm13,xmm14; \
+	vec2f64 t0,t1,t2,t3,t4,t5,t6,t7,t8,t9; \
+	vec2f64 t10,t11,t12,t13,t14,t15; \
 \
 ;	/* Do the odd columns */ \
 \
-	xmm0 = xptr(srcreg+off+4*d1);		/* r5 */ \
-	xmm1 = xptr(srcreg+off+d1+48);	/* r17 */ \
+	xmm0 = sd4[0];			/* r5 */ \
+	xmm1 = sd1[3];			/* r17 */ \
 	xmm2 = xmm0;			/* Copy r5 */ \
 	xmm0 += xmm1;			/* r5+r17				; 1-3 */ \
 \
-	xmm3 = xptr(srcreg+off+3*d1+16);	/* r9 */ \
-	xmm4 = xptr(srcreg+off+2*d1+32);	/* r13 */ \
+	xmm3 = sd3[1];			/* r9 */ \
+	xmm4 = sd2[2];			/* r13 */ \
 	xmm5 = xmm3;			/* Copy r9 */ \
 	xmm3 += xmm4;			/* r9+r13				; 2-4 */ \
 \
 	xmm2 -= xmm1;			/* r5-r17				; 3-5			avail 1 */ \
 \
 	xmm5 -= xmm4;			/* r9-r13				; 4-6			avail 1,4 */ \
-	xmm6 = xmm15; \
+	xmm6 = CONST2_P309; \
 	xmm6 *= xmm0;			/* .309(r5+r17)				; 4-8 */ \
 \
-	xmm7 = xptr(srcreg+off+2*d1);		/* r3 */ \
-	xmm8 = xptr(srcreg+off+3*d1+48);	/* r19 */ \
+	xmm7 = sd2[0];			/* r3 */ \
+	xmm8 = sd3[3];			/* r19 */ \
 	xmm9 = xmm7;			/* Copy r3 */ \
 	xmm7 += xmm8;			/* r3+r19				; 5-7 */ \
-	xmm10 = xmm14; \
+	xmm10 = CONST2_P809; \
 	xmm10 *= xmm3;			/* .809(r9+r13)				; 5-9 */ \
 \
-	xmm11 = xptr(srcreg+off+d1+16);	/* r7 */ \
-	xmm12 = xptr(srcreg+off+4*d1+32);	/* r15 */ \
+	xmm11 = sd1[1];			/* r7 */ \
+	xmm12 = sd4[2];			/* r15 */ \
 	xmm1 = xmm11;			/* Copy r7 */ \
 	xmm11 += xmm12;			/* r7+r15				; 6-8			avail 4 */ \
-	xmm4 = xmm14; \
+	xmm4 = CONST2_P809; \
 	xmm4 *= xmm0;			/* .809(r5+r17)				; 6-10			avail none */ \
 \
 	xmm9 -= xmm8;			/* r3-r19				; 7-9 */ \
-	xmm8 = xmm15; \
+	xmm8 = CONST2_P309; \
 	xmm8 *= xmm3;			/* .309(r9+r13)				; 7-11 */ \
 \
 	xmm1 -= xmm12;			/* r7-r15				; 8-10 */ \
-	xmm12 = xmm14; \
+	xmm12 = CONST2_P809; \
 	xmm12 *= xmm7;			/* .809(r3+r19)				; 8-12 */ \
 \
 	xmm0 += xmm3;			/* (r5+r17)+(r9+r13)			; 9-11 */ \
-	xmm3 = xmm15; \
+	xmm3 = CONST2_P309; \
 	xmm3 *= xmm11;			/* .309(r7+r15)				; 9-13 */ \
 \
 	xmm6 -= xmm10;			/* .309(r5+r17)-.809(r9+r13)		; 10-12 */ \
-	xmm10 = xmm15; \
+	xmm10 = CONST2_P309; \
 	xmm10 *= xmm7;			/* .309(r3+r19)				; 10-14 */ \
 \
 	xmm7 += xmm11;			/* (r3+r19)+(r7+r15)			; 11-13 */ \
-	xmm11 *= xmm14;			/* .809(r7+r15)				; 11-15 */ \
+	xmm11 *= CONST2_P809;			/* .809(r7+r15)				; 11-15 */ \
 \
 	xmm8 -= xmm4;			/* -.809(r5+r17)+.309(r9+r13)		; 12-14			avail 4 */ \
 \
-	xmm4 = xptr(srcreg+off);		/* r1 */ \
+	xmm4 = sd0[0];			/* r1 */ \
 	xmm0 += xmm4;			/* r1+(r5+r17)+(r9+r13)			; 13-15			avail none */ \
 \
 	xmm12 -= xmm3;			/* .809(r3+r19)-.309(r7+r15)		; 14-16			avail 3 */ \
 \
-	xmm3 = xptr(srcreg+off+32);		/* r11 */ \
+	xmm3 = sd0[2];			/* r11 */ \
 	xmm7 += xmm3;			/* (r3+r19)+(r7+r15)+r11		; 15-17			avail none */ \
 \
 	xmm10 -= xmm11;			/* .309(r3+r19)-.809(r7+r15)		; 16-18 */ \
@@ -3418,45 +3426,45 @@
 	xmm4 *= xmm1;			/* .951(r7-r15)				; 23-27 (18) */ \
 \
 	xmm2 -= xmm5;			/* .588(r5-r17)-.951(r9-r13)		; 24-26			avail 5 storable 0,7 */ \
-	xmm9 *= CONST2_P951;			/* .951(r3-r19)				; 24-28 (17) */ \
-	t4 =xmm0;		/* Real #6				; 24			avail 5,0 storable 7 */ \
+	xmm9 *= CONST2_P951;	/* .951(r3-r19)				; 24-28 (17) */ \
+	t4 =xmm0;				/* Real #6				; 24			avail 5,0 storable 7 */ \
 \
 	xmm5 = xmm6;			/* Copy 1-mod-4-cols row #2 */ \
 	xmm6 -= xmm12;			/* Real odd-cols row #5			; 25-27	(22)		avail 0 storable 7,6 */ \
-	xmm1 *= CONST2_P588;			/* .588(r7-r15)				; 25-29 (19) */ \
-	xptr(srcreg) = xmm7;			/* Final real #1A			; 25			avail 0,7 storable 6 */ \
+	xmm1 *= CONST2_P588;	/* .588(r7-r15)				; 25-29 (19) */ \
+	sd0[0] = xmm7;			/* Final real #1A			; 25			avail 0,7 storable 6 */ \
 \
 	xmm12 += xmm5;			/* Real odd-cols row #2			; 26-28			avail 5,0,7 storable 6,12 */ \
-	xmm0 = xptr(srcreg+off+d1);		/* r2 */ \
+	xmm0 = sd1[0];			/* r2 */ \
 \
 	xmm5 = xmm8;			/* Copy 1-mod-4-cols row #3 */ \
 	xmm8 -= xmm10;			/* Real odd-cols row #4			; 27-29			avail 7 storable 6,12,8 */ \
-	xmm7 = xptr(srcreg+off+4*d1+48);	/* r20 */ \
+	xmm7 = sd4[3];			/* r20 */ \
 \
 	xmm10 += xmm5;			/* Real odd-cols row #3			; 28-30			avail 5 storable 6,12,8,10 */ \
-	t3 = xmm6;		/* Real odd-cols row #5			; 28			avail 5,6 storable 12,8,10 */ \
-	xmm6 = xptr(srcreg+off+4*d1+16);	/* r10 */ \
+	t3 = xmm6;				/* Real odd-cols row #5			; 28			avail 5,6 storable 12,8,10 */ \
+	xmm6 = sd4[1];			/* r10 */ \
 \
 	xmm3 += xmm4;			/* .588(r3-r19)+.951(r7-r15)		; 29-31			avail 5,4 storable 12,8,10 */ \
-	t0 = xmm12;		/* Real odd-cols row #2			; 29			avail 5,4,12 storable 8,10 */ \
-	xmm4 = xptr(srcreg+off+d1+32);	/* r12 */ \
+	t0 = xmm12;				/* Real odd-cols row #2			; 29			avail 5,4,12 storable 8,10 */ \
+	xmm4 = sd1[2];			/* r12 */ \
 \
 	xmm9 -= xmm1;			/* .951(r3-r19)-.588(r7-r15)		; 30-32			avail 5,1,12 storable 8,10 */ \
-	t2 = xmm8;		/* Real odd-cols row #4			; 30			avail 5,1,12,8 storable 10 */ \
-	xmm12 = xptr(srcreg+off+3*d1);	/* r4 */ \
+	t2 = xmm8;				/* Real odd-cols row #4			; 30			avail 5,1,12,8 storable 10 */ \
+	xmm12 = sd3[0];			/* r4 */ \
 \
 ;	/* Start the even columns (the first part will overlap with the last few odd column calculations) */ \
 \
 	xmm5 = xmm0;			/* Copy r2 */ \
 	xmm0 += xmm7;			/* r2+r20							; 1-3	avail 1,8 storable 10 */ \
-	t1 = xmm10;	/* Real odd-cols row #3			; 31			 */ \
+	t1 = xmm10;				/* Real odd-cols row #3			; 31			 */ \
 \
 	xmm1 = xmm6;			/* Copy r10 */ \
 	xmm6 += xmm4;			/* r10+r12							; 2-4	avail 8,10 */ \
 \
 	xmm10 = xmm11;			/* Copy 1-mod-4 imag odd-cols row #2 */ \
 	xmm11 += xmm3;			/* Imag odd-cols row #2			; 33-35 (32) */ \
-	xmm8 = xptr(srcreg+off+2*d1+48);	/* r18 */ \
+	xmm8 = sd2[3];			/* r18 */ \
 \
 	xmm3 -= xmm10;			/* Imag odd-cols row #5			; 34-36 */ \
 \
@@ -3464,19 +3472,19 @@
 	xmm2 += xmm9;			/* Imag odd-cols row #3			; 35-37 (33) */ \
 \
 	xmm9 -= xmm10;			/* Imag odd-cols row #4			; 36-38 */ \
-	t14 = xmm11;	/* Imag odd-cols row #2			; 36				avail 10,11 */ \
-	xmm11 = xptr(srcreg+off+2*d1+16);	/* r8 */ \
+	t14 = xmm11;			/* Imag odd-cols row #2			; 36				avail 10,11 */ \
+	xmm11 = sd2[1];			/* r8 */ \
 \
 	xmm10 = xmm12;			/* Copy r4 */ \
 	xmm12 += xmm8;			/* r4+r18							; 3-5 */ \
-	t12 = xmm3;	/* Imag odd-cols row #5			; 37				avail 3 */ \
-	xmm3 = xptr(srcreg+off+3*d1+32);	/* r14 */ \
+	t12 = xmm3;				/* Imag odd-cols row #5			; 37				avail 3 */ \
+	xmm3 = sd3[2];			/* r14 */ \
 \
-	t15 = xmm2;	/* Imag odd-cols row #3			; 38 */ \
+	t15 = xmm2;				/* Imag odd-cols row #3			; 38 */ \
 	xmm2 = xmm11;			/* Copy r8 */ \
 	xmm11 += xmm3;			/* r8+r14							; 4-6	avail none */ \
 \
-	t10 = xmm9;	/* Imag odd-cols row #4			; 39 */ \
+	t10 = xmm9;				/* Imag odd-cols row #4			; 39 */ \
 	xmm9 = xmm0;			/* Copy r2+r20 */ \
 	xmm0 -= xmm6;			/* (r2+r20)-(r10+r12)						; 5-7 */ \
 \
@@ -3500,49 +3508,49 @@
 	xmm12 *= CONST2_P951;			/* .951((r4+r18)-(r8+r14))					; 11-15 */ \
 \
 	xmm2 -= xmm3;			/* r8-r14							; 12-14 */ \
-	xmm7 = xmm14; \
+	xmm7 = CONST2_P809; \
 	xmm7 *= xmm6;			/* .809((r2+r20)+(r10+r12))					; 12-16	avail 8,3 */ \
 \
 	xmm8 = xmm5;			/* Copy r2-r20 */ \
 	xmm5 += xmm1;			/* (r2-r20)+(r10-r12)						; 13-15 */ \
-	xmm3 = xmm15; \
+	xmm3 = CONST2_P309; \
 	xmm3 *= xmm11;			/* .309((r4+r18)+(r8+r14))					; 13-17	avail none */ \
 \
 	xmm8 -= xmm1;			/* (r2-r20)-(r10-r12)						; 14-16 */ \
-	xmm1 = xmm15; \
+	xmm1 = CONST2_P309; \
 	xmm1 *= xmm6;			/* .309((r2+r20)+(r10+r12))					; 14-18 */ \
 \
 	xmm6 += xmm11;			/* ((r2+r20)+(r10+r12))+((r4+r18)+(r8+r14))			; 15-17 */ \
-	xmm11 *= xmm14;			/* .809((r4+r18)+(r8+r14))					; 15-19 */ \
+	xmm11 *= CONST2_P809;			/* .809((r4+r18)+(r8+r14))					; 15-19 */ \
 \
 	xmm9 += xmm4;			/* .951((r2+r20)-(r10+r12))+.588((r4+r18)-(r8+r14))		; 16-18 */ \
-	xmm4 = xmm15; \
+	xmm4 = CONST2_P309; \
 	xmm4 *= xmm5;			/* .309((r2-r20)+(r10-r12))					; 16-20	avail none storable 9 */ \
 \
 	xmm0 -= xmm12;			/* .588((r2+r20)-(r10+r12))-.951((r4+r18)-(r8+r14))		; 17-19 */ \
-	xmm12 = xmm14; \
+	xmm12 = CONST2_P809; \
 	xmm12 *= xmm5;			/* .809((r2-r20)+(r10-r12))					; 17-21	avail none storable 9,0 */ \
 \
-	t5 = xmm9;		/* Save real even-cols row #2					; 19 */ \
+	t5 = xmm9;				/* Save real even-cols row #2					; 19 */ \
 	xmm9 = xmm10;			/* Copy r4-r18 */ \
 	xmm10 += xmm2;			/* (r4-r18)+(r8-r14)						; 18-20	avail none storable 0 */ \
 \
 	xmm9 -= xmm2;			/* (r4-r18)-(r8-r14)						; 19-21	avail 2 storable 0 */ \
-	xmm2 = xptr(srcreg+off+16);		/* r6 */ \
+	xmm2 = sd0[1];			/* r6 */ \
 \
 	xmm7 -= xmm3;			/* .809((r2+r20)+(r10+r12))-.309((r4+r18)+(r8+r14))		; 20-22	avail 3 storable 0 */ \
-	xmm3 = xptr(srcreg+off+48);		/* r16 */ \
-	t6 = xmm0;		/* Save real even-cols row #4					; 20	avail 0 */ \
+	xmm3 = sd0[3];			/* r16 */ \
+	t6 = xmm0;				/* Save real even-cols row #4					; 20	avail 0 */ \
 \
 	xmm0 = xmm2;			/* Copy r6 */ \
 	xmm2 += xmm3;			/* r6+r16							; 21-23 avail none */ \
 \
 	xmm0 -= xmm3;			/* r6-r16							; 22-24	avail 3 */ \
-	xmm3 = xmm14; \
+	xmm3 = CONST2_P809; \
 	xmm3 *= xmm10;			/* .809((r4-r18)+(r8-r14))					; 22-26 (21) avail none */ \
 \
 	xmm1 -= xmm11;			/* .309((r2+r20)+(r10+r12))-.809((r4+r18)+(r8+r14))		; 23-25 */ \
-	xmm11 = xmm15; \
+	xmm11 = CONST2_P309; \
 	xmm11 *= xmm10;			/* .309((r4-r18)+(r8-r14))					; 23-27 */ \
 \
 	xmm6 += xmm2;			/* ((r2+r20)+(r10+r12))+((r4+r18)+(r8+r14))+(r6+r16)		; 24-26	storable 6 */ \
@@ -3552,8 +3560,8 @@
 	xmm4 += xmm3;			/* .309((r2-r20)+(r10-r12))+.809((r4-r18)+(r8-r14))		; 27-29 */ \
 	xmm3 = CONST2_P588; \
 	xmm3 *= xmm8;			/* .588((r2-r20)-(r10-r12))					; 27-31 (18) */ \
-	xptr(srcreg+16) = xmm6;		/* Save final real #1B (real even-cols row #1)			; 27	avail 2,6 storable 7,1 */ \
-	xmm6 = t0;		/* Real odd-cols row #2 */ \
+	sd0[1] = xmm6;			/* Save final real #1B (real even-cols row #1)			; 27	avail 2,6 storable 7,1 */ \
+	xmm6 = t0;				/* Real odd-cols row #2 */ \
 \
 	xmm12 += xmm11;			/* .809((r2-r20)+(r10-r12))+.309((r4-r18)+(r8-r14))		; 28-30	avail 2,11 storable 7,1 */ \
 	xmm8 *= CONST2_P951;			/* .951((r2-r20)-(r10-r12))					; 28-32	(19) */ \
@@ -3647,48 +3655,48 @@
 	xmm13 = xmm12;			/* Copy real odd-cols row #4 */ \
 	xmm12 -= xmm3;			/* Real #8				; 21-23	avail 14 storable 6,1,11,8,10 */ \
 	xmm2 *= xmm7;			/* A3 = A3 * sine (final R3)		; 21-25 */ \
-	xmm14 = t10;	/* Imag odd-cols row #4 */ \
-	xptr(srcreg+4*d1+32) = xmm6;		/* Save final R10			; 21	avail 6 storable 1,11,8,10,2 */ \
+	xmm14 = t10;			/* Imag odd-cols row #4 */ \
+	sd4[2] = xmm6;			/* Save final R10			; 21	avail 6 storable 1,11,8,10,2 */ \
 \
 	xmm6 = xmm9;			/* Copy imag even-cols row #4 */ \
 	xmm9 -= xmm14;			/* Imag #8				; 22-24 */ \
 	xmm5 *= xmm0;			/* B9 = B9 * sine (final I9)		; 22-26	avail 0 storable 1,11,8,10,2,5 */ \
 	xmm0 = xptr(screg+6*32+16);		/* cosine/sine */ \
-	xptr(srcreg+4*d1+48) = xmm1;		/* Save final I10			; 22	avail 1 storable 11,8,10,2,5 */ \
+	sd4[3] = xmm1;			/* Save final I10			; 22	avail 1 storable 11,8,10,2,5 */ \
 \
 	xmm3 += xmm13;			/* Real #4				; 23-25	avail 1,13 storable 11,8,10,2,5 */ \
 	xmm4 *= xmm7;			/* B3 = B3 * sine (final I3)		; 23-27	avail 1,13,7 storable 11,8,10,2,5,4 */ \
-	xmm1 = t3;		/* Real odd-cols row #5 */ \
-	xptr(srcreg+32) = xmm11;		/* Save final R2			; 23 */ \
+	xmm1 = t3;				/* Real odd-cols row #5 */ \
+	sd0[2] = xmm11;			/* Save final R2			; 23 */ \
 \
 	xmm14 += xmm6;			/* Imag #4				; 24-26	avail 13,7,11,6 storable 8,10,2,5,4 */ \
 	xmm13 = xmm12;			/* Copy R8 */ \
 	xmm12 *= xmm0;			/* A8 = R8 * cosine/sine		; 24-28	avail 7,11,6 storable 8,10,2,5,4 */ \
 	xmm7 = t8;	/* Real even-cols row #5 */ \
-	xptr(srcreg+48) = xmm8;		/* Save final I2			; 24	avail 11,6,8 storable 10,2,5,4 */ \
+	sd0[3] = xmm8;			/* Save final I2			; 24	avail 11,6,8 storable 10,2,5,4 */ \
 \
 	xmm8 = xmm1;			/* Copy real odd-cols row #5 */ \
 	xmm1 -= xmm7;			/* Real #7				; 25-27	avail 11,6 storable 10,2,5,4 */ \
 	xmm0 *= xmm9;			/* B8 = I8 * cosine/sine		; 25-29 */ \
-	xptr(srcreg+4*d1) = xmm10;		/* Save final R9			; 25	avail 11,6,10 storable 2,5,4 */ \
+	sd4[0] = xmm10;			/* Save final R9			; 25	avail 11,6,10 storable 2,5,4 */ \
 \
 	xmm7 += xmm8;			/* Real #5				; 26-28	avail 11,6,10,8 storable 2,5,4 */ \
 	xmm8 = xptr(screg+2*32+16);		/* cosine/sine */ \
 	xmm10 = xmm3;			/* Copy R4 */ \
 	xmm3 *= xmm8;			/* A4 = R4 * cosine/sine		; 26-30	avail 11,6 storable 2,5,4 */ \
-	xptr(srcreg+d1) = xmm2;		/* Save final R3			; 26	avail 11,6,2 storable 5,4 */ \
+	sd1[0] = xmm2;			/* Save final R3			; 26	avail 11,6,2 storable 5,4 */ \
 \
-	xmm11 = t13;	/* Imag even-cols row #5 */ \
-	xmm6 = t12;	/* Imag odd-cols row #5 */ \
+	xmm11 = t13;			/* Imag even-cols row #5 */ \
+	xmm6 = t12;				/* Imag odd-cols row #5 */ \
 	xmm2 = xmm11;			/* Copy imag even-cols row #5 */ \
 	xmm11 -= xmm6;			/* Imag #7				; 27-29	avail none storable 5,4 */ \
 	xmm8 *= xmm14;			/* B4 = I4 * cosine/sine		; 27-31 */ \
-	xptr(srcreg+4*d1+16) = xmm5;		/* Save final I9			; 27	avail 5 storable 4 */ \
+	sd4[1] = xmm5;			/* Save final I9			; 27	avail 5 storable 4 */ \
 \
 	xmm6 += xmm2;			/* Imag #5				; 28-30	avail 5,2 storable 4 */ \
-	xmm5 = t4;		/* Real #6 */ \
+	xmm5 = t4;				/* Real #6 */ \
 	xmm5 *= xptr(screg+4*32+16);		/* A6 = R6 * cosine/sine		; 28-32 */ \
-	xptr(srcreg+d1+16) = xmm4;		/* Save final I3			; 28	avail 2,4 */ \
+	sd1[1] = xmm4;			/* Save final I3			; 28	avail 2,4 */ \
 \
 	xmm12 -= xmm9;			/* A8 = A8 - I8				; 29-31	avail 2,4,9 */ \
 	xmm2 = xptr(screg+5*32+16);		/* cosine/sine */ \
@@ -3705,7 +3713,7 @@
 \
 	xmm8 += xmm10;			/* B4 = B4 + R4				; 32-34	avail 14,10 */ \
 	xmm9 *= xmm6;			/* B5 = I5 * cosine/sine		; 32-35 */ \
-	xmm14 = t9;	/* Imag #6 */ \
+	xmm14 = t9;				/* Imag #6 */ \
 \
 	xmm5 -= xmm14;			/* A6 = A6 - I6				; 33-35	avail 10 */ \
 	xmm14 *= xptr(screg+4*32+16);		/* B6 = I6 * cosine/sine		; 33-36 */ \
@@ -3730,30 +3738,30 @@
 	xmm5 *= xmm6;			/* A6 = A6 * sine (final R6)		; 38-42	avail 10,13,11 storable 12,0,3,8,5 */ \
 \
 	xmm1 *= xmm4;			/* A7 = A7 * sine (final R7)		; 39-43	avail 10,13,11 storable 12,0,3,8,5,1 */ \
-	xptr(srcreg+3*d1+32) = xmm12;		/* Save final R8			; 39	avail 10,13,11,12 storable 0,3,8,5,1 */ \
+	sd3[2] = xmm12;			/* Save final R8			; 39	avail 10,13,11,12 storable 0,3,8,5,1 */ \
 \
 	xmm2 *= xmm4;			/* B7 = B7 * sine (final I7)		; 40-44	avail 10,13,11,12,4 storable 0,3,8,5,1,2 */ \
-	xptr(srcreg+3*d1+48) = xmm0;		/* Save final I8			; 40	avail 10,13,11,12,4,0 storable 3,8,5,1,2 */ \
+	sd3[3] = xmm0;			/* Save final I8			; 40	avail 10,13,11,12,4,0 storable 3,8,5,1,2 */ \
 \
 	xmm10 = xptr(screg+3*32);		/* sine  */ \
 	xmm7 *= xmm10;			/* A5 = A5 * sine (final R5)		; 41-45	avail 13,11,12,4,0 storable 3,8,5,1,2,7 */ \
-	xptr(srcreg+d1+32) = xmm3;		/* Save final R4			; 41	avail 13,11,12,4,0,3 storable 8,5,1,2,7 */ \
+	sd1[2] = xmm3;			/* Save final R4			; 41	avail 13,11,12,4,0,3 storable 8,5,1,2,7 */ \
 \
 	xmm9 *= xmm10;			/* B5 = B5 * sine (final I5)		; 42-46	avail 13,11,12,4,0,3,10 storable 8,5,1,2,7,9 */ \
-	xptr(srcreg+d1+48) = xmm8;		/* Save final I4			; 42	avail 13,11,12,4,0,3,10,8 storable 5,1,2,7,9 */ \
+	sd1[3] = xmm8;			/* Save final I4			; 42	avail 13,11,12,4,0,3,10,8 storable 5,1,2,7,9 */ \
 \
 	xmm14 *= xmm6;			/* B6 = B6 * sine (final I6)		; 43-47	avail 13,11,12,4,0,3,10,8,6 storable 5,1,2,7,9,14 */ \
-	xptr(srcreg+2*d1+32) = xmm5;		/* Save final R6			; 43	avail 13,11,12,4,0,3,10,8,6,5 storable 1.2,7,9,14 */ \
+	sd2[2] = xmm5;			/* Save final R6			; 43	avail 13,11,12,4,0,3,10,8,6,5 storable 1.2,7,9,14 */ \
 \
-	xptr(srcreg+3*d1) = xmm1;		/* Save final R7			; 44 */ \
-	xptr(srcreg+3*d1+16) = xmm2;		/* Save final I7			; 45 */ \
-	xptr(srcreg+2*d1) = xmm7;		/* Save final R5			; 46 */ \
-	xptr(srcreg+2*d1+16) = xmm9;		/* Save final I5			; 47 */ \
-	xptr(srcreg+2*d1+48) = xmm14;		/* Save final I6			; 48 */ \
-	xmm14 = CONST2_P809; \
+	sd3[0] = xmm1;			/* Save final R7			; 44 */ \
+	sd3[1] = xmm2;			/* Save final I7			; 45 */ \
+	sd2[0] = xmm7;			/* Save final R5			; 46 */ \
+	sd2[1] = xmm9;			/* Save final I5			; 47 */ \
+	sd2[3] = xmm14;			/* Save final I6			; 48 */ \
+	/*xmm14 = CONST2_P809;*/ \
 \
 	srcreg += srcinc; \
-\
+}
 
 #endif
 
@@ -3823,15 +3831,27 @@
 	vec2f64 XMM_COL_MULTS_1[19]; \
 	vec2f64 XMM_COL_MULTS_2[19]; \
 \
+	/* Using pointers improves clang ARM64 compiler. */ \
+	vec2f64 *sd0 = (vec2f64*)(srcreg); \
+	vec2f64 *sd1 = (vec2f64*)(srcreg+d1*1); \
+	vec2f64 *sd2 = (vec2f64*)(srcreg+d1*2); \
+	vec2f64 *sd3 = (vec2f64*)(srcreg+d1*3); \
+	vec2f64 *sd4 = (vec2f64*)(srcreg+d1*4); \
+	vec2f64 *sd5 = (vec2f64*)(srcreg+d1*5); \
+	vec2f64 *sd6 = (vec2f64*)(srcreg+d1*6); \
+	vec2f64 *sd7 = (vec2f64*)(srcreg+d1*7); \
+	vec2f64 *sd8 = (vec2f64*)(srcreg+d1*8); \
+	vec2f64 *sd9 = (vec2f64*)(srcreg+d1*9); \
+\
 ;	/* Apply the 9 twiddle factors */ \
 \
-	r5_x9c_twiddle(srcreg,d1,screg,XMM_COL_MULTS_1); \
-	r5_x9c_twiddle(srcreg+16,d1,screg+scoff,XMM_COL_MULTS_2); \
+	r5_x9c_twiddle(0,screg,XMM_COL_MULTS_1); \
+	r5_x9c_twiddle(1,screg+scoff,XMM_COL_MULTS_2); \
 \
 ;	/* Do the 20 reals inverse FFT */ \
 \
-	r5_x20r_unfft(srcreg+d1,d1,xptr(srcreg+16),xptr(srcreg+48),XMM_COL_MULTS_2); \
-	r5_x20r_unfft(srcreg,d1,xptr(srcreg),xptr(srcreg+32),XMM_COL_MULTS_1); \
+	r5_x20r_unfft(sd1,sd3,sd5,sd7,sd9,sd0[1],sd0[3],XMM_COL_MULTS_2); \
+	r5_x20r_unfft(sd0,sd2,sd4,sd6,sd8,sd0[0],sd0[2],XMM_COL_MULTS_1); \
 \
 	srcreg += srcinc; \
 \
@@ -3840,24 +3860,24 @@
 /* we have a perfect balance of adds and subtracts. */ \
 \
 
-#define r5_x9c_twiddle(srcreg,d1,screg,tmpreg) \
+#define r5_x9c_twiddle(SN,screg,tmpreg) \
 	xmm0 = xptr(screg+16);		/* cosine/sine */ \
-	xmm2 = xptr(srcreg+d1);		/* R2 */ \
+	xmm2 = sd1[0+SN];		/* R2 */ \
 	xmm2 *= xmm0;			/* A2 = R2 * cosine/sine */ \
 	xmm4 = xptr(screg+8*32+16);		/* cosine/sine */ \
-	xmm6 = xptr(srcreg+9*d1);		/* R10 */ \
+	xmm6 = sd9[0+SN];		/* R10 */ \
 	xmm6 *= xmm4;			/* A10 = R10 * cosine/sine */ \
-	xmm3 = xptr(srcreg+d1+32);		/* I2 */ \
+	xmm3 = sd1[2+SN];		/* I2 */ \
 	xmm2 += xmm3;			/* A2 = A2 + I2 */ \
 	xmm3 *= xmm0;			/* B2 = I2 * cosine/sine */ \
-	xmm7 = xptr(srcreg+9*d1+32);		/* I10 */ \
+	xmm7 = sd9[2+SN];		/* I10 */ \
 	xmm6 += xmm7;			/* A10 = A10 + I10 */ \
 	xmm7 *= xmm4;			/* B10 = I10 * cosine/sine */ \
-	xmm3 -= xptr(srcreg+d1);		/* B2 = B2 - R2 */ \
+	xmm3 -= sd1[0+SN];		/* B2 = B2 - R2 */ \
 	xmm1 = xptr(screg);			/* sine */ \
 	xmm2 *= xmm1;			/* R2 = A2 * sine */ \
-	xmm7 -= xptr(srcreg+9*d1);		/* B10 = B10 - R10 */ \
-	xmm5 = xptr(screg+8*32);		/* sine */ \
+	xmm7 -= sd9[0+SN];		/* B10 = B10 - R10 */ \
+	xmm5 = xptr(screg+8*32);	/* sine */ \
 	xmm6 *= xmm5;			/* R10 = A10 * sine */ \
 	xmm3 *= xmm1;			/* I2 = B2 * sine */ \
 	xmm7 *= xmm5;			/* I10 = B10 * sine */ \
@@ -3868,27 +3888,27 @@
 	xmm3 += xmm7;			/* I2+I10 */ \
 	xmm5 -= xmm7;			/* I2-I10 */ \
 	tmpreg[16] = xmm2;		/* Save R2+R10 */ \
-	tmpreg[0] = xmm1;			/* Save R2-R10 */ \
+	tmpreg[0] = xmm1;		/* Save R2-R10 */ \
 	tmpreg[17] = xmm3;		/* Save I2+I10 */ \
 	tmpreg[1] = xmm5;		/* Save I2-I10 */ \
 \
 	xmm0 = xptr(screg+32+16);		/* cosine/sine */ \
-	xmm2 = xptr(srcreg+2*d1);		/* R3 */ \
+	xmm2 = sd2[0+SN];		/* R3 */ \
 	xmm2 *= xmm0;			/* A3 = R3 * cosine/sine */ \
 	xmm4 = xptr(screg+7*32+16);		/* cosine/sine */ \
-	xmm6 = xptr(srcreg+8*d1);		/* R9 */ \
+	xmm6 = sd8[0+SN];		/* R9 */ \
 	xmm6 *= xmm4;			/* A9 = R9 * cosine/sine */ \
-	xmm3 = xptr(srcreg+2*d1+32);		/* I3 */ \
+	xmm3 = sd2[2+SN];		/* I3 */ \
 	xmm2 += xmm3;			/* A3 = A3 + I3 */ \
 	xmm3 *= xmm0;			/* B3 = I3 * cosine/sine */ \
-	xmm7 = xptr(srcreg+8*d1+32);		/* I9 */ \
+	xmm7 = sd8[2+SN];		/* I9 */ \
 	xmm6 += xmm7;			/* A9 = A9 + I9 */ \
 	xmm7 *= xmm4;			/* B9 = I9 * cosine/sine */ \
-	xmm3 -= xptr(srcreg+2*d1);		/* B3 = B3 - R3 */ \
+	xmm3 -= sd2[0+SN];		/* B3 = B3 - R3 */ \
 	xmm1 = xptr(screg+32);		/* sine */ \
 	xmm2 *= xmm1;			/* R3 = A3 * sine */ \
-	xmm7 -= xptr(srcreg+8*d1);		/* B9 = B9 - R9 */ \
-	xmm5 = xptr(screg+7*32);		/* sine */ \
+	xmm7 -= sd8[0+SN];		/* B9 = B9 - R9 */ \
+	xmm5 = xptr(screg+7*32);	/* sine */ \
 	xmm6 *= xmm5;			/* R9 = A9 * sine */ \
 	xmm3 *= xmm1;			/* I3 = B3 * sine */ \
 	xmm7 *= xmm5;			/* I9 = B9 * sine */ \
@@ -3904,21 +3924,21 @@
 	tmpreg[3] = xmm5;		/* Save I3-I9 */ \
 \
 	xmm0 = xptr(screg+2*32+16);		/* cosine/sine */ \
-	xmm2 = xptr(srcreg+3*d1);		/* R4 */ \
+	xmm2 = sd3[0+SN];		/* R4 */ \
 	xmm2 *= xmm0;			/* A4 = R4 * cosine/sine */ \
 	xmm4 = xptr(screg+6*32+16);		/* cosine/sine */ \
-	xmm6 = xptr(srcreg+7*d1);		/* R8 */ \
+	xmm6 = sd7[0+SN];		/* R8 */ \
 	xmm6 *= xmm4;			/* A8 = R8 * cosine/sine */ \
-	xmm3 = xptr(srcreg+3*d1+32);		/* I4 */ \
+	xmm3 = sd3[2+SN];		/* I4 */ \
 	xmm2 += xmm3;			/* A4 = A4 + I4 */ \
 	xmm3 *= xmm0;			/* B4 = I4 * cosine/sine */ \
-	xmm7 = xptr(srcreg+7*d1+32);		/* I8 */ \
+	xmm7 = sd7[2+SN];		/* I8 */ \
 	xmm6 += xmm7;			/* A8 = A8 + I8 */ \
 	xmm7 *= xmm4;			/* B8 = I8 * cosine/sine */ \
-	xmm3 -= xptr(srcreg+3*d1);		/* B4 = B4 - R4 */ \
+	xmm3 -= sd3[0+SN];		/* B4 = B4 - R4 */ \
 	xmm1 = xptr(screg+2*32);		/* sine */ \
 	xmm2 *= xmm1;			/* R4 = A4 * sine */ \
-	xmm7 -= xptr(srcreg+7*d1);		/* B8 = B8 - R8 */ \
+	xmm7 -= sd7[0+SN];		/* B8 = B8 - R8 */ \
 	xmm5 = xptr(screg+6*32);		/* sine */ \
 	xmm6 *= xmm5;			/* R8 = A8 * sine */ \
 	xmm3 *= xmm1;			/* I4 = B4 * sine */ \
@@ -3935,21 +3955,21 @@
 	tmpreg[5] = xmm5;		/* Save I4-I8 */ \
 \
 	xmm0 = xptr(screg+3*32+16);		/* cosine/sine */ \
-	xmm2 = xptr(srcreg+4*d1);		/* R5 */ \
+	xmm2 = sd4[0+SN];		/* R5 */ \
 	xmm2 *= xmm0;			/* A5 = R5 * cosine/sine */ \
 	xmm4 = xptr(screg+5*32+16);		/* cosine/sine */ \
-	xmm6 = xptr(srcreg+6*d1);		/* R7 */ \
+	xmm6 = sd6[0+SN];		/* R7 */ \
 	xmm6 *= xmm4;			/* A7 = R7 * cosine/sine */ \
-	xmm3 = xptr(srcreg+4*d1+32);		/* I5 */ \
+	xmm3 = sd4[2+SN];		/* I5 */ \
 	xmm2 += xmm3;			/* A5 = A5 + I5 */ \
 	xmm3 *= xmm0;			/* B5 = I5 * cosine/sine */ \
-	xmm7 = xptr(srcreg+6*d1+32);		/* I7 */ \
+	xmm7 = sd6[2+SN];		/* I7 */ \
 	xmm6 += xmm7;			/* A7 = A7 + I7 */ \
 	xmm7 *= xmm4;			/* B7 = I7 * cosine/sine */ \
-	xmm3 -= xptr(srcreg+4*d1);		/* B5 = B5 - R5 */ \
+	xmm3 -= sd4[0+SN];		/* B5 = B5 - R5 */ \
 	xmm1 = xptr(screg+3*32);		/* sine */ \
 	xmm2 *= xmm1;			/* R5 = A5 * sine */ \
-	xmm7 -= xptr(srcreg+6*d1);		/* B7 = B7 - R7 */ \
+	xmm7 -= sd6[0+SN];		/* B7 = B7 - R7 */ \
 	xmm5 = xptr(screg+5*32);		/* sine */ \
 	xmm6 *= xmm5;			/* R7 = A7 * sine */ \
 	xmm3 *= xmm1;			/* I5 = B5 * sine */ \
@@ -3966,12 +3986,12 @@
 	tmpreg[7] = xmm5;		/* Save I5-I7 */ \
 \
 	xmm0 = xptr(screg+4*32+16);		/* cosine/sine */ \
-	xmm2 = xptr(srcreg+5*d1);		/* R6 */ \
+	xmm2 = sd5[0+SN];		/* R6 */ \
 	xmm2 *= xmm0;			/* A6 = R6 * cosine/sine */ \
-	xmm3 = xptr(srcreg+5*d1+32);		/* I6 */ \
+	xmm3 = sd5[2+SN];		/* I6 */ \
 	xmm2 += xmm3;			/* A6 = A6 + I6 */ \
 	xmm3 *= xmm0;			/* B6 = I6 * cosine/sine */ \
-	xmm3 -= xptr(srcreg+5*d1);		/* B6 = B6 - R6 */ \
+	xmm3 -= sd5[0+SN];		/* B6 = B6 - R6 */ \
 	xmm1 = xptr(screg+4*32);		/* sine */ \
 	xmm2 *= xmm1;			/* R6 = A6 * sine */ \
 	xmm3 *= xmm1;			/* I6 = B6 * sine */ \
@@ -3980,7 +4000,7 @@
 \
 \
 
-#define r5_x20r_unfft(srcreg,d1,r1A,r1B,tmpreg) \
+#define r5_x20r_unfft(sd0,sd2,sd4,sd6,sd8,r1A,r1B,tmpreg) \
 \
 ;	/* Calculate odd columns derived from real inputs (even rows) */ \
 \
@@ -4008,16 +4028,16 @@
 ;	/* Calculate even columns derived from real inputs (even rows) */ \
 ;	/* From above, odd-real-col rols rows #2,4 are in xmm6, xmm7 */ \
 \
-	xmm2 = tmpreg[0];			/* r2-r10 */ \
+	xmm2 = tmpreg[0];		/* r2-r10 */ \
 	xmm1 = CONST2_P951; \
 	xmm1 *= xmm2;			/* .951(r2-r10) */ \
-	xmm2 *= CONST2_P588;			/* .588(r2-r10) */ \
+	xmm2 *= CONST2_P588;	/* .588(r2-r10) */ \
 \
 	xmm0 = tmpreg[4];		/* r4-r8 */ \
 	xmm4 = CONST2_P588; \
 	xmm4 *= xmm0;			/* .588(r4-r8) */ \
 	xmm1 += xmm4;			/* .951(r2-r10)+.588(r4-r8) */ \
-	xmm0 *= CONST2_P951;			/* .951(r4-r8) */ \
+	xmm0 *= CONST2_P951;	/* .951(r4-r8) */ \
 	xmm2 -= xmm0;			/* .588(r2-r10)-.951(r4-r8) */ \
 \
 ;	/* Combine even and odd columns (even rows) */ \
@@ -4064,7 +4084,7 @@
 	xmm2 *= xmm1;			/* .309(r3+r9) */ \
 	xmm4 = CONST2_P809; \
 	xmm4 *= xmm1;			/* .809(r3+r9) */ \
-	xmm3 = r1A;			/* r1+r11 */ \
+	xmm3 = r1A;				/* r1+r11 */ \
 	xmm1 += xmm3;			/* r1+(r3+r9)+r11 */ \
 	xmm2 += xmm3;			/* r1+.309(r3+r9)+r11 */ \
 	xmm3 -= xmm4;			/* r1-.809(r3+r9)+r11 */ \
@@ -4082,8 +4102,8 @@
 	xmm4 = xmm0;			/* Copy even-real-cols row #1 */ \
 	xmm0 += xmm1;			/* real-cols row #1 (and final R1) */ \
 	xmm1 -= xmm4;			/* real-cols row #11 (and final R11) */ \
-	xptr(srcreg) = xmm0;			/* Save final R1 */ \
-	xptr(srcreg+32) = xmm1;		/* Save final R11 */ \
+	sd0[0] = xmm0;			/* Save final R1 */ \
+	sd0[2] = xmm1;			/* Save final R11 */ \
 \
 	xmm5 = xmm6;			/* Copy even-real-cols row #3 */ \
 	xmm6 += xmm2;			/* real-cols row #3 */ \
@@ -4123,8 +4143,8 @@
 	xmm4 = tmpreg[18];		/* Load real-cols row #6 */ \
 	xmm4 -= xmm0;			/* final R16 */ \
 	xmm0 += tmpreg[18];		/* final R6 */ \
-	xptr(srcreg+48) = xmm4;		/* Save R16 */ \
-	xptr(srcreg+16) = xmm0;		/* Save R6 */ \
+	sd0[3] = xmm4;		/* Save R16 */ \
+	sd0[1] = xmm0;		/* Save R6 */ \
 \
 ;	/* Calculate odd columns derived from imaginary inputs (even rows) */ \
 ;	/* From above, even-imag-cols row #2,4 are in xmm6, xmm7 */ \
@@ -4153,13 +4173,13 @@
 	xmm0 = tmpreg[2];		/* Load real-cols row #10 */ \
 	xmm0 -= xmm6;			/* final R12 */ \
 	xmm6 += tmpreg[2];		/* final R10 */ \
-	xmm1 = tmpreg[0];			/* Load real-cols row #2 */ \
+	xmm1 = tmpreg[0];		/* Load real-cols row #2 */ \
 	xmm1 -= xmm3;			/* final R20 */ \
-	xmm3 += tmpreg[0];			/* final R2 */ \
-	xptr(srcreg+2*d1+32) = xmm0;		/* Save R12 */ \
-	xptr(srcreg+8*d1+16) = xmm6;		/* Save R10 */ \
-	xptr(srcreg+8*d1+48) = xmm1;		/* Save R20 */ \
-	xptr(srcreg+2*d1) = xmm3;		/* Save R2 */ \
+	xmm3 += tmpreg[0];		/* final R2 */ \
+	sd2[2] = xmm0;			/* Save R12 */ \
+	sd8[1] = xmm6;			/* Save R10 */ \
+	sd8[3] = xmm1;			/* Save R20 */ \
+	sd2[0] = xmm3;			/* Save R2 */ \
 \
 	xmm0 = tmpreg[6];		/* Load real-cols row #8 */ \
 	xmm0 -= xmm7;			/* final R14 */ \
@@ -4167,23 +4187,23 @@
 	xmm1 = tmpreg[4];		/* Load real-cols row #4 */ \
 	xmm1 -= xmm4;			/* final R18 */ \
 	xmm4 += tmpreg[4];		/* final R4 */ \
-	xptr(srcreg+6*d1+32) = xmm0;		/* Save R14 */ \
-	xptr(srcreg+4*d1+16) = xmm7;		/* Save R8 */ \
-	xptr(srcreg+4*d1+48) = xmm1;		/* Save R18 */ \
-	xptr(srcreg+6*d1) = xmm4;		/* Save R4 */ \
+	sd6[2] = xmm0;			/* Save R14 */ \
+	sd4[1] = xmm7;			/* Save R8 */ \
+	sd4[3] = xmm1;			/* Save R18 */ \
+	sd6[0] = xmm4;			/* Save R4 */ \
 \
 ;	/* Calculate even columns derived from imaginary inputs (odd rows) */ \
 \
 	xmm7 = tmpreg[1];		/* i2-i10 */ \
 	xmm6 = CONST2_P588; \
 	xmm6 *= xmm7;			/* .588(i2-i10) */ \
-	xmm7 *= CONST2_P951;			/* .951(i2-i10) */ \
+	xmm7 *= CONST2_P951;	/* .951(i2-i10) */ \
 \
 	xmm4 = tmpreg[5];		/* i4-i8 */ \
 	xmm3 = CONST2_P951; \
 	xmm3 *= xmm4;			/* .951(i4-i8) */ \
 	xmm6 += xmm3;			/* .588(i2-i10)+.951(i4-i8) */ \
-	xmm4 *= CONST2_P588;			/* .588(i4-i8) */ \
+	xmm4 *= CONST2_P588;	/* .588(i4-i8) */ \
 	xmm7 -= xmm4;			/* .951(i2-i10)-.588(i4-i8) */ \
 \
 ;	/* Calculate odd columns derived from imaginary inputs (odd rows) */ \
@@ -4216,10 +4236,10 @@
 	xmm1 = tmpreg[8];		/* Load real-cols row #3 */ \
 	xmm1 -= xmm3;			/* final R19 */ \
 	xmm3 += tmpreg[8];		/* final R3 */ \
-	xptr(srcreg+4*d1+32) = xmm0;		/* Save R13 */ \
-	xptr(srcreg+6*d1+16) = xmm6;		/* Save R9 */ \
-	xptr(srcreg+6*d1+48) = xmm1;		/* Save R19 */ \
-	xptr(srcreg+4*d1) = xmm3;		/* Save R3 */ \
+	sd4[2] = xmm0;			/* Save R13 */ \
+	sd6[1] = xmm6;			/* Save R9 */ \
+	sd6[3] = xmm1;			/* Save R19 */ \
+	sd4[0] = xmm3;			/* Save R3 */ \
 \
 	xmm0 = tmpreg[14];		/* Load real-cols row #7 */ \
 	xmm0 -= xmm7;			/* final R15 */ \
@@ -4227,11 +4247,10 @@
 	xmm1 = tmpreg[12];		/* Load real-cols row #5 */ \
 	xmm1 -= xmm4;			/* final R17 */ \
 	xmm4 += tmpreg[12];		/* final R5 */ \
-	xptr(srcreg+8*d1+32) = xmm0;		/* Save R15 */ \
-	xptr(srcreg+2*d1+16) = xmm7;		/* Save R7 */ \
-	xptr(srcreg+2*d1+48) = xmm1;		/* Save R17 */ \
-	xptr(srcreg+8*d1) = xmm4;		/* Save R5 */ \
-\
+	sd8[2] = xmm0;			/* Save R15 */ \
+	sd2[1] = xmm7;			/* Save R7 */ \
+	sd2[3] = xmm1;			/* Save R17 */ \
+	sd8[0] = xmm4;			/* Save R5 */ \
 
 #if 0 //DEF X86_64;
 \
