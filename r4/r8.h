@@ -2662,7 +2662,7 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	r4_x8r_fft_mem_preload; \
 \
 
-#define r8_sg8cl_sixteen_reals_eight_complex_fft8(srcreg,srcinc,d1,d2,d4,dstreg,dstinc,e1,e2,e4,screg1,screg2) { \
+#define r8_sg8cl_sixteen_reals_eight_complex_fft8(srcreg,srcinc,d1,d2,d4,dstreg,dstinc,e1,e2,e4,screg1a,screg2a) { \
 	vec2f64 *sd0 = (vec2f64*)(srcreg); \
 	vec2f64 *sd1 = (vec2f64*)(srcreg+d1); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d2); \
@@ -2679,6 +2679,8 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	vec2f64 *de5 = (vec2f64*)(dstreg+e4+e1); \
 	vec2f64 *de6 = (vec2f64*)(dstreg+e4+e2); \
 	vec2f64 *de7 = (vec2f64*)(dstreg+e4+e2+e1); \
+	char *screg1 = (char*)(screg1a); /* improves clang compiler */ \
+	char *screg2 = (char*)(screg2a); \
 \
 /* Do first level on the first 8 reals and 2 levels on the last 8 reals. */ \
 /* The second level on the last eight reals is the multiply by i. */ \
@@ -3038,7 +3040,7 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 \
 /* Used in last levels of pass 1 (split premultiplier and delay cases).  Swizzling. */ \
 
-#define r8_sg4cl_sixteen_reals_unfft8(srcreg,srcinc,d1,d2,dstreg,dstinc,e1,e2,screg1,screg2) { \
+#define r8_sg4cl_sixteen_reals_unfft8(srcreg,srcinc,d1,d2,dstreg,dstinc,e1,e2,screg1a,screg2a) { \
 	vec2f64 *sd0 = (vec2f64*)(srcreg); \
 	vec2f64 *sd1 = (vec2f64*)(srcreg+d1); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d2); \
@@ -3047,6 +3049,8 @@ untested	r8_x8c_djbfft(srcreg+32,d1,d2,d4,dstreg+e4,e1,e2,screg,0); \
 	vec2f64 *de1 = (vec2f64*)(dstreg+e1); \
 	vec2f64 *de2 = (vec2f64*)(dstreg+e2); \
 	vec2f64 *de3 = (vec2f64*)(dstreg+e2+e1); \
+	char *screg1 = (char*)(screg1a); /* improves clang compiler */ \
+	char *screg2 = (char*)(screg2a); \
 \
 /* Do 2 3/4 levels of unfft on the first eight values. */ \
 \

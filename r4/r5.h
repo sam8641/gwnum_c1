@@ -2967,6 +2967,7 @@
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d1*2); \
 	vec2f64 *sd3 = (vec2f64*)(srcreg+d1*3); \
 	vec2f64 *sd4 = (vec2f64*)(srcreg+d1*4); \
+	vec2f64 *sc = (vec2f64*)(screg); \
 	vec2f64 t0,t1,t2,t3,t4,t5,t6,t7,t8,t9; \
 	vec2f64 t10,t11,t12,t13,t14,t15,t16,t17; \
 \
@@ -3191,25 +3192,25 @@
 	xmm2 -= xmm3;			/* Imag #10 */ \
 	xmm3 += t10;			/* Imag #2 */ \
 \
-	xmm5 = xptr(screg+8*32+16);		/* cosine/sine */ \
+	xmm5 = sc[8*2+1];		/* cosine/sine */ \
 	xmm7 = xmm0;			/* Copy R10 */ \
 	xmm0 *= xmm5;			/* A10 = R10 * cosine/sine */ \
 	xmm0 -= xmm2;			/* A10 = A10 - I10 */ \
 	xmm2 *= xmm5;			/* B10 = I10 * cosine/sine */ \
 	xmm2 += xmm7;			/* B10 = B10 + R10 */ \
-	xmm0 *= xptr(screg+8*32);	/* A10 = A10 * sine (final R10) */ \
-	xmm2 *= xptr(screg+8*32);	/* B10 = B10 * sine (final I10) */ \
+	xmm0 *= sc[8*2];		/* A10 = A10 * sine (final R10) */ \
+	xmm2 *= sc[8*2];		/* B10 = B10 * sine (final I10) */ \
 	sd4[2] = xmm0;			/* Save final R10 */ \
 	sd4[3] = xmm2;			/* Save final I10 */ \
 \
-	xmm4 = xptr(screg+16);	/* cosine/sine */ \
+	xmm4 = sc[1];			/* cosine/sine */ \
 	xmm6 = xmm1;			/* Copy R2 */ \
 	xmm1 *= xmm4;			/* A2 = R2 * cosine/sine */ \
 	xmm1 -= xmm3;			/* A2 = A2 - I2 */ \
 	xmm3 *= xmm4;			/* B2 = I2 * cosine/sine */ \
 	xmm3 += xmm6;			/* B2 = B2 + R2 */ \
-	xmm1 *= xptr(screg);	/* A2 = A2 * sine (final R2) */ \
-	xmm3 *= xptr(screg);	/* B2 = B2 * sine (final I2) */ \
+	xmm1 *= sc[0];			/* A2 = A2 * sine (final R2) */ \
+	xmm3 *= sc[0];			/* B2 = B2 * sine (final I2) */ \
 	sd0[2] = xmm1;			/* Save final R2 */ \
 	sd0[3] = xmm3;			/* Save final I2 */ \
 \
@@ -3222,25 +3223,25 @@
 	xmm2 -= xmm3;			/* Imag #9 */ \
 	xmm3 += t12;			/* Imag #3 */ \
 \
-	xmm5 = xptr(screg+7*32+16);		/* cosine/sine */ \
+	xmm5 = sc[7*2+1];		/* cosine/sine */ \
 	xmm7 = xmm0;			/* Copy R9 */ \
 	xmm0 *= xmm5;			/* A9 = R9 * cosine/sine */ \
 	xmm0 -= xmm2;			/* A9 = A9 - I9 */ \
 	xmm2 *= xmm5;			/* B9 = I9 * cosine/sine */ \
 	xmm2 += xmm7;			/* B9 = B9 + R9 */ \
-	xmm0 *= xptr(screg+7*32);	/* A9 = A9 * sine (final R9) */ \
-	xmm2 *= xptr(screg+7*32);	/* B9 = B9 * sine (final I9) */ \
+	xmm0 *= sc[7*2];		/* A9 = A9 * sine (final R9) */ \
+	xmm2 *= sc[7*2];		/* B9 = B9 * sine (final I9) */ \
 	sd4[0] = xmm0;			/* Save final R9 */ \
 	sd4[1] = xmm2;			/* Save final I9 */ \
 \
-	xmm4 = xptr(screg+32+16);	/* cosine/sine */ \
+	xmm4 = sc[2+1];			/* cosine/sine */ \
 	xmm6 = xmm1;			/* Copy R3 */ \
 	xmm1 *= xmm4;			/* A3 = R3 * cosine/sine */ \
 	xmm1 -= xmm3;			/* A3 = A3 - I3 */ \
 	xmm3 *= xmm4;			/* B3 = I3 * cosine/sine */ \
 	xmm3 += xmm6;			/* B3 = B3 + R3 */ \
-	xmm1 *= xptr(screg+32);		/* A3 = A3 * sine (final R3) */ \
-	xmm3 *= xptr(screg+32);		/* B3 = B3 * sine (final I3) */ \
+	xmm1 *= sc[2];			/* A3 = A3 * sine (final R3) */ \
+	xmm3 *= sc[2];			/* B3 = B3 * sine (final I3) */ \
 	sd1[0] = xmm1;			/* Save final R3 */ \
 	sd1[1] = xmm3;			/* Save final I3 */ \
 \
@@ -3253,25 +3254,25 @@
 	xmm2 -= xmm3;			/* Imag #8 */ \
 	xmm3 += t11;			/* Imag #4 */ \
 \
-	xmm5 = xptr(screg+6*32+16);		/* cosine/sine */ \
+	xmm5 = sc[6*2+1];		/* cosine/sine */ \
 	xmm7 = xmm0;			/* Copy R8 */ \
 	xmm0 *= xmm5;			/* A8 = R8 * cosine/sine */ \
 	xmm0 -= xmm2;			/* A8 = A8 - I8 */ \
 	xmm2 *= xmm5;			/* B8 = I8 * cosine/sine */ \
 	xmm2 += xmm7;			/* B8 = B8 + R8 */ \
-	xmm0 *= xptr(screg+6*32);	/* A8 = A8 * sine (final R8) */ \
-	xmm2 *= xptr(screg+6*32);	/* B8 = B8 * sine (final I8) */ \
+	xmm0 *= sc[6*2];		/* A8 = A8 * sine (final R8) */ \
+	xmm2 *= sc[6*2];		/* B8 = B8 * sine (final I8) */ \
 	sd3[2] = xmm0;			/* Save final R8 */ \
 	sd3[3] = xmm2;			/* Save final I8 */ \
 \
-	xmm4 = xptr(screg+2*32+16);		/* cosine/sine */ \
+	xmm4 = sc[2*2+1];		/* cosine/sine */ \
 	xmm6 = xmm1;			/* Copy R4 */ \
 	xmm1 *= xmm4;			/* A4 = R4 * cosine/sine */ \
 	xmm1 -= xmm3;			/* A4 = A4 - I4 */ \
 	xmm3 *= xmm4;			/* B4 = I4 * cosine/sine */ \
 	xmm3 += xmm6;			/* B4 = B4 + R4 */ \
-	xmm1 *= xptr(screg+2*32);		/* A4 = A4 * sine (final R4) */ \
-	xmm3 *= xptr(screg+2*32);		/* B4 = B4 * sine (final I4) */ \
+	xmm1 *= sc[2*2];		/* A4 = A4 * sine (final R4) */ \
+	xmm3 *= sc[2*2];		/* B4 = B4 * sine (final I4) */ \
 	sd1[2] = xmm1;			/* Save final R4 */ \
 	sd1[3] = xmm3;			/* Save final I4 */ \
 \
@@ -3284,37 +3285,37 @@
 	xmm2 -= xmm3;			/* Imag #7 */ \
 	xmm3 += t13;			/* Imag #5 */ \
 \
-	xmm5 = xptr(screg+5*32+16);		/* cosine/sine */ \
+	xmm5 = sc[5*2+1];		/* cosine/sine */ \
 	xmm7 = xmm0;			/* Copy R7 */ \
 	xmm0 *= xmm5;			/* A7 = R7 * cosine/sine */ \
 	xmm0 -= xmm2;			/* A7 = A7 - I7 */ \
 	xmm2 *= xmm5;			/* B7 = I7 * cosine/sine */ \
 	xmm2 += xmm7;			/* B7 = B7 + R7 */ \
-	xmm0 *= xptr(screg+5*32);		/* A7 = A7 * sine (final R7) */ \
-	xmm2 *= xptr(screg+5*32);		/* B7 = B7 * sine (final I7) */ \
+	xmm0 *= sc[5*2];		/* A7 = A7 * sine (final R7) */ \
+	xmm2 *= sc[5*2];		/* B7 = B7 * sine (final I7) */ \
 	sd3[0] = xmm0;			/* Save final R7 */ \
 	sd3[1] = xmm2;			/* Save final I7 */ \
 \
-	xmm4 = xptr(screg+3*32+16);		/* cosine/sine */ \
+	xmm4 = sc[3*2+1];		/* cosine/sine */ \
 	xmm6 = xmm1;			/* Copy R5 */ \
 	xmm1 *= xmm4;			/* A5 = R5 * cosine/sine */ \
 	xmm1 -= xmm3;			/* A5 = A5 - I5 */ \
 	xmm3 *= xmm4;			/* B5 = I5 * cosine/sine */ \
 	xmm3 += xmm6;			/* B5 = B5 + R5 */ \
-	xmm1 *= xptr(screg+3*32);		/* A5 = A5 * sine (final R5) */ \
-	xmm3 *= xptr(screg+3*32);		/* B5 = B5 * sine (final I5) */ \
+	xmm1 *= sc[3*2];		/* A5 = A5 * sine (final R5) */ \
+	xmm3 *= sc[3*2];		/* B5 = B5 * sine (final I5) */ \
 	sd2[0] = xmm1;			/* Save final R5 */ \
 	sd2[1] = xmm3;			/* Save final I5 */ \
 \
 	xmm0 = t4;				/* Real #6 */ \
 	xmm2 = t9;				/* Imag #6 */ \
-	xmm5 = xptr(screg+4*32+16);		/* cosine/sine */ \
+	xmm5 = sc[4*2+1];		/* cosine/sine */ \
 	xmm0 *= xmm5;			/* A6 = R6 * cosine/sine */ \
 	xmm0 -= xmm2;			/* A6 = A6 - I6 */ \
 	xmm2 *= xmm5;			/* B6 = I6 * cosine/sine */ \
 	xmm2 += t4;				/* B6 = B6 + R6 */ \
-	xmm0 *= xptr(screg+4*32);		/* A6 = A6 * sine (final R6) */ \
-	xmm2 *= xptr(screg+4*32);		/* B6 = B6 * sine (final I6) */ \
+	xmm0 *= sc[4*2];		/* A6 = A6 * sine (final R6) */ \
+	xmm2 *= sc[4*2];		/* B6 = B6 * sine (final I6) */ \
 	sd2[2] = xmm0;			/* Save final R6 */ \
 	sd2[3] = xmm2;			/* Save final I6 */ \
 \
@@ -3334,6 +3335,7 @@
 	vec2f64 *sd2 = (vec2f64*)(srcreg+d1*2); \
 	vec2f64 *sd3 = (vec2f64*)(srcreg+d1*3); \
 	vec2f64 *sd4 = (vec2f64*)(srcreg+d1*4); \
+	vec2f64 *sc = (vec2f64*)(screg); \
 	vec2f64 xmm8,xmm9,xmm10,xmm11,xmm12,xmm13,xmm14; \
 	vec2f64 t0,t1,t2,t3,t4,t5,t6,t7,t8,t9; \
 	vec2f64 t10,t11,t12,t13,t14,t15; \
@@ -3564,93 +3566,93 @@
 	xmm6 = t0;				/* Real odd-cols row #2 */ \
 \
 	xmm12 += xmm11;			/* .809((r2-r20)+(r10-r12))+.309((r4-r18)+(r8-r14))		; 28-30	avail 2,11 storable 7,1 */ \
-	xmm8 *= CONST2_P951;			/* .951((r2-r20)-(r10-r12))					; 28-32	(19) */ \
-	xmm11 = t5;	/* Real even-cols row #2 */ \
-	t7 = xmm7;	/* Save real even-cols row #3					; 28	avail 2,7 storable 1 */ \
+	xmm8 *= CONST2_P951;	/* .951((r2-r20)-(r10-r12))					; 28-32	(19) */ \
+	xmm11 = t5;				/* Real even-cols row #2 */ \
+	t7 = xmm7;				/* Save real even-cols row #3					; 28	avail 2,7 storable 1 */ \
 \
 	xmm5 -= xmm10;			/* ((r2-r20)+(r10-r12))-((r4-r18)+(r8-r14))			; 29-31	avail 2,7,10 storable 1 */ \
 	xmm2 = CONST2_P951; \
 	xmm2 *= xmm9;			/* .951((r4-r18)-(r8-r14))					; 29-33 (22) */ \
-	xmm7 = t14;	/* Imag odd-cols row #2 */ \
-	t8 = xmm1;	/* Save real even-cols row #5					; 29	avail 10,1 */ \
+	xmm7 = t14;				/* Imag odd-cols row #2 */ \
+	t8 = xmm1;				/* Save real even-cols row #5					; 29	avail 10,1 */ \
 \
 	xmm4 += xmm0;			/* .309((r2-r20)+(r10-r12))+.809((r4-r18)+(r8-r14))+(r6-r16)	; 30-32	avail 10,1 storable 4 */ \
-	xmm9 *= CONST2_P588;			/* .588((r4-r18)-(r8-r14))					; 30-34 */ \
+	xmm9 *= CONST2_P588;	/* .588((r4-r18)-(r8-r14))					; 30-34 */ \
 \
 ;	/* Now combine the even and odd columns then do the post-multiply by twiddle factors (start as we finish up even cols) */ \
 \
 	xmm10 = xmm6;			/* Copy real odd-cols row #2 */ \
 	xmm6 -= xmm11;			/* Real #10				; 1-3 */ \
 	xmm11 += xmm10;			/* Real #2				; 2-4 */ \
-	xmm1 = xptr(screg+8*32+16);		/* cosine/sine */ \
+	xmm1 = sc[8*2+1];		/* cosine/sine */ \
 	xmm10 = xmm4;			/* Copy imag even-cols row #2 */ \
 	xmm4 -= xmm7;			/* Imag #10				; 3-5 */ \
 	xmm7 += xmm10;			/* Imag #2				; 4-6	avail 10 */ \
-	xmm10 = t1;	/* Real odd-cols row #3 */ \
+	xmm10 = t1;				/* Real odd-cols row #3 */ \
 \
 	xmm3 += xmm2;			/* .588((r2-r20)-(r10-r12))+.951((r4-r18)-(r8-r14))		; 35-37 avail 2 storable 3 */ \
-	xmm2 = t7;	/* Real even-cols row #3 */ \
+	xmm2 = t7;				/* Real even-cols row #3 */ \
 	xmm8 -= xmm9;			/* .951((r2-r20)-(r10-r12))-.588((r4-r18)-(r8-r14))		; 36-38 avail 9 storable 3,8 */ \
-	xmm9 = t15;	/* Imag odd-cols row #3 */ \
+	xmm9 = t15;				/* Imag odd-cols row #3 */ \
 	xmm12 -= xmm0;			/* .809((r2-r20)+(r10-r12))+.309((r4-r18)+(r8-r14))-(r6-r16)	; 37-39 avail none storable 3,8,12 */ \
 	xmm5 += xmm0;			/* ((r2-r20)+(r10-r12))-((r4-r18)+(r8-r14))+(r6-r16)		; 38-40 avail 0 storable 3,8,12,5 */ \
 \
 	xmm0 = xmm6;			/* Copy R10 */ \
 	xmm6 *= xmm1;			/* A10 = R10 * cosine/sine		; 8-12 (4) avail none storable 3,8,12,5 */ \
 \
-	t13 = xmm8;	/* Save imag even-cols row #5					; 39 */ \
+	t13 = xmm8;				/* Save imag even-cols row #5					; 39 */ \
 	xmm8 = xmm10;			/* Copy real odd-cols row #3 */ \
 	xmm10 -= xmm2;			/* Real #9				; 9-11 */ \
 	xmm1 *= xmm4;			/* B10 = I10 * cosine/sine		; 9-13 (6) avail none storable 3,12,5 */ \
 \
 	xmm2 += xmm8;			/* Real #3				; 10-12 */ \
-	xmm8 = xptr(screg+16);		/* cosine/sine */ \
-	t11 = xmm12;	/* Save imag even-cols row #4					; 40 */ \
+	xmm8 = sc[1];			/* cosine/sine */ \
+	t11 = xmm12;			/* Save imag even-cols row #4					; 40 */ \
 	xmm12 = xmm11;			/* Copy R2 */ \
 	xmm11 *= xmm8;			/* A2 = R2 * cosine/sine		; 10-14 (5) avail none storable 3,5 */ \
 \
-	t9 = xmm5;	/* Save imag row #6						; 41 */ \
+	t9 = xmm5;				/* Save imag row #6						; 41 */ \
 	xmm5 = xmm3;		 	/* Copy imag even-cols row #3 */ \
 	xmm3 -= xmm9;			/* Imag #9				; 11-13 */ \
 	xmm8 *= xmm7;			/* B2 = I2 * cosine/sine		; 11-15	avail none */ \
 \
 	xmm9 += xmm5;			/* Imag #3				; 12-14	avail 5 */ \
-	xmm5 = xptr(screg+7*32+16);		/* cosine/sine */ \
+	xmm5 = sc[7*2+1];		/* cosine/sine */ \
 	xmm13 = xmm10;			/* Copy R9 */ \
 	xmm10 *= xmm5;			/* A9 = R9 * cosine/sine		; 12-16	avail none */ \
 \
 	xmm6 -= xmm4;			/* A10 = A10 - I10			; 13-15	avail 4 */ \
-	xmm4 = xptr(screg+32+16);		/* cosine/sine */ \
+	xmm4 = sc[2+1];			/* cosine/sine */ \
 	xmm14 = xmm2;			/* Copy R3 */ \
 	xmm2 *= xmm4;			/* A3 = R3 * cosine/sine		; 13-17 avail none */ \
 \
 	xmm1 += xmm0;			/* B10 = B10 + R10			; 14-16	avail 0 */ \
 	xmm5 *= xmm3;			/* B9 = I9 * cosine/sine		; 14-18 */ \
-	xmm0 = xptr(screg+8*32);		/* sine */ \
+	xmm0 = sc[8*2];			/* sine */ \
 \
 	xmm11 -= xmm7;			/* A2 = A2 - I2				; 15-17	avail 7 */ \
 	xmm4 *= xmm9;			/* B3 = I3 * cosine/sine		; 15-19 */ \
-	xmm7 = xptr(screg);			/* sine */ \
+	xmm7 = sc[0];			/* sine */ \
 \
 	xmm8 += xmm12;			/* B2 = B2 + R2				; 16-18 */ \
-	xmm12 = t2;		/* Real odd-cols row #4 */ \
+	xmm12 = t2;				/* Real odd-cols row #4 */ \
 	xmm6 *= xmm0;			/* A10 = A10 * sine (final R10)		; 16-20	avail none storable 6 */ \
 \
 	xmm10 -= xmm3;			/* A9 = A9 - I9				; 17-19	avail 3 storable 6 */ \
 	xmm1 *= xmm0;			/* B10 = B10 * sine (final I10)		; 17-21	avail 3,0 storable 6,1 */ \
-	xmm3 = t6;		/* Real even-cols row #4 */ \
+	xmm3 = t6;				/* Real even-cols row #4 */ \
 \
 	xmm2 -= xmm9;			/* A3 = A3 - I3				; 18-20	avail 0,9 storable 6,1 */ \
 	xmm11 *= xmm7;			/* A2 = A2 * sine (final R2)		; 18-22	avail 0,9 storable 6,1,11 */ \
-	xmm0 = xptr(screg+7*32);		/* sine */ \
+	xmm0 = sc[7*2];			/* sine */ \
 \
 	xmm5 += xmm13;			/* B9 = B9 + R9				; 19-21	avail 9,13 storable 6,1,11 */ \
 	xmm8 *= xmm7;			/* B2 = B2 * sine (final I2)		; 19-23	avail 9,13,7 storable 6,1,11,8 */ \
-	xmm7 = xptr(screg+32);		/* sine */ \
+	xmm7 = sc[2];			/* sine */ \
 \
 	xmm4 += xmm14;			/* B3 = B3 + R3				; 20-22	avail 9,13,14 storable 6,1,11,8 */ \
 	xmm10 *= xmm0;			/* A9 = A9 * sine (final R9)		; 20-24	avail 9,13,14 storable 6,1,11,8,10 */ \
-	xmm9 = t11;	/* Imag even-cols row #4 */ \
+	xmm9 = t11;				/* Imag even-cols row #4 */ \
 \
 	xmm13 = xmm12;			/* Copy real odd-cols row #4 */ \
 	xmm12 -= xmm3;			/* Real #8				; 21-23	avail 14 storable 6,1,11,8,10 */ \
@@ -3661,7 +3663,7 @@
 	xmm6 = xmm9;			/* Copy imag even-cols row #4 */ \
 	xmm9 -= xmm14;			/* Imag #8				; 22-24 */ \
 	xmm5 *= xmm0;			/* B9 = B9 * sine (final I9)		; 22-26	avail 0 storable 1,11,8,10,2,5 */ \
-	xmm0 = xptr(screg+6*32+16);		/* cosine/sine */ \
+	xmm0 = sc[6*2+1];		/* cosine/sine */ \
 	sd4[3] = xmm1;			/* Save final I10			; 22	avail 1 storable 11,8,10,2,5 */ \
 \
 	xmm3 += xmm13;			/* Real #4				; 23-25	avail 1,13 storable 11,8,10,2,5 */ \
@@ -3672,7 +3674,7 @@
 	xmm14 += xmm6;			/* Imag #4				; 24-26	avail 13,7,11,6 storable 8,10,2,5,4 */ \
 	xmm13 = xmm12;			/* Copy R8 */ \
 	xmm12 *= xmm0;			/* A8 = R8 * cosine/sine		; 24-28	avail 7,11,6 storable 8,10,2,5,4 */ \
-	xmm7 = t8;	/* Real even-cols row #5 */ \
+	xmm7 = t8;				/* Real even-cols row #5 */ \
 	sd0[3] = xmm8;			/* Save final I2			; 24	avail 11,6,8 storable 10,2,5,4 */ \
 \
 	xmm8 = xmm1;			/* Copy real odd-cols row #5 */ \
@@ -3681,7 +3683,7 @@
 	sd4[0] = xmm10;			/* Save final R9			; 25	avail 11,6,10 storable 2,5,4 */ \
 \
 	xmm7 += xmm8;			/* Real #5				; 26-28	avail 11,6,10,8 storable 2,5,4 */ \
-	xmm8 = xptr(screg+2*32+16);		/* cosine/sine */ \
+	xmm8 = sc[2*2+1];		/* cosine/sine */ \
 	xmm10 = xmm3;			/* Copy R4 */ \
 	xmm3 *= xmm8;			/* A4 = R4 * cosine/sine		; 26-30	avail 11,6 storable 2,5,4 */ \
 	sd1[0] = xmm2;			/* Save final R3			; 26	avail 11,6,2 storable 5,4 */ \
@@ -3695,11 +3697,11 @@
 \
 	xmm6 += xmm2;			/* Imag #5				; 28-30	avail 5,2 storable 4 */ \
 	xmm5 = t4;				/* Real #6 */ \
-	xmm5 *= xptr(screg+4*32+16);		/* A6 = R6 * cosine/sine		; 28-32 */ \
+	xmm5 *= sc[4*2+1];		/* A6 = R6 * cosine/sine		; 28-32 */ \
 	sd1[1] = xmm4;			/* Save final I3			; 28	avail 2,4 */ \
 \
 	xmm12 -= xmm9;			/* A8 = A8 - I8				; 29-31	avail 2,4,9 */ \
-	xmm2 = xptr(screg+5*32+16);		/* cosine/sine */ \
+	xmm2 = sc[5*2+1];		/* cosine/sine */ \
 	xmm4 = xmm1;			/* Copy R7 */ \
 	xmm1 *= xmm2;			/* A7 = R7 * cosine/sine		; 29-33	avail 9 */ \
 \
@@ -3707,7 +3709,7 @@
 	xmm2 *= xmm11;			/* B7 = I7 * cosine/sine		; 30-34 */ \
 \
 	xmm3 -= xmm14;			/* A4 = A4 - I4				; 31-33	avail 9,13,14 */ \
-	xmm9 = xptr(screg+3*32+16);		/* cosine/sine */ \
+	xmm9 = sc[3*2+1];		/* cosine/sine */ \
 	xmm13 = xmm7;			/* Copy R5 */ \
 	xmm7 *= xmm9;			/* A5 = R5 * cosine/sine		; 31-35	avail 14 */ \
 \
@@ -3716,25 +3718,25 @@
 	xmm14 = t9;				/* Imag #6 */ \
 \
 	xmm5 -= xmm14;			/* A6 = A6 - I6				; 33-35	avail 10 */ \
-	xmm14 *= xptr(screg+4*32+16);		/* B6 = I6 * cosine/sine		; 33-36 */ \
-	xmm10 = xptr(screg+6*32);		/* sine */ \
+	xmm14 *= sc[4*2+1];		/* B6 = I6 * cosine/sine		; 33-36 */ \
+	xmm10 = sc[6*2];		/* sine */ \
 \
 	xmm1 -= xmm11;			/* A7 = A7 - I7				; 34-36	avail 10,11 */ \
 	xmm12 *= xmm10;			/* A8 = A8 * sine (final R8)		; 34-38	avail 11 storable 12 */ \
-	xmm11 = xptr(screg+2*32);		/* sine */ \
+	xmm11 = sc[2*2];		/* sine */ \
 \
 	xmm2 += xmm4;			/* B7 = B7 + R7				; 35-37	avail 4 storable 12 */ \
 	xmm0 *= xmm10;			/* B8 = B8 * sine (final I8)		; 35-39	avail 4,10 storable 12,0 */ \
-	xmm4 = xptr(screg+5*32);		/* sine */ \
+	xmm4 = sc[5*2];			/* sine */ \
 \
 	xmm7 -= xmm6;			/* A5 = A5 - I5				; 36-38	avail 10,6 storable 12,0 */ \
 	xmm3 *= xmm11;			/* A4 = A4 * sine (final R4)		; 36-40	avail 10,6 storable 12,0,3 */ \
-	xmm6 = xptr(screg+4*32);		/* sine */ \
+	xmm6 = sc[4*2];			/* sine */ \
 \
 	xmm9 += xmm13;			/* B5 = B5 + R5				; 37-39	avail 10,13 storable 12,0,3 */ \
 	xmm8 *= xmm11;			/* B4 = B4 * sine (final I4)		; 37-41	avail 10,13,11 storable 12,0,3,8 */ \
 \
-	xmm14 += t4;	/* B6 = B6 + R6				; 38-40 */ \
+	xmm14 += t4;			/* B6 = B6 + R6				; 38-40 */ \
 	xmm5 *= xmm6;			/* A6 = A6 * sine (final R6)		; 38-42	avail 10,13,11 storable 12,0,3,8,5 */ \
 \
 	xmm1 *= xmm4;			/* A7 = A7 * sine (final R7)		; 39-43	avail 10,13,11 storable 12,0,3,8,5,1 */ \
@@ -3743,7 +3745,7 @@
 	xmm2 *= xmm4;			/* B7 = B7 * sine (final I7)		; 40-44	avail 10,13,11,12,4 storable 0,3,8,5,1,2 */ \
 	sd3[3] = xmm0;			/* Save final I8			; 40	avail 10,13,11,12,4,0 storable 3,8,5,1,2 */ \
 \
-	xmm10 = xptr(screg+3*32);		/* sine  */ \
+	xmm10 = sc[3*2];		/* sine  */ \
 	xmm7 *= xmm10;			/* A5 = A5 * sine (final R5)		; 41-45	avail 13,11,12,4,0 storable 3,8,5,1,2,7 */ \
 	sd1[2] = xmm3;			/* Save final R4			; 41	avail 13,11,12,4,0,3 storable 8,5,1,2,7 */ \
 \
@@ -3860,11 +3862,12 @@
 /* we have a perfect balance of adds and subtracts. */ \
 \
 
-#define r5_x9c_twiddle(SN,screg,tmpreg) \
-	xmm0 = xptr(screg+16);		/* cosine/sine */ \
+#define r5_x9c_twiddle(SN,screg,tmpreg) { \
+	vec2f64 *sc = (vec2f64*)(screg); \
+	xmm0 = sc[1];			/* cosine/sine */ \
 	xmm2 = sd1[0+SN];		/* R2 */ \
 	xmm2 *= xmm0;			/* A2 = R2 * cosine/sine */ \
-	xmm4 = xptr(screg+8*32+16);		/* cosine/sine */ \
+	xmm4 = sc[8*2+1];		/* cosine/sine */ \
 	xmm6 = sd9[0+SN];		/* R10 */ \
 	xmm6 *= xmm4;			/* A10 = R10 * cosine/sine */ \
 	xmm3 = sd1[2+SN];		/* I2 */ \
@@ -3874,10 +3877,10 @@
 	xmm6 += xmm7;			/* A10 = A10 + I10 */ \
 	xmm7 *= xmm4;			/* B10 = I10 * cosine/sine */ \
 	xmm3 -= sd1[0+SN];		/* B2 = B2 - R2 */ \
-	xmm1 = xptr(screg);			/* sine */ \
+	xmm1 = sc[0];			/* sine */ \
 	xmm2 *= xmm1;			/* R2 = A2 * sine */ \
 	xmm7 -= sd9[0+SN];		/* B10 = B10 - R10 */ \
-	xmm5 = xptr(screg+8*32);	/* sine */ \
+	xmm5 = sc[8*2];			/* sine */ \
 	xmm6 *= xmm5;			/* R10 = A10 * sine */ \
 	xmm3 *= xmm1;			/* I2 = B2 * sine */ \
 	xmm7 *= xmm5;			/* I10 = B10 * sine */ \
@@ -3892,10 +3895,10 @@
 	tmpreg[17] = xmm3;		/* Save I2+I10 */ \
 	tmpreg[1] = xmm5;		/* Save I2-I10 */ \
 \
-	xmm0 = xptr(screg+32+16);		/* cosine/sine */ \
+	xmm0 = sc[2+1];		/* cosine/sine */ \
 	xmm2 = sd2[0+SN];		/* R3 */ \
 	xmm2 *= xmm0;			/* A3 = R3 * cosine/sine */ \
-	xmm4 = xptr(screg+7*32+16);		/* cosine/sine */ \
+	xmm4 = sc[7*2+1];		/* cosine/sine */ \
 	xmm6 = sd8[0+SN];		/* R9 */ \
 	xmm6 *= xmm4;			/* A9 = R9 * cosine/sine */ \
 	xmm3 = sd2[2+SN];		/* I3 */ \
@@ -3905,10 +3908,10 @@
 	xmm6 += xmm7;			/* A9 = A9 + I9 */ \
 	xmm7 *= xmm4;			/* B9 = I9 * cosine/sine */ \
 	xmm3 -= sd2[0+SN];		/* B3 = B3 - R3 */ \
-	xmm1 = xptr(screg+32);		/* sine */ \
+	xmm1 = sc[2];			/* sine */ \
 	xmm2 *= xmm1;			/* R3 = A3 * sine */ \
 	xmm7 -= sd8[0+SN];		/* B9 = B9 - R9 */ \
-	xmm5 = xptr(screg+7*32);	/* sine */ \
+	xmm5 = sc[7*2];			/* sine */ \
 	xmm6 *= xmm5;			/* R9 = A9 * sine */ \
 	xmm3 *= xmm1;			/* I3 = B3 * sine */ \
 	xmm7 *= xmm5;			/* I9 = B9 * sine */ \
@@ -3923,10 +3926,10 @@
 	tmpreg[15] = xmm3;		/* Save I3+I9 */ \
 	tmpreg[3] = xmm5;		/* Save I3-I9 */ \
 \
-	xmm0 = xptr(screg+2*32+16);		/* cosine/sine */ \
+	xmm0 = sc[2*2+1];		/* cosine/sine */ \
 	xmm2 = sd3[0+SN];		/* R4 */ \
 	xmm2 *= xmm0;			/* A4 = R4 * cosine/sine */ \
-	xmm4 = xptr(screg+6*32+16);		/* cosine/sine */ \
+	xmm4 = sc[6*2+1];		/* cosine/sine */ \
 	xmm6 = sd7[0+SN];		/* R8 */ \
 	xmm6 *= xmm4;			/* A8 = R8 * cosine/sine */ \
 	xmm3 = sd3[2+SN];		/* I4 */ \
@@ -3936,10 +3939,10 @@
 	xmm6 += xmm7;			/* A8 = A8 + I8 */ \
 	xmm7 *= xmm4;			/* B8 = I8 * cosine/sine */ \
 	xmm3 -= sd3[0+SN];		/* B4 = B4 - R4 */ \
-	xmm1 = xptr(screg+2*32);		/* sine */ \
+	xmm1 = sc[2*2];			/* sine */ \
 	xmm2 *= xmm1;			/* R4 = A4 * sine */ \
 	xmm7 -= sd7[0+SN];		/* B8 = B8 - R8 */ \
-	xmm5 = xptr(screg+6*32);		/* sine */ \
+	xmm5 = sc[6*2];			/* sine */ \
 	xmm6 *= xmm5;			/* R8 = A8 * sine */ \
 	xmm3 *= xmm1;			/* I4 = B4 * sine */ \
 	xmm7 *= xmm5;			/* I8 = B8 * sine */ \
@@ -3954,10 +3957,10 @@
 	tmpreg[13] = xmm3;		/* Save I4+I8 */ \
 	tmpreg[5] = xmm5;		/* Save I4-I8 */ \
 \
-	xmm0 = xptr(screg+3*32+16);		/* cosine/sine */ \
+	xmm0 = sc[3*2+1];		/* cosine/sine */ \
 	xmm2 = sd4[0+SN];		/* R5 */ \
 	xmm2 *= xmm0;			/* A5 = R5 * cosine/sine */ \
-	xmm4 = xptr(screg+5*32+16);		/* cosine/sine */ \
+	xmm4 = sc[5*2+1];		/* cosine/sine */ \
 	xmm6 = sd6[0+SN];		/* R7 */ \
 	xmm6 *= xmm4;			/* A7 = R7 * cosine/sine */ \
 	xmm3 = sd4[2+SN];		/* I5 */ \
@@ -3967,10 +3970,10 @@
 	xmm6 += xmm7;			/* A7 = A7 + I7 */ \
 	xmm7 *= xmm4;			/* B7 = I7 * cosine/sine */ \
 	xmm3 -= sd4[0+SN];		/* B5 = B5 - R5 */ \
-	xmm1 = xptr(screg+3*32);		/* sine */ \
+	xmm1 = sc[3*2];			/* sine */ \
 	xmm2 *= xmm1;			/* R5 = A5 * sine */ \
 	xmm7 -= sd6[0+SN];		/* B7 = B7 - R7 */ \
-	xmm5 = xptr(screg+5*32);		/* sine */ \
+	xmm5 = sc[5*2];			/* sine */ \
 	xmm6 *= xmm5;			/* R7 = A7 * sine */ \
 	xmm3 *= xmm1;			/* I5 = B5 * sine */ \
 	xmm7 *= xmm5;			/* I7 = B7 * sine */ \
@@ -3985,20 +3988,20 @@
 	tmpreg[11] = xmm3;		/* Save I5+I7 */ \
 	tmpreg[7] = xmm5;		/* Save I5-I7 */ \
 \
-	xmm0 = xptr(screg+4*32+16);		/* cosine/sine */ \
+	xmm0 = sc[4*2+1];		/* cosine/sine */ \
 	xmm2 = sd5[0+SN];		/* R6 */ \
 	xmm2 *= xmm0;			/* A6 = R6 * cosine/sine */ \
 	xmm3 = sd5[2+SN];		/* I6 */ \
 	xmm2 += xmm3;			/* A6 = A6 + I6 */ \
 	xmm3 *= xmm0;			/* B6 = I6 * cosine/sine */ \
 	xmm3 -= sd5[0+SN];		/* B6 = B6 - R6 */ \
-	xmm1 = xptr(screg+4*32);		/* sine */ \
+	xmm1 = sc[4*2];		/* sine */ \
 	xmm2 *= xmm1;			/* R6 = A6 * sine */ \
 	xmm3 *= xmm1;			/* I6 = B6 * sine */ \
 	tmpreg[8] = xmm2;		/* Save R6 */ \
 	tmpreg[9] = xmm3;		/* Save I6 */ \
-\
-\
+}
+
 
 #define r5_x20r_unfft(sd0,sd2,sd4,sd6,sd8,r1A,r1B,tmpreg) \
 \

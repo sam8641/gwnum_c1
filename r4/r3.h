@@ -83,7 +83,7 @@
 \
 \
 
-#define r3_f3cl_three_complex_djbfft_common(srcreg,srcoff,srcinc,d1,screg,scoff) { \
+#define r3_f3cl_three_complex_djbfft_common(srcreg,srcoff,srcinc,d1,screg_a,scoff) { \
 	uintptr_t src_off = srcreg + srcoff; \
 	vec2f64 *sd0 = (vec2f64*)(srcreg); \
 	vec2f64 *sd1 = (vec2f64*)(srcreg+(d1)); \
@@ -91,6 +91,7 @@
 	vec2f64 *bd0 = (vec2f64*)(src_off); \
 	vec2f64 *bd1 = (vec2f64*)(src_off+(d1)); \
 	vec2f64 *bd2 = (vec2f64*)(src_off+2*(d1)); \
+	char *screg = (char*)(screg_a); /* improves clang compiler */ \
 	xmm2 = bd2[1];	/* R3 */ \
 	xmm5 = bd2[3];	/* I3 */ \
 	r3_x3c_djbfft_partial_mem(xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7, bd1[0],bd0[1],bd1[2],bd0[3], screg+scoff,srcreg+srcinc,d1); \
@@ -689,10 +690,11 @@
 \
 \
 
-#define r3_x3cl_three_complex_djbunfft(srcreg,srcinc,d1,screg,scoff) { \
+#define r3_x3cl_three_complex_djbunfft(srcreg,srcinc,d1,screg_a,scoff) { \
 	vec2f64 *sd0 = (vec2f64*)(srcreg); \
 	vec2f64 *sd1 = (vec2f64*)(srcreg+(d1)); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+2*(d1)); \
+	char *screg = (char*)(screg_a); /* improves clang compiler */ \
 	xmm2 = sd1[0];	/* R2 */ \
 	xmm3 = sd1[2];	/* I2 */ \
 	r3_x3c_djbunfft_partial_mem(xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7, sd0[0],sd0[2],sd2[0],sd2[2], screg,0,srcreg+srcinc,d1); \
