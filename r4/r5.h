@@ -107,7 +107,7 @@
 \
 
 #define r5_f5cl_five_complex_djbfft_common(srcreg,srcoff,srcinc,d1,screg1,scoff1,screg2,scoff2) { \
-	uintptr_t src_off = srcreg + srcoff; \
+	uintptr_t src_off = (uintptr_t)(srcreg + srcoff); \
 	vec2f64 *sd0 = (vec2f64*)(srcreg); \
 	vec2f64 *sd1 = (vec2f64*)(srcreg+(d1)); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+2*(d1)); \
@@ -133,18 +133,14 @@
 	sd2[2] = xmm4;		/* Save I3 */ \
 /*	xstore	[srcreg+d4], xmm7		;; Save R5 */ \
 	sd4[2] = xmm6;		/* Save I5 */ \
-	xmm3 = bd1[0];	/* R1 */ \
-	xmm4 = bd1[2];	/* I1 */ \
-	xmm7 = bd3[0];	/* R2 */ \
-	xmm6 = bd3[2];	/* I2 */ \
+	TMP5 = bd1[0];	/* R1 */ \
+	TMP6 = bd1[2];	/* I1 */ \
+	TMP7 = bd3[0];	/* R2 */ \
+	TMP8 = bd3[2];	/* I2 */ \
 	sd1[0] = xmm1;		/* Save R2 */ \
 	sd1[2] = xmm0;		/* Save I2 */ \
 	sd3[0] = xmm5;		/* Save R4 */ \
 	sd3[2] = xmm2;		/* Save I4 */ \
-	TMP5 = xmm3; \
-	TMP6 = xmm4; \
-	TMP7 = xmm7; \
-	TMP8 = xmm6; \
 	r5_x5c_djbfft_mem(TMP5,TMP6,TMP7,TMP8,bd0[1], bd0[3],bd2[1],bd2[3],bd4[1],bd4[3], screg1+scoff1,screg2+scoff2, sd0[1],sd0[3],sd4[1]); \
 	sd1[1] = xmm1;		/* Save R2 */ \
 	sd1[3] = xmm0;		/* Save I2 */ \
@@ -191,35 +187,36 @@
 
 #define r5_x5c_djbfft_mem(r1,i1,r2,i2,r3,i3,r4,i4,r5,i5,screg1,screg2,dstr1,dsti1,dstr5) { \
 	vec2f64 TMP1, TMP2, TMP3, TMP4; \
-	xmm0 = r2; \
-	xmm0 += r5;			/* r25a=r2+r5 */ \
-	xmm1 = r3; \
-	xmm1 += r4;			/* r34a=r3+r4 */ \
-	xmm2 = i2; \
-	xmm2 -= i5;			/* i25s=i2-i5 */ \
-	xmm3 = i3; \
-	xmm3 -= i4;			/* i34s=i3-i4 */ \
-	xmm4 = CONST2_P309; \
-	xmm4 *= xmm0;			/* cos2*r25a */ \
-	xmm5 = CONST2_M809; \
-	xmm5 *= xmm1;			/* cos4*r34a */ \
-	xmm6 = CONST2_P951; \
-	xmm6 *= xmm2;			/* sin2*i25s */ \
-	xmm7 = CONST2_P588; \
-	xmm7 *= xmm3;			/* sin4*i34s */ \
-	xmm4 += xmm5;			/* cos2*r25a + cos4*r34a */ \
-	xmm6 += xmm7;			/* t2=sin2*i25s + sin4*i34s */ \
-	xmm5 = CONST2_M809; \
-	xmm5 *= xmm0;			/* cos4*r25a */ \
+	vec2f64 r25s, r34s, i25a, i34a; \
+	xmm4 = r2; \
+	xmm5 = r5; \
+	xmm0 = xmm4 + xmm5;		/* r25a=r2+r5 */ \
+	r25s = xmm4 - xmm5;		/* i25s=r2-r5 */ \
+	xmm4 = r3; \
+	xmm5 = r4; \
+	xmm1 = xmm4 + xmm5;		/* r34a=r3+r4 */ \
+	r34s = xmm4 - xmm5;		/* i25s=r3-r4 */ \
+	xmm4 = i2; \
+	xmm5 = i5; \
+	xmm2 = xmm4 - xmm5;		/* i25s=i2-i5 */ \
+	i25a = xmm4 + xmm5;		/* i25a=i2+i5 */ \
+	xmm4 = i3; \
+	xmm5 = i4; \
+	xmm3 = xmm4 - xmm5;		/* i34s=i3-i4 */ \
+	i34a = xmm4 + xmm5;		/* i34a=i3+i4 */ \
+\
+	xmm4 = xmm0 * CONST2_P309;	/* cos2*r25a */ \
+	xmm4 += xmm1 * CONST2_M809;	/* cos2*r25a + cos4*r34a */ \
+	xmm5 = xmm0 * CONST2_M809;	/* cos4*r25a */ \
+	xmm5 += xmm1 * CONST2_P309;	/* cos4*r25a+cos2*r34a */ \
+	xmm6 = xmm2 * CONST2_P951;	/* sin2*i25s */ \
+	xmm6 += xmm3 * CONST2_P588;	/* t2=sin2*i25s + sin4*i34s */ \
+	xmm2 = xmm2 * CONST2_P588;	/* sin4*i25s */ \
+	xmm2 -= xmm3 * CONST2_P951;	/* t4=sin4*i25s-sin2*i34s */ \
 	xmm0 += xmm1;			/* r25a + r34a */ \
 	xmm7 = r1; \
 	xmm4 += xmm7;			/* t1=cos2*r25a + cos4*r34a + r1 */ \
 	xmm0 += xmm7;			/* outr(0) = r1 + r25a + r34a */ \
-	xmm1 *= CONST2_P309;			/* cos2*r34a */ \
-	xmm2 *= CONST2_P588;			/* sin4*i25s */ \
-	xmm3 *= CONST2_P951;			/* sin2*i34s */ \
-	xmm5 += xmm1;			/* cos4*r25a+cos2*r34a */ \
-	xmm2 -= xmm3;			/* t4=sin4*i25s-sin2*i34s */ \
 	xmm5 += xmm7;			/* t3=cos4*r25a+cos2*r34a+r1 */ \
 	xmm7 = xmm4; \
 	xmm4 -= xmm6;			/* outr(1)=t1-t2 */ \
@@ -233,38 +230,26 @@
 	TMP3 = xmm2;			/* Save new r4 */ \
 	TMP4 = xmm6;			/* Save new r5 */ \
 \
-	xmm2 = i2; \
-	xmm2 += i5;			/* i25a=i2+i5 */ \
-	xmm3 = i3; \
-	xmm3 += i4;			/* i34a=i3+i4 */ \
-	xmm4 = r2; \
-	xmm4 -= r5;			/* r25s=r2-r5 */ \
-	xmm1 = r3; \
-	xmm1 -= r4;			/* r34s=r3-r4 */ \
-\
 	dstr1 = xmm0;			/* WARNING: dstr1 may be alias to r3 */ \
+\
+	xmm2 = i25a;			/* i25a=i2+i5 */ \
+	xmm3 = i34a;			/* i34a=i3+i4 */ \
+	xmm4 = r25s;			/* r25s=r2-r5 */ \
+	xmm1 = r34s;			/* r34s=r3-r4 */ \
 \
 	xmm5 = xmm2; \
 	xmm5 += xmm3;			/* i25a+i34a */ \
-	xmm6 = CONST2_P309; \
-	xmm6 *= xmm2;			/* cos2*i25a */ \
-	xmm7 = CONST2_M809; \
-	xmm2 *= xmm7;			/* cos4*i25a */ \
-	xmm7 *= xmm3;			/* cos4*i34a */ \
-	xmm3 *= CONST2_P309;			/* cos2*i34a */ \
-	xmm0 = CONST2_P951; \
-	xmm0 *= xmm4;			/* sin2*r25s */ \
-	xmm6 += xmm7;			/* cos2*i25a + cos4*i34a */ \
-	xmm7 = CONST2_P588; \
-	xmm4 *= xmm7;			/* sin4*r25s */ \
-	xmm7 *= xmm1;			/* sin4*r34s */ \
-	xmm1 *= CONST2_P951;			/* sin2*r34s */ \
-	xmm2 += xmm3;			/* cos4*i25a + cos2*i34a */ \
+	xmm6 = xmm2 * CONST2_P309;	/* cos2*i25a */ \
+	xmm6 += xmm3 * CONST2_M809;	/* cos2*i25a + cos4*i34a */ \
+	xmm0 = xmm4 * CONST2_P951;	/* sin2*r25s */ \
+	xmm0 += xmm1 * CONST2_P588;	/* t6=sin2*r25s + sin4*r34s */ \
+	xmm2 = xmm2 * CONST2_M809;	/* cos4*i25a */ \
+	xmm2 += xmm3 * CONST2_P309;	/* cos4*i25a + cos2*i34a */ \
+	xmm4 = xmm4 * CONST2_P588;	/* sin4*r25s */ \
+	xmm4 -= xmm1 * CONST2_P951;	/* t8=sin4*r25s - sin2*r34s */ \
 	xmm3 = i1; \
 	xmm6 += xmm3;			/* t5=cos2*i25a + cos4*i34a + i1 */ \
-	xmm0 += xmm7;			/* t6=sin2*r25s + sin4*r34s */ \
 	xmm2 += xmm3;			/* t7=cos4*i25a + cos2*i34a + i1 */ \
-	xmm4 -= xmm1;			/* t8=sin4*r25s - sin2*r34s */ \
 \
 	xmm7 = xmm6; \
 	xmm6 -= xmm0;			/* outi(4)=t5-t6 */ \
@@ -274,41 +259,29 @@
 	xmm4 += xmm1;			/* outi(2)=t7+t8 */ \
 	xmm5 += xmm3;			/* outi(0)=i1+i25a+i34a */ \
 \
-	xmm7 = TMP4;			/* Load R5 */ \
 	xmm3 = xptr(screg1+16); \
-	xmm7 *= xmm3;			/* A5 = R5 * cosine/sine */ \
-	xmm1 = TMP1;			/* Load R2 */ \
-	xmm1 *= xmm3;			/* A2 = R2 * cosine/sine */ \
-	xmm7 += xmm6;			/* A5 = A5 + I5 */ \
-	xmm1 -= xmm0;			/* A2 = A2 - I2 */ \
-	xmm6 *= xmm3;			/* B5 = I5 * cosine/sine */ \
-	xmm0 *= xmm3;			/* B2 = I2 * cosine/sine */ \
-	xmm6 -= TMP4;			/* B5 = B5 - R5 */ \
-	xmm0 += TMP1;			/* B2 = B2 + R2 */ \
-	dsti1 = xmm5; \
-	xmm5 = xptr(screg1); \
-	xmm7 *= xmm5;			/* A5 = A5 * sine (new R5) */ \
-	dstr5 = xmm7; \
-	xmm1 *= xmm5;			/* A2 = A2 * sine (new R2) */ \
-	xmm6 *= xmm5;			/* B5 = B5 * sine (new I5) */ \
-	xmm0 *= xmm5;			/* B2 = B2 * sine (new I2) */ \
+	xmm7 = TMP4 * xmm3 + xmm6;	/* A5 = R5 * cosine/sine + I5 */ \
+	xmm1 = TMP1 * xmm3 - xmm0;	/* A2 = R2 * cosine/sine - I2 */ \
+	xmm6 = xmm6 * xmm3 - TMP4;	/* B5 = I5 * cosine/sine - R5 */ \
+	xmm0 = xmm0 * xmm3 + TMP1;	/* B2 = I2 * cosine/sine + R2 */ \
+	TMP1 = xptr(screg1); \
+	xmm7 *= TMP1;			/* A5 = A5 * sine (new R5) */ \
+	xmm1 *= TMP1;			/* A2 = A2 * sine (new R2) */ \
+	xmm6 *= TMP1;			/* B5 = B5 * sine (new I5) */ \
+	xmm0 *= TMP1;			/* B2 = B2 * sine (new I2) */ \
 \
-	xmm3 = TMP2;			/* Load R3 */ \
-	xmm7 = xptr(screg2+16); \
-	xmm3 *= xmm7;	 		/* A3 = R3 * cosine/sine */ \
-	xmm5 = TMP3;			/* Load R4 */ \
-	xmm5 *= xmm7;			/* A4 = R4 * cosine/sine */ \
-	xmm3 -= xmm4;			/* A3 = A3 - I3 */ \
-	xmm4 *= xmm7;			/* B3 = I3 * cosine/sine */ \
-	xmm5 += xmm2;			/* A4 = A4 + I4 */ \
-	xmm2 *= xmm7;			/* B4 = I4 * cosine/sine */ \
-	xmm4 += TMP2;			/* B3 = B3 + R3 */ \
-	xmm2 -= TMP3;			/* B4 = B4 - R4 */ \
-	xmm7 = xptr(screg2); \
-	xmm3 *= xmm7;			/* A3 = A3 * sine (new R3) */ \
-	xmm5 *= xmm7;			/* A4 = A4 * sine (new R4) */ \
-	xmm4 *= xmm7;			/* B3 = B3 * sine (new I3) */ \
-	xmm2 *= xmm7;			/* B4 = B4 * sine (new I4) */ \
+	TMP1 = xptr(screg2+16); \
+	TMP4 = xptr(screg2); \
+	dsti1 = xmm5; \
+	dstr5 = xmm7; \
+	xmm3 = TMP2 * TMP1 - xmm4;	/* A3 = R3 * cosine/sine - I3 */ \
+	xmm5 = TMP3 * TMP1 + xmm2;	/* A4 = R4 * cosine/sine + I4 */ \
+	xmm4 = xmm4 * TMP1 + TMP2;	/* B3 = I3 * cosine/sine + R3 */ \
+	xmm2 = xmm2 * TMP1 - TMP3;	/* B4 = I4 * cosine/sine - R4 */ \
+	xmm3 *= TMP4;			/* A3 = A3 * sine (new R3) */ \
+	xmm5 *= TMP4;			/* A4 = A4 * sine (new R4) */ \
+	xmm4 *= TMP4;			/* B3 = B3 * sine (new I3) */ \
+	xmm2 *= TMP4;			/* B4 = B4 * sine (new I4) */ \
 }
 
 #if 0 //DEF X86_64;
@@ -996,32 +969,22 @@
 	vec2f64 *sd2 = (vec2f64*)(srcreg+2*(d1)); \
 	vec2f64 *sd3 = (vec2f64*)(srcreg+3*(d1)); \
 	vec2f64 *sd4 = (vec2f64*)(srcreg+4*(d1)); \
-	vec2f64 TMP5, TMP6;\
-	TMP5 = sd1[1]; \
-	TMP6 = sd3[1]; \
-	r5_x5c_djbunfft_mem(sd0,sd1,sd2,sd3,sd4, screg1,screg2, sd0[0],sd2[0],sd4[0],sd1[1],sd3[1]); \
-/*	xstore	[srcreg], xmm4		;; Save R1 */ \
+	vec2f64 TEMP5, TEMP6, TEMP7, TEMP8;\
+	TEMP5 = sd1[1]; \
+	TEMP6 = sd3[1]; \
+	r5_x5c_djbunfft_mem(sd0[0],sd0[2],sd1[0],sd1[2],sd2[0],sd2[2],sd3[0],sd3[2],sd4[0],sd4[2], screg1,screg2, sd0[0],sd2[0],sd4[0],sd1[1],sd3[1]); \
 	sd0[2] = xmm5;	/* Save I1 */ \
-/*	xstore	[srcreg+d2], xmm3	;; Save R2 */ \
 	sd2[2] = xmm6;	/* Save I2 */ \
-/*	xstore	[srcreg+d4], xmm3	;; Save R3 */ \
 	sd4[2] = xmm2;	/* Save I3 */ \
-	xmm5 = sd1[3];	/* I2 */ \
-/*	xstore	[srcreg+d1+16], xmm1	;; Save R4 */ \
+	TEMP7 = sd1[3];	/* I2 */ \
 	sd1[3] = xmm0;	/* Save I4 */ \
-/*	xstore	[srcreg+d3+16], xmm1	;; Save R5 */ \
-	xmm2 = sd3[3];	/* I4 */ \
+	TEMP8 = sd3[3];	/* I4 */ \
 	sd3[3] = xmm4;	/* Save I5 */ \
-	r5_x5c_djbunfft_partial_mem((sd0+1),TMP5,(sd2+1),TMP6,(sd4+1), screg1+scoff1,screg2+scoff2,sd1[0],sd3[0],sd0[1],sd2[1],sd4[1]); \
-/*	xstore	[srcreg+d1], xmm4	;; Save R1 */ \
+	r5_x5c_djbunfft_mem(sd0[1],sd0[3],TEMP5,TEMP7,sd2[1],sd2[3],TEMP6,TEMP8,sd4[1],sd4[3], screg1+scoff1,screg2+scoff2,sd1[0],sd3[0],sd0[1],sd2[1],sd4[1]); \
 	sd1[2] = xmm5;	/* Save I1 */ \
-/*	xstore	[srcreg+d3], xmm0	;; Save R2 */ \
 	sd3[2] = xmm6;	/* Save I2 */ \
-/*	xstore	[srcreg+16], xmm3	;; Save R3 */ \
 	sd0[3] = xmm2;	/* Save I3 */ \
-/*	xstore	[srcreg+d2+16], xmm3	;; Save R4 */ \
 	sd2[3] = xmm0;	/* Save I4 */ \
-/*	xstore	[srcreg+d4+16], xmm0	;; Save R5 */ \
 	sd4[3] = xmm4;	/* Save I5 */ \
 	srcreg += srcinc; \
 }
@@ -1033,21 +996,17 @@
 /* Assumes imaginary part of source values is 32 bytes after real part (to workaround MASM line-length limitations) */ \
 /* (was: r5_x5c_djbunfft_mem MACRO r1,i1,r2,i2,r3,i3,r4,i4,r5,i5,screg1,screg2,dstr1,dstr2,dstr3,dstr4,dstr5) */ \
 
-#define r5_x5c_djbunfft_mem(r1,r2,r3,r4,r5,screg1,screg2,dstr1,dstr2,dstr3,dstr4,dstr5) { \
+#define r5_x5c_djbunfft_mem(R1,I1,R2,I2,R3,I3,R4,I4,R5,I5,screg1,screg2,dstr1,dstr2,dstr3,dstr4,dstr5) { \
 	vec2f64 TMP1, TMP2, TMP3, TMP4; \
-	xmm1 = xptr(r2);			/* Load R2 */ \
+	xmm1 = R2; \
 	xmm0 = xptr(screg1+16); \
-	xmm1 *= xmm0;			/* A2 = R2 * cosine/sine */ \
-	xmm7 = xptr(r5);			/* Load R5 */ \
-	xmm7 *= xmm0;			/* A5 = R5 * cosine/sine */ \
-	xmm4 = xptr2(r2,32); /*i2 */ \
-	xmm1 += xmm4;			/* A2 = A2 + I2 */ \
-	xmm6 = xptr2(r5,32); /*i5 */ \
-	xmm7 -= xmm6;			/* A5 = A5 - I5 */ \
-	xmm4 *= xmm0;			/* B2 = I2 * cosine/sine */ \
-	xmm6 *= xmm0;			/* B5 = I5 * cosine/sine */ \
-	xmm4 -= xptr(r2);			/* B2 = B2 - R2 */ \
-	xmm6 += xptr(r5);			/* B5 = B5 + R5 */ \
+	xmm7 = R5; \
+	xmm4 = I2; \
+	xmm6 = I5; \
+	xmm1 = xmm1 * xmm0 + xmm4;	/* A2 = R2 * cosine/sine + I2 */ \
+	xmm7 = xmm7 * xmm0 - xmm6;	/* A5 = R5 * cosine/sine - I5 */ \
+	xmm4 = xmm4 * xmm0 - R2;	/* B2 = I2 * cosine/sine - R2 */ \
+	xmm6 = xmm6 * xmm0 + R5;	/* B5 = I5 * cosine/sine + R5 */ \
 	xmm3 = xptr(screg1); \
 	xmm1 *= xmm3;			/* A2 = A2 * sine (new R2) */ \
 	xmm4 *= xmm3;			/* B2 = B2 * sine (new I2) */ \
@@ -1064,21 +1023,15 @@
 	TMP1 = xmm1;			/* Save r2-r5 */ \
 	TMP2 = xmm6;			/* Save i2+i5 */ \
 \
-	vec2f64 r4r = xptr(r4); \
-	vec2f64 r3r = xptr(r3); \
-	xmm5 = r4r;			/* Load R4 */ \
+	vec2f64 r4r = R4; \
+	vec2f64 r3r = R3; \
 	xmm1 = xptr(screg2+16); \
-	xmm5 *= xmm1;			/* A4 = R4 * cosine/sine */ \
-	xmm3 = r3r;			/* Load R3 */ \
-	xmm3 *= xmm1;			/* A3 = R3 * cosine/sine */ \
-	xmm2 = xptr2(r4,32); /*i4 */ \
-	xmm5 -= xmm2;			/* A4 = A4 - I4 */ \
-	xmm0 = xptr2(r3,32); /*i3 */ \
-	xmm3 += xmm0;			/* A3 = A3 + I3 */ \
-	xmm2 *= xmm1;			/* B4 = I4 * cosine/sine */ \
-	xmm0 *= xmm1;			/* B3 = I3 * cosine/sine */ \
-	xmm2 += r4r;			/* B4 = B4 + R4 */ \
-	xmm0 -= r3r;			/* B3 = B3 - R3 */ \
+	xmm2 = I4; \
+	xmm0 = I3; \
+	xmm5 = r4r * xmm1 - xmm2;	/* A4 = R4 * cosine/sine - I4 */ \
+	xmm3 = r3r * xmm1 + xmm0;	/* A3 = R3 * cosine/sine + I3 */ \
+	xmm2 = xmm2 * xmm1 + r4r;	/* B4 = I4 * cosine/sine + R4 */ \
+	xmm0 = xmm0 * xmm1 - r3r;	/* B3 = I3 * cosine/sine - R3 */ \
 	xmm6 = xptr(screg2); \
 	xmm5 *= xmm6;			/* A4 = A4 * sine (new R4) */ \
 	xmm2 *= xmm6;			/* B4 = B4 * sine (new I4) */ \
@@ -1094,27 +1047,18 @@
 	xmm2 += xmm6;			/* i34a=i3+i4 */ \
 	TMP4 = xmm2; \
 \
-	xmm1 = CONST2_P309; \
-	xmm1 *= xmm7;			/* cos2*r25a */ \
-	xmm2 = CONST2_M809; \
-	xmm2 *= xmm5;			/* cos4*r34a */ \
-	xmm3 = CONST2_P951; \
-	xmm3 *= xmm4;			/* sin2*i25s */ \
-	xmm6 = CONST2_P588; \
-	xmm6 *= xmm0;			/* sin4*i34s */ \
-	xmm1 += xmm2;			/* cos2*r25a + cos4*r34a */ \
-	xmm3 += xmm6;			/* t2=sin2*i25s + sin4*i34s */ \
-	xmm2 = CONST2_M809; \
-	xmm2 *= xmm7;			/* cos4*r25a */ \
+	xmm1 = xmm7 * CONST2_P309;	/* cos2*r25a */ \
+	xmm1 += xmm5 * CONST2_M809;	/* cos2*r25a + cos4*r34a */ \
+	xmm3 = xmm4 * CONST2_P951;	/* sin2*i25s */ \
+	xmm3 += xmm0 * CONST2_P588;	/* t2=sin2*i25s + sin4*i34s */ \
+	xmm2 = xmm7 * CONST2_M809;	/* cos4*r25a */ \
+	xmm2 += xmm5 * CONST2_P309;			/* cos4*r25a+cos2*r34a */ \
+	xmm4 = xmm4 * CONST2_P588;	/* sin4*i25s */ \
+	xmm4 -= xmm0 * CONST2_P951;			/* t4=sin4*i25s-sin2*i34s */ \
 	xmm7 += xmm5;			/* r25a + r34a */ \
-	xmm6 = xptr(r1); \
+	xmm6 = R1; \
 	xmm1 += xmm6;			/* t1=cos2*r25a + cos4*r34a + r1 */ \
 	xmm7 += xmm6;			/* outr(0) = r1 + r25a + r34a */ \
-	xmm5 *= CONST2_P309;			/* cos2*r34a */ \
-	xmm4 *= CONST2_P588;			/* sin4*i25s */ \
-	xmm0 *= CONST2_P951;			/* sin2*i34s */ \
-	xmm2 += xmm5;			/* cos4*r25a+cos2*r34a */ \
-	xmm4 -= xmm0;			/* t4=sin4*i25s-sin2*i34s */ \
 	xmm2 += xmm6;			/* t3=cos4*r25a+cos2*r34a+r1 */ \
 	xmm6 = xmm1; \
 	xmm1 -= xmm3;			/* outr(4)=t1-t2 */ \
@@ -1136,155 +1080,17 @@
 \
 	xmm5 = xmm2; \
 	xmm5 += xmm3;			/* i25a+i34a */ \
-	xmm6 = CONST2_P309; \
-	xmm6 *= xmm2;			/* cos2*i25a */ \
-	xmm7 = CONST2_M809; \
-	xmm2 *= xmm7;			/* cos4*i25a */ \
-	xmm7 *= xmm3;			/* cos4*i34a */ \
-	xmm3 *= CONST2_P309;			/* cos2*i34a */ \
-	xmm4 = CONST2_P951; \
-	xmm4 *= xmm0;			/* sin2*r25s */ \
-	xmm6 += xmm7;			/* cos2*i25a + cos4*i34a */ \
-	xmm7 = CONST2_P588; \
-	xmm0 *= xmm7;			/* sin4*r25s */ \
-	xmm7 *= xmm1;			/* sin4*r34s */ \
-	xmm1 *= CONST2_P951;			/* sin2*r34s */ \
-	xmm2 += xmm3;			/* cos4*i25a + cos2*i34a */ \
-	xmm3 = xptr2(r1,32); /*i1 */ \
+	xmm6 = xmm2 * CONST2_P309;	/* cos2*i25a */ \
+	xmm6 += xmm3 * CONST2_M809;	/* cos2*i25a + cos4*i34a */ \
+	xmm2 = xmm2 * CONST2_M809;	/* cos4*i25a */ \
+	xmm2 += xmm3 * CONST2_P309;	/* cos4*i25a + cos2*i34a */ \
+	xmm4 = xmm0 * CONST2_P951;	/* sin2*r25s */ \
+	xmm4 += xmm1 * CONST2_P588;	/* t6=sin2*r25s + sin4*r34s */ \
+	xmm0 = xmm0 * CONST2_P588;	/* sin4*r25s */ \
+	xmm0 -= xmm1 * CONST2_P951;	/* t8=sin4*r25s - sin2*r34s */ \
+	xmm3 = I1; /*i1 */ \
 	xmm6 += xmm3;			/* t5=cos2*i25a + cos4*i34a + i1 */ \
-	xmm4 += xmm7;			/* t6=sin2*r25s + sin4*r34s */ \
 	xmm2 += xmm3;			/* t7=cos4*i25a + cos2*i34a + i1 */ \
-	xmm0 -= xmm1;			/* t8=sin4*r25s - sin2*r34s */ \
-\
-	xmm7 = xmm6; \
-	xmm6 -= xmm4;			/* outi(1)=t5-t6 */ \
-	xmm4 += xmm7;			/* outi(4)=t5+t6 */ \
-	xmm1 = xmm2; \
-	xmm2 -= xmm0;			/* outi(2)=t7-t8 */ \
-	xmm0 += xmm1;			/* outi(3)=t7+t8 */ \
-	xmm5 += xmm3;			/* outi(0)=i1+i25a+i34a */ \
-}
-
-/* Like above, but I2 is preloaded in xmm5 and I4 is preloaded in xmm2 */
-/* r2 and r4 expects register or xptr() */
-#define r5_x5c_djbunfft_partial_mem(r1,r2,r3,r4,r5,screg1,screg2,dstr1,dstr2,dstr3,dstr4,dstr5) { \
-	vec2f64 TMP1, TMP2, TMP3, TMP4; \
-	xmm1 = r2;			/* Load R2 */ \
-	xmm0 = xptr(screg1+16); \
-	xmm1 *= xmm0;			/* A2 = R2 * cosine/sine */ \
-	xmm4 = xptr(r5);			/* Load R5 */ \
-	xmm7 = xmm4 * xmm0;		/* A5 = R5 * cosine/sine */ \
-	xmm1 += xmm5;			/* A2 = A2 + I2 */ \
-	xmm6 = xptr2(r5,32); /*i5 */ \
-	xmm7 -= xmm6;			/* A5 = A5 - I5 */ \
-	xmm5 *= xmm0;			/* B2 = I2 * cosine/sine */ \
-	xmm6 *= xmm0;			/* B5 = I5 * cosine/sine */ \
-	xmm5 -= r2;			/* B2 = B2 - R2 */ \
-	xmm6 += xmm4;			/* B5 = B5 + R5 */ \
-	xmm4 = xptr(screg1); \
-	xmm1 *= xmm4;			/* A2 = A2 * sine (new R2) */ \
-	xmm7 *= xmm4;			/* A5 = A5 * sine (new R5) */ \
-	xmm6 *= xmm4;			/* B5 = B5 * sine (new I5) */ \
-	xmm4 *= xmm5;			/* B2 = B2 * sine (new I2) */ \
-\
-	xmm5 = xmm1;			/* Copy R2 */ \
-	xmm1 -= xmm7;			/* r25s=r2-r5 */ \
-	xmm7 += xmm5;			/* r25a=r2+r5 */ \
-	xmm5 = xmm4;			/* Copy I2 */ \
-	xmm4 -= xmm6;			/* i25s=i2-i5 */ \
-	xmm6 += xmm5;			/* i25a=i2+i5 */ \
-\
-	TMP1 = xmm1;			/* Save r2-r5 */ \
-	TMP2 = xmm6;			/* Save i2+i5 */ \
-\
-	xmm5 = r4;			/* Load R4 */ \
-	xmm1 = xptr(screg2+16); \
-	xmm5 *= xmm1;			/* A4 = R4 * cosine/sine */ \
-	xmm6 = xptr(r3);		/* Load R3 */ \
-	xmm3 = xmm6 * xmm1;		/* A3 = R3 * cosine/sine */ \
-	xmm5 -= xmm2;			/* A4 = A4 - I4 */ \
-	xmm0 = xptr2(r3,32); /*i3 */ \
-	xmm3 += xmm0;			/* A3 = A3 + I3 */ \
-	xmm2 *= xmm1;			/* B4 = I4 * cosine/sine */ \
-	xmm0 *= xmm1;			/* B3 = I3 * cosine/sine */ \
-	xmm2 += r4;			/* B4 = B4 + R4 */ \
-	xmm0 -= xmm6;			/* B3 = B3 - R3 */ \
-	xmm6 = xptr(screg2); \
-	xmm5 *= xmm6;			/* A4 = A4 * sine (new R4) */ \
-	xmm2 *= xmm6;			/* B4 = B4 * sine (new I4) */ \
-	xmm3 *= xmm6;			/* A3 = A3 * sine (new R3) */ \
-	xmm0 *= xmm6;			/* B3 = B3 * sine (new I3) */ \
-\
-	xmm1 = xmm3;			/* Copy R3 */ \
-	xmm3 -= xmm5;			/* r34s=r3-r4 */ \
-	xmm5 += xmm1;			/* r34a=r3+r4 */ \
-	TMP3 = xmm3; \
-	xmm6 = xmm0;			/* Copy I3 */ \
-	xmm0 -= xmm2;			/* i34s=i3-i4 */ \
-	xmm2 += xmm6;			/* i34a=i3+i4 */ \
-	TMP4 = xmm2; \
-\
-	xmm1 = CONST2_P309; \
-	xmm1 *= xmm7;			/* cos2*r25a */ \
-	xmm2 = CONST2_M809; \
-	xmm2 *= xmm5;			/* cos4*r34a */ \
-	xmm3 = CONST2_P951; \
-	xmm3 *= xmm4;			/* sin2*i25s */ \
-	xmm6 = CONST2_P588; \
-	xmm6 *= xmm0;			/* sin4*i34s */ \
-	xmm1 += xmm2;			/* cos2*r25a + cos4*r34a */ \
-	xmm3 += xmm6;			/* t2=sin2*i25s + sin4*i34s */ \
-	xmm2 = CONST2_M809; \
-	xmm2 *= xmm7;			/* cos4*r25a */ \
-	xmm7 += xmm5;			/* r25a + r34a */ \
-	xmm6 = xptr(r1); \
-	xmm1 += xmm6;			/* t1=cos2*r25a + cos4*r34a + r1 */ \
-	xmm7 += xmm6;			/* outr(0) = r1 + r25a + r34a */ \
-	xmm5 *= CONST2_P309;			/* cos2*r34a */ \
-	xmm4 *= CONST2_P588;			/* sin4*i25s */ \
-	xmm0 *= CONST2_P951;			/* sin2*i34s */ \
-	xmm2 += xmm5;			/* cos4*r25a+cos2*r34a */ \
-	xmm4 -= xmm0;			/* t4=sin4*i25s-sin2*i34s */ \
-	xmm2 += xmm6;			/* t3=cos4*r25a+cos2*r34a+r1 */ \
-	xmm6 = xmm1; \
-	xmm1 -= xmm3;			/* outr(4)=t1-t2 */ \
-	xmm3 += xmm6;			/* outr(1)=t1+t2 */ \
-	xmm5 = xmm2; \
-	xmm2 -= xmm4;			/* outr(3)=t3-t4 */ \
-	xmm4 += xmm5;			/* outr(2)=t3+t4 */ \
-\
-	dstr1 = xmm7; \
-	dstr2 = xmm3;			/* Save new r2 */ \
-	dstr3 = xmm4;			/* Save new r3 */ \
-	dstr4 = xmm2;			/* Save new r4 */ \
-	dstr5 = xmm1;			/* Save new r5 */ \
-\
-	xmm0 = TMP1;			/* r25s=r2-r5 */ \
-	xmm2 = TMP2;			/* i25a=i2+i5 */ \
-	xmm1 = TMP3;			/* r34s=r3-r4 */ \
-	xmm3 = TMP4;			/* i34a=i3+i4 */ \
-\
-	xmm5 = xmm2; \
-	xmm5 += xmm3;			/* i25a+i34a */ \
-	xmm6 = CONST2_P309; \
-	xmm6 *= xmm2;			/* cos2*i25a */ \
-	xmm7 = CONST2_M809; \
-	xmm2 *= xmm7;			/* cos4*i25a */ \
-	xmm7 *= xmm3;			/* cos4*i34a */ \
-	xmm3 *= CONST2_P309;			/* cos2*i34a */ \
-	xmm4 = CONST2_P951; \
-	xmm4 *= xmm0;			/* sin2*r25s */ \
-	xmm6 += xmm7;			/* cos2*i25a + cos4*i34a */ \
-	xmm7 = CONST2_P588; \
-	xmm0 *= xmm7;			/* sin4*r25s */ \
-	xmm7 *= xmm1;			/* sin4*r34s */ \
-	xmm1 *= CONST2_P951;			/* sin2*r34s */ \
-	xmm2 += xmm3;			/* cos4*i25a + cos2*i34a */ \
-	xmm3 = xptr2(r1,32); /*i1 */ \
-	xmm6 += xmm3;			/* t5=cos2*i25a + cos4*i34a + i1 */ \
-	xmm4 += xmm7;			/* t6=sin2*r25s + sin4*r34s */ \
-	xmm2 += xmm3;			/* t7=cos4*i25a + cos2*i34a + i1 */ \
-	xmm0 -= xmm1;			/* t8=sin4*r25s - sin2*r34s */ \
 \
 	xmm7 = xmm6; \
 	xmm6 -= xmm4;			/* outi(1)=t5-t6 */ \
