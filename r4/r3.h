@@ -84,7 +84,7 @@
 \
 
 #define r3_f3cl_three_complex_djbfft_common(srcreg,srcoff,srcinc,d1,screg_a,scoff) { \
-	uintptr_t src_off = srcreg + srcoff; \
+	uintptr_t src_off = (uintptr_t)(srcreg + srcoff); \
 	vec2f64 *sd0 = (vec2f64*)(srcreg); \
 	vec2f64 *sd1 = (vec2f64*)(srcreg+(d1)); \
 	vec2f64 *sd2 = (vec2f64*)(srcreg+2*(d1)); \
@@ -138,12 +138,12 @@
 	t2 = r6;			/* 0.5 * (I2 + I3) */ \
 	r1 = memr1; \
 	r3 += r1;			/* R1 + R2 + R3 (final R1) */ \
-	r2 *= CONST2_P866;		/* 0.866 * (R2 - R3) */ \
-	r1 -= t1 * 0.5;			/* (R1-.5R2-.5R3) */ \
-	r5 *= CONST2_P866;		/* 0.866 * (I2 - I3) */ \
+	r2 *= CONST2_P866;	/* 0.866 * (R2 - R3) */ \
+	r1 -= t1 * 0.5;		/* (R1-.5R2-.5R3) */ \
+	r5 *= CONST2_P866;	/* 0.866 * (I2 - I3) */ \
 	r4 = memi1; \
 	r6 += r4;			/* I1 + I2 + I3 (final I1) */ \
-	r4 -= t2 * 0.5;			/* (I1-.5I2-.5I3) */ \
+	r4 -= t2 * 0.5;		/* (I1-.5I2-.5I3) */ \
 \
 	xprefetchw(u8ptr(pre1)); \
 \
@@ -160,16 +160,12 @@
 \
 	t1 = r1;			/* Copy R2 */ \
 	t2 = xptr(screg+16); \
-	r1 *= t2;			/* A2 = R2 * cosine/sine */ \
-	r1 -= r2;			/* A2 = A2 - I2 */ \
-	r2 *= t2;			/* B2 = I2 * cosine/sine */ \
-	r2 += t1;			/* B2 = B2 + R2 */ \
+	r1 = t1 * t2 - r2;	/* A2 = R2 * cosine/sine - I2 */ \
+	r2 = r2 * t2 + t1;	/* B2 = I2 * cosine/sine + R2 */ \
 \
 	t1 = r5;			/* Copy R3 */ \
-	r5 *= t2;			/* A3 = R3 * cosine/sine */ \
-	r5 += r4;			/* A3 = A3 + I3 */ \
-	r4 *= t2;			/* B3 = I3 * cosine/sine */ \
-	r4 -= t1;			/* B3 = B3 - R3 */ \
+	r5 = r5 * t2 + r4;	/* A3 = R3 * cosine/sine  + I3 */ \
+	r4 = r4 * t2 - t1;	/* B3 = I3 * cosine/sine - R3 */ \
 \
 	t2 = xptr(screg); \
 	r1 *= t2;			/* A2 = A2 * sine (new R2) */ \
@@ -731,16 +727,12 @@
 #define r3_x3c_djbunfft_partial_mem(r1,r2,r3,r4,r5,r6,t1,t2,memr1,memi1,memr3,memi3,screg,scoff,pre1,pre2) \
 	t1 = r3;			/* Copy R2 */ \
 	t2 = xptr(screg+scoff+16); \
-	r3 *= t2;			/* A2 = R2 * cosine/sine */ \
 	r5 = memr3; \
-	r5 *= t2;			/* A3 = R3 * cosine/sine */ \
-	r3 += r4;			/* A2 = A2 + I2 */ \
+	r3 = r3 * t2 + r4;	/* A2 = R2 * cosine/sine + I2 */ \
 	r6 = memi3; \
-	r5 -= r6;			/* A3 = A3 - I3 */ \
-	r4 *= t2;			/* B2 = I2 * cosine/sine */ \
-	r6 *= t2;			/* B3 = I3 * cosine/sine */ \
-	r4 -= t1;			/* B2 = B2 - R2 */ \
-	r6 += memr3;		/* B3 = B3 + R3 */ \
+	r5 = r5 * t2 - r6;	/* A3 = R3 * cosine/sine - I3 */ \
+	r4 = r4 * t2 - t1;	/* B2 = I2 * cosine/sine - R2 */ \
+	r6 = r6 * t2 + memr3;	/* B3 = I3 * cosine/sine + R3 */ \
 	t2 = xptr(screg+scoff); \
 	r3 *= t2;			/* A2 = A2 * sine (final R2) */ \
 	r5 *= t2;			/* A3 = A3 * sine (final R3) */ \
@@ -752,7 +744,7 @@
 	t1 = r3; \
 	r3 -= r5;			/* R2 - R3 */ \
 	r5 += t1;			/* R2 + R3 */ \
-	r3 *= CONST2_P866;		/* 0.866 * (R2 - R3) */ \
+	r3 *= CONST2_P866;	/* 0.866 * (R2 - R3) */ \
 	t2 = r4; \
 	r4 -= r6;			/* I2 - I3 */ \
 \
@@ -761,15 +753,15 @@
 	endif */ \
 \
 	r6 += t2;			/* I2 + I3 */ \
-	r4 *= CONST2_P866;		/* 0.866 * (I2 - I3) */ \
+	r4 *= CONST2_P866;	/* 0.866 * (I2 - I3) */ \
 	t1 = r5;			/* 0.5 * (R2 + R3) */ \
 	r1 = memr1; \
 	r5 += r1;			/* R1 + R2 + R3 (final R1) */ \
-	r1 -= t1 * 0.5;			/* (R1-.5R2-.5R3) */ \
+	r1 -= t1 * 0.5;		/* (R1-.5R2-.5R3) */ \
 	t1 = r6;			/* 0.5 * (I2 + I3) */ \
 	r2 = memi1; \
 	r6 += r2;			/* I1 + I2 + I3 (final I1) */ \
-	r2 -= t1 * 0.5;			/* (I1-.5I2-.5I3) */ \
+	r2 -= t1 * 0.5;		/* (I1-.5I2-.5I3) */ \
 	t1 = r1; \
 	r1 -= r4;			/* Final R3 */ \
 	r4 += t1;			/* Final R2 */ \
@@ -1240,8 +1232,8 @@
 	vec2f64 *bd2 = (vec2f64*)(src_rbx+2*(d1)); \
 	vec2f64 TMP1, TMP2; \
 	r3_h6r_h3c_djbfft_mem(bd1[0],bd0[1],bd2[1],bd1[2],bd0[3],bd2[3], screg1+scoff1,screg2+scoff2,srcreg+srcinc,d1); \
-	TMP1 = bd1[1];	/* R3 */ \
-	TMP2 = bd1[3];	/* R6 */ \
+	TMP1 = bd1[1];		/* R3 */ \
+	TMP2 = bd1[3];		/* R6 */ \
 	sd0[1] = xmm2;		/* Save R1 #1/R1 */ \
 	sd0[3] = xmm5;		/* Save R1 #2/I1 */ \
 	sd1[1] = xmm0;		/* Save R2 */ \
@@ -1288,23 +1280,23 @@
 
 
 #define r3_x6r_fft_partial_mem(r1,r2,r3,r4,r5,r6,t1,t2,mem1,mem2,mem4,mem5,screg1,screg2,pre1,pre2) \
-	t1 = mem5;		/* R5 */ \
+	t1 = mem5;			/* R5 */ \
 	t1 += r3;			/* R3 + R5 */ \
-	r3 -= mem5;		/* R3 - R5 */ \
-	t2 = mem2;		/* R2 */ \
+	r3 -= mem5;			/* R3 - R5 */ \
+	t2 = mem2;			/* R2 */ \
 	t2 -= r6;			/* R2 - R6 */ \
-	r6 += mem2;		/* R2 + R6 */ \
+	r6 += mem2;			/* R2 + R6 */ \
 \
 	r5 = t1;			/* 0.5 * (R3 + R5) */ \
-	r1 = mem1;		/* R1 */ \
+	r1 = mem1;			/* R1 */ \
 	t1 += r1;			/* final R1 #1 = R1 + R3 + R5 */ \
 	r2 = r6;			/* 0.5 * (R2 + R6) */ \
-	r4 = mem4;		/* R4 */ \
+	r4 = mem4;			/* R4 */ \
 	r6 += r4;			/* final R1 #2 = R2 + R4 + R6 */ \
-	r3 *= CONST2_P866;		/* new I3 = 0.866 * (R3 - R5) */ \
-	r1 -= r5 * 0.5;			/* new R2 = R1 - 0.5 * (R3 + R5) */ \
-	t2 *= CONST2_P866;		/* new I2 = 0.866 * (R2 - R6) */ \
-	r2 = r2 * 0.5 - r4;		/* new R3 = 0.5 * (R2 + R6) - R4 */ \
+	r3 *= CONST2_P866;	/* new I3 = 0.866 * (R3 - R5) */ \
+	r1 -= r5 * 0.5;		/* new R2 = R1 - 0.5 * (R3 + R5) */ \
+	t2 *= CONST2_P866;	/* new I2 = 0.866 * (R2 - R6) */ \
+	r2 = r2 * 0.5 - r4;	/* new R3 = 0.5 * (R2 + R6) - R4 */ \
 \
 	xprefetchw(u8ptr(pre1)); \
 \
@@ -1321,17 +1313,13 @@
 \
 	r4 = xptr(screg1+16);		/* cosine/sine for w^2 */ \
 	r5 = r1;			/* Copy R3 */ \
-	r1 *= r4;			/* A3 = R3 * cosine/sine */ \
-	r1 -= t2;			/* A3 = A3 - I3 */ \
-	t2 *= r4;			/* B3 = I3 * cosine/sine */ \
-	t2 += r5;			/* B3 = B3 + R3 */ \
+	r1 = r1 * r4 - t2;	/* A3 = R3 * cosine/sine - I3 */ \
+	t2 = t2 * r4 + r5;	/* B3 = I3 * cosine/sine + R3 */ \
 \
 	r4 = xptr(screg2+16);		/* cosine/sine for w^1 */ \
 	r5 = r2;			/* Copy R2 */ \
-	r2 *= r4;			/* A2 = R2 * cosine/sine */ \
-	r2 -= r3;			/* A2 = A2 - I2 */ \
-	r3 *= r4;			/* B2 = I2 * cosine/sine */ \
-	r3 += r5;			/* B2 = B2 + R2 */ \
+	r2 = r2 * r4 - r3;	/* A2 = R2 * cosine/sine - I2 */ \
+	r3 = r3 * r4 + r5;	/* B2 = I2 * cosine/sine + R2 */ \
 \
 	r4 = xptr(screg1); \
 	r1 *= r4;			/* A3 = A3 * sine (new R3) */ \
@@ -1347,53 +1335,49 @@
 	/* Do the three complex part */ \
 	f1 = mem2[1];		/* R2 */ \
 	f2 = mem3[1];		/* R3 */ \
-	f1 -= f2;		/* R2 - R3 */ \
+	f1 -= f2;			/* R2 - R3 */ \
 	f4 = mem5[1];		/* I2 */ \
 	f5 = mem6[1];		/* I3 */ \
-	f4 -= f5;		/* I2 - I3 */ \
+	f4 -= f5;			/* I2 - I3 */ \
 	f2 += mem2[1];		/* R2 + R3 */ \
 	f1 *= CONST_P866;	/* 0.866 * (R2 - R3) */ \
 	f5 += mem5[1];		/* I2 + I3 */ \
 	f4 *= CONST_P866;	/* 0.866 * (I2 - I3) */ \
-	f6 = f2;		/* 0.5 * (R2 + R3) */ \
+	f6 = f2;			/* 0.5 * (R2 + R3) */ \
 	f0 = mem1[1]; \
-	f2 += f0;		/* R1 + R2 + R3 (final R1) */ \
+	f2 += f0;			/* R1 + R2 + R3 (final R1) */ \
 	f0 -= f6 * 0.5;		/* (R1-.5R2-.5R3) */ \
-	f6 = f5;		/* 0.5 * (I2 + I3) */ \
+	f6 = f5;			/* 0.5 * (I2 + I3) */ \
 	f3 = mem4[1];		/* I1 */ \
-	f5 += f3;		/* I1 + I2 + I3 (final I1) */ \
+	f5 += f3;			/* I1 + I2 + I3 (final I1) */ \
 	f3 -= f6 * 0.5;		/* (I1-.5I2-.5I3) */ \
 	f6 = f0; \
-	f0 -= f4;		/* Final R2 */ \
+	f0 -= f4;			/* Final R2 */ \
 	f7 = f3; \
-	f3 -= f1;		/* Final I3 */ \
-	f4 += f6;		/* Final R3 */ \
-	f1 += f7;		/* Final I2 */ \
+	f3 -= f1;			/* Final I3 */ \
+	f4 += f6;			/* Final R3 */ \
+	f1 += f7;			/* Final I2 */ \
 \
 	xprefetchw(u8ptr(pre1)); \
 \
-	f6 = f0;		/* Copy R2 */ \
+	f6 = f0;			/* Copy R2 */ \
 	f7 = f64ptr(screg1+16); \
-	f0 *= f7;		/* A2 = R2 * cosine/sine */ \
-	f0 -= f1;		/* A2 = A2 - I2 */ \
-	f1 *= f7;		/* B2 = I2 * cosine/sine */ \
-	f1 += f6;		/* B2 = B2 + R2 */ \
+	f0 = f0 * f7 - f1;	/* A2 = R2 * cosine/sine - I2 */ \
+	f1 = f1 * f7 + f6;	/* B2 = I2 * cosine/sine+ R2 */ \
 \
-	f6 = f4;		/* Copy R3 */ \
-	f4 *= f7;		/* A3 = R3 * cosine/sine */ \
-	f4 += f3;		/* A3 = A3 + I3 */ \
-	f3 *= f7;		/* B3 = I3 * cosine/sine */ \
-	f3 -= f6;		/* B3 = B3 - R3 */ \
+	f6 = f4;			/* Copy R3 */ \
+	f4 = f4 * f7 + f3;			/* A3 = R3 * cosine/sine + I3 */ \
+	f3 = f3 * f7 - f6;			/* B3 = I3 * cosine/sine - R3 */ \
 \
 	/*if 0 // pre2 NE 0; \
 	xprefetchw(u8ptr(pre1+pre2)); \
 	endif*/ \
 \
 	f7 = f64ptr(screg1); \
-	f0 *= f7;		/* A2 = A2 * sine (new R2) */ \
-	f1 *= f7;		/* B2 = B2 * sine (new I2) */ \
-	f4 *= f7;		/* A3 = A3 * sine (new R3) */ \
-	f3 *= f7;		/* B3 = B3 * sine (new I3) */ \
+	f0 *= f7;			/* A2 = A2 * sine (new R2) */ \
+	f1 *= f7;			/* B2 = B2 * sine (new I2) */ \
+	f4 *= f7;			/* A3 = A3 * sine (new R3) */ \
+	f3 *= f7;			/* B3 = B3 * sine (new I3) */ \
 \
 ;	/* Do the six-reals part */ \
 	xmm2[1] = f2;		/* Copy to high part of XMM register */ \
@@ -1405,51 +1389,47 @@
 \
 	f2 = mem5[0];		/* R5 */ \
 	f1 = mem3[0];		/* R3 */ \
-	f2 += f1;		/* R3 + R5 */ \
+	f2 += f1;			/* R3 + R5 */ \
 	f1 -= mem5[0];		/* R3 - R5 */ \
 	f3 = mem2[0];		/* R2 */ \
 	f5 = mem6[0];		/* R6 */ \
-	f3 -= f5;		/* R2 - R6 */ \
+	f3 -= f5;			/* R2 - R6 */ \
 	f5 += mem2[0];		/* R2 + R6 */ \
 \
-	f7 = f2;		/* 0.5 * (R3 + R5) */ \
+	f7 = f2;			/* 0.5 * (R3 + R5) */ \
 	f4 = mem1[0];		/* R1 */ \
-	f2 += f4;		/* final R1 #1 = R1 + R3 + R5 */ \
-	f0 = f5;		/* 0.5 * (R2 + R6) */ \
+	f2 += f4;			/* final R1 #1 = R1 + R3 + R5 */ \
+	f0 = f5;			/* 0.5 * (R2 + R6) */ \
 	f6 = mem4[0];		/* R4 */ \
-	f5 += f6;		/* final R1 #2 = R2 + R4 + R6 */ \
+	f5 += f6;			/* final R1 #2 = R2 + R4 + R6 */ \
 	f1 *= CONST_P866;	/* new I3 = 0.866 * (R3 - R5) */ \
 	f4 -= f7 * 0.5;		/* new R2 = R1 - 0.5 * (R3 + R5) */ \
 	f3 *= CONST_P866;	/* new I2 = 0.866 * (R2 - R6) */ \
 	f0 = f0 * 0.5 - f6;	/* new R3 = 0.5 * (R2 + R6) - R4 */ \
 \
-	f7 = f4;		/* Copy R2 */ \
-	f4 -= f0;		/* R2 = R2 - R3 (final R3) */ \
-	f0 += f7;		/* R3 = R2 + R3 (final R2) */ \
-	f6 = f3;		/* Copy I2 */ \
-	f3 -= f1;		/* I2 = I2 - I3 (final I3) */ \
-	f1 += f6;		/* I3 = I2 + I3 (final I2) */ \
+	f7 = f4;			/* Copy R2 */ \
+	f4 -= f0;			/* R2 = R2 - R3 (final R3) */ \
+	f0 += f7;			/* R3 = R2 + R3 (final R2) */ \
+	f6 = f3;			/* Copy I2 */ \
+	f3 -= f1;			/* I2 = I2 - I3 (final I3) */ \
+	f1 += f6;			/* I3 = I2 + I3 (final I2) */ \
 \
 	f6 = f64ptr(screg1+16);	/* cosine/sine for w^2 */ \
-	f7 = f4;		/* Copy R3 */ \
-	f4 *= f6;		/* A3 = R3 * cosine/sine */ \
-	f4 -= f3;		/* A3 = A3 - I3 */ \
-	f3 *= f6;		/* B3 = I3 * cosine/sine */ \
-	f3 += f7;		/* B3 = B3 + R3 */ \
+	f7 = f4;			/* Copy R3 */ \
+	f4 = f4 * f6 - f3;			/* A3 = R3 * cosine/sine - I3 */ \
+	f3 = f3 * f6 + f7;			/* B3 = I3 * cosine/sine + R3 */ \
 \
 	f6 = f64ptr(screg2+8);	/* cosine/sine for w^1 */ \
-	f7 = f0;		/* Copy R2 */ \
-	f0 *= f6;		/* A2 = R2 * cosine/sine */ \
-	f0 -= f1;		/* A2 = A2 - I2 */ \
-	f1 *= f6;		/* B2 = I2 * cosine/sine */ \
-	f1 += f7;		/* B2 = B2 + R2 */ \
+	f7 = f0;			/* Copy R2 */ \
+	f0 = f0 * f6 - f1;			/* A2 = R2 * cosine/sine - I2 */ \
+	f1 = f1 * f6 + f7;			/* B2 = I2 * cosine/sine + R2 */ \
 \
 	f6 = f64ptr(screg1); \
-	f4 *= f6;		/* A3 = A3 * sine (new R3) */ \
-	f3 *= f6;		/* B3 = B3 * sine (new I3) */ \
+	f4 *= f6;			/* A3 = A3 * sine (new R3) */ \
+	f3 *= f6;			/* B3 = B3 * sine (new I3) */ \
 	f7 = f64ptr(screg2); \
-	f0 *= f7;		/* A2 = A2 * sine (new R2) */ \
-	f1 *= f7;		/* B2 = B2 * sine (new I2) */ \
+	f0 *= f7;			/* A2 = A2 * sine (new R2) */ \
+	f1 *= f7;			/* B2 = B2 * sine (new I2) */ \
 	xmm0[0] = f0; \
 	xmm1[0] = f1; \
 	xmm2[0] = f2; \
@@ -1496,22 +1476,23 @@
 /* R6 = R1#2 + 0.5 * (R2 - R3) - 0.866 * (I2 + I3) */ \
 \
 
-#define r3_x6r_unfft_partial_mem(r1,r2,r3,r4,r5,r6,t1,t2,memr1_1,memr1_2,memr3,memi3,screg1,scoff1,screg2,scoff2,pre1,pre2) \
+#define r3_x6r_unfft_partial_mem(r1,r2,r3,r4,r5,r6,t1,t2,memr1_1,memr1_2,memr3,memi3,screg1,scoff1,screg2,scoff2,pre1,pre2) { \
+	vec2f64 s1, s2; \
+	s2 = xptr(screg2+scoff2+16); \
+	s1 = xptr(screg1+scoff1+16); \
 	t1 = r3;			/* Copy R2 */ \
-	r3 *= xptr(screg2+scoff2+16);	/* A2 = R2 * cosine/sine */ \
-	r5 = memr3;		/* R3 */ \
-	r5 *= xptr(screg1+scoff1+16);	/* A3 = R3 * cosine/sine */ \
-	r3 += r4;			/* A2 = A2 + I2 */ \
-	r6 = memi3;		/* I3 */ \
-	r5 += r6;			/* A3 = A3 + I3 */ \
-	r4 *= xptr(screg2+scoff2+16);	/* B2 = I2 * cosine/sine */ \
-	r6 *= xptr(screg1+scoff1+16);	/* B3 = I3 * cosine/sine */ \
-	r4 -= t1;			/* B2 = B2 - R2 */ \
-	r6 -= memr3;		/* B3 = B3 - R3 */ \
-	r3 *= xptr(screg2+scoff2);	/* A2 = A2 * sine (new R2) */ \
-	r5 *= xptr(screg1+scoff1);	/* A3 = A3 * sine (new R3) */ \
-	r4 *= xptr(screg2+scoff2);	/* B2 = B2 * sine (new I2) */ \
-	r6 *= xptr(screg1+scoff1);	/* B3 = B3 * sine (new I3) */ \
+	r5 = memr3;			/* R3 */ \
+	r3 = r3 * s2 + r4;	/* A2 = R2 * cosine/sine + I2 */ \
+	r6 = memi3;			/* I3 */ \
+	r5 = r5 * s1 + r6;	/* A3 = R3 * cosine/sine + I3 */ \
+	r4 = r4 * s2 - t1;	/* B2 = I2 * cosine/sine - R2 */ \
+	r6 = r6 * s1 - memr3;	/* B3 = I3 * cosine/sine - R3 */ \
+	s2 = xptr(screg2+scoff2); \
+	s1 = xptr(screg1+scoff1); \
+	r3 *= s2;	/* A2 = A2 * sine (new R2) */ \
+	r5 *= s1;	/* A3 = A3 * sine (new R3) */ \
+	r4 *= s2;	/* B2 = B2 * sine (new I2) */ \
+	r6 *= s1;	/* B3 = B3 * sine (new I3) */ \
 \
 	xprefetchw(u8ptr(pre1)); \
 \
@@ -1542,8 +1523,8 @@
 	r3 = r4;			/* Copy 0.866 * (I2 - I3) */ \
 	r4 += r1;			/* final R3 = R1#1 - 0.5 * (R2 + R3) + 0.866 * (I2 - I3) */ \
 	r1 -= r3;			/* final R5 = R1#1 - 0.5 * (R2 + R3) - 0.866 * (I2 - I3) */ \
-\
-\
+}
+
 /* Macro to do an six_reals_unfft and a three_complex_djbunfft in pass 2. */ \
 /* The six-reals operation is done in the lower half of the XMM */ \
 /* register.  This isn't very efficient, but this macro isn't called a whole lot. */ \
@@ -1576,166 +1557,59 @@
 }
 
 
-#if 0  // guess this isn't a problem.
-#define r3_h6r_h3c_djbunfft_mem(memr1_1,memr1_2,memr2,memi2,memr3,memi3,screg1,screg2,pre1,pre2) \
-;	/* Do the three complex part */ \
-	xmm2[0] = memr2[1];	/* R2 */ \
-	xmm6[0] = xmm2[0];		/* Copy R2 */ \
-	xmm7[0] = f64ptr(screg1+16);	/* cosine/sine */ \
-	xmm2[0] *= xmm7[0];		/* A2 = R2 * cosine/sine */ \
-	xmm4[0] = memr3[1];	/* R3 */ \
-	xmm4[0] *= xmm7[0];		/* A3 = R3 * cosine/sine */ \
-	xmm3[0] = memi2[1];	/* I2 */ \
-	xmm2[0] += xmm3[0];		/* A2 = A2 + I2 */ \
-	xmm5[0] = memi3[1];	/* I3 */ \
-	xmm4[0] -= xmm5[0];		/* A3 = A3 - I3 */ \
-	xmm3[0] *= xmm7[0];		/* B2 = I2 * cosine/sine */ \
-	xmm5[0] *= xmm7[0];		/* B3 = I3 * cosine/sine */ \
-	xmm3[0] -= xmm6[0];		/* B2 = B2 - R2 */ \
-	xmm5[0] += memr3[1];	/* B3 = B3 + R3 */ \
-	xmm7[0] = f64ptr(screg1);	/* sine */ \
-	xmm2[0] *= xmm7[0];		/* A2 = A2 * sine (final R2) */ \
-	xmm4[0] *= xmm7[0];		/* A3 = A3 * sine (final R3) */ \
-	xmm3[0] *= xmm7[0];		/* B2 = B2 * sine (final I2) */ \
-	xmm5[0] *= xmm7[0];		/* B3 = B3 * sine (final I3) */ \
-\
-	xprefetchw(u8ptr(pre1)); \
-\
-	xmm6[0] = xmm2[0];		/* Copy R2 */ \
-	xmm2[0] -= xmm4[0];		/* R2 - R3 */ \
-	xmm4[0] += xmm6[0];		/* R2 + R3 */ \
-	xmm2[0] *= CONST_P866;	/* 0.866 * (R2 - R3) */ \
-	xmm7[0] = xmm3[0];		/* Copy I2 */ \
-	xmm3[0] -= xmm5[0];		/* I2 - I3 */ \
-	xmm5[0] += xmm7[0];		/* I2 + I3 */ \
-	xmm3[0] *= CONST_P866;	/* 0.866 * (I2 - I3) */ \
-	xmm6[0] = 0.5; \
-	xmm6[0] *= xmm4[0];		/* 0.5 * (R2 + R3) */ \
-	xmm0[0] = memr1_1[1];		/* R1 */ \
-	xmm4[0] += xmm0[0];		/* R1 + R2 + R3 (final R1) */ \
-	xmm0[0] -= xmm6[0];		/* (R1-.5R2-.5R3) */ \
-	xmm6[0] = 0.5; \
-	xmm6[0] *= xmm5[0];		/* 0.5 * (I2 + I3) */ \
-	xmm1[0] = memr1_2[1];		/* I1 */ \
-	xmm5[0] += xmm1[0];		/* I1 + I2 + I3 (final I1) */ \
-	xmm1[0] -= xmm6[0];		/* (I1-.5I2-.5I3) */ \
-	xmm6[0] = xmm0[0]; \
-	xmm0[0] -= xmm3[0];		/* Final R3 */ \
-	xmm3[0] += xmm6[0];		/* Final R2 */ \
-	xmm7[0] = xmm1[0]; \
-	xmm1[0] -= xmm2[0];		/* Final I2 */ \
-	xmm2[0] += xmm7[0];		/* Final I3 */ \
-\
-	/*IF pre2 NE 0;*/ \
-	xprefetchw(u8ptr(pre1+pre2)); \
-	/*ENDIF;*/ \
-\
-;	/* Do the six reals part */ \
-\
-	xmm4[1] = xmm4[0]; \
-	xmm3[1] = xmm3[0]; \
-	xmm0[1] = xmm0[0]; \
-	xmm5[1] = xmm5[0]; \
-	xmm1[1] = xmm1[0]; \
-	xmm2[1] = xmm2[0]; \
-\
-	xmm6[0] = memr2[0];		/* R2 */ \
-	xmm7[0] = xmm6[0];		/* Copy R2 */ \
-	xmm6[0] *= f64ptr(screg2+8);	/* A2 = R2 * cosine/sine */ \
-	xmm4[0] = memr3[0];		/* R3 */ \
-	xmm4[0] *= f64ptr(screg1+16);	/* A3 = R3 * cosine/sine */ \
-	xmm0[0] = memi2[0];		/* R2 */ \
-	xmm6[0] += xmm0[0];		/* A2 = A2 + I2 */ \
-	xmm3[0] = memi3[0];		/* I3 */ \
-	xmm4[0] += xmm3[0];		/* A3 = A3 + I3 */ \
-	xmm0[0] *= f64ptr(screg2+8);	/* B2 = I2 * cosine/sine */ \
-	xmm3[0] *= f64ptr(screg1+16);	/* B3 = I3 * cosine/sine */ \
-	xmm0[0] -= xmm7[0];		/* B2 = B2 - R2 */ \
-	xmm3[0] -= memr3[0];		/* B3 = B3 - R3 */ \
-	xmm6[0] *= f64ptr(screg2);	/* A2 = A2 * sine (new R2) */ \
-	xmm4[0] *= f64ptr(screg1);	/* A3 = A3 * sine (new R3) */ \
-	xmm0[0] *= f64ptr(screg2);	/* B2 = B2 * sine (new I2) */ \
-	xmm3[0] *= f64ptr(screg1);	/* B3 = B3 * sine (new I3) */ \
-\
-	xmm7[0] = xmm6[0];		/* Copy R2 */ \
-	xmm6[0] -= xmm4[0];		/* R2 - R3 */ \
-	xmm4[0] += xmm7[0];		/* R2 + R3 */ \
-	xmm2[0] = xmm0[0];		/* Copy I2 */ \
-	xmm0[0] -= xmm3[0];		/* I2 - I3 */ \
-	xmm3[0] += xmm2[0];		/* I2 + I3 */ \
-	xmm2[0] = 0.5; \
-	xmm2[0] *= xmm6[0];		/* 0.5 * (R2 - R3) */ \
-	xmm7[0] = 0.5; \
-	xmm7[0] *= xmm4[0];		/* 0.5 * (R2 + R3) */ \
-	xmm0[0] *= CONST_P866;	/* 0.866 * (I2 - I3) */ \
-	xmm3[0] *= CONST_P866;	/* 0.866 * (I2 + I3) */ \
-	xmm5[0] = memr1_2[0];		/* R1#2 */ \
-	xmm2[0] += xmm5[0];		/* R1#2 + 0.5 * (R2 - R3) */ \
-	xmm1[0] = memr1_1[0];		/* R1#1 */ \
-	xmm4[0] += xmm1[0];		/* final R1 = R1#1 + (R2 + R3) */ \
-	xmm1[0] -= xmm7[0];		/* R1#1 - 0.5 * (R2 + R3) */ \
-	xmm5[0] -= xmm6[0];		/* final R4 = R1#2 - (R2 - R3) */ \
-	xmm7[0] = xmm3[0];		/* Copy 0.866 * (I2 + I3) */ \
-	xmm3[0] += xmm2[0];		/* final R2 = R1#2 + 0.5 * (R2 - R3) + 0.866 * (I2 + I3) */ \
-	xmm2[0] -= xmm7[0];		/* final R6 = R1#2 + 0.5 * (R2 - R3) - 0.866 * (I2 + I3) */ \
-	xmm6[0] = xmm0[0];		/* Copy 0.866 * (I2 - I3) */ \
-	xmm0[0] += xmm1[0];		/* final R3 = R1#1 - 0.5 * (R2 + R3) + 0.866 * (I2 - I3) */ \
-	xmm1[0] -= xmm6[0];		/* final R5 = R1#1 - 0.5 * (R2 + R3) - 0.866 * (I2 - I3) */ \
 
-#else
 #define r3_h6r_h3c_djbunfft_mem(memr1_1,memr1_2,memr2,memi2,memr3,memi3,screg1,screg2,pre1,pre2) { \
 	double f0,f1,f2,f3,f4,f5,f6,f7; \
-;	/* Do the three complex part */ \
-	f2 = memr2[1];	/* R2 */ \
-	f6 = f2;		/* Copy R2 */ \
-	f7 = f64ptr(screg1+16);	/* cosine/sine */ \
-	f2 *= f7;		/* A2 = R2 * cosine/sine */ \
-	f4 = memr3[1];	/* R3 */ \
-	f4 *= f7;		/* A3 = R3 * cosine/sine */ \
-	f3 = memi2[1];	/* I2 */ \
-	f2 += f3;		/* A2 = A2 + I2 */ \
-	f5 = memi3[1];	/* I3 */ \
-	f4 -= f5;		/* A3 = A3 - I3 */ \
-	f3 *= f7;		/* B2 = I2 * cosine/sine */ \
-	f5 *= f7;		/* B3 = I3 * cosine/sine */ \
-	f3 -= f6;		/* B2 = B2 - R2 */ \
-	f5 += memr3[1];	/* B3 = B3 + R3 */ \
-	f7 = f64ptr(screg1);	/* sine */ \
-	f2 *= f7;		/* A2 = A2 * sine (final R2) */ \
-	f4 *= f7;		/* A3 = A3 * sine (final R3) */ \
-	f3 *= f7;		/* B2 = B2 * sine (final I2) */ \
-	f5 *= f7;		/* B3 = B3 * sine (final I3) */ \
+	double s10 = f64ptr(screg1); \
+	double s11 = f64ptr(screg1+16); \
+\
+	/* Do the three complex part */ \
+	f2 = memr2[1];		/* R2 */ \
+	f6 = f2;			/* Copy R2 */ \
+	f7 = s11;	/* cosine/sine */ \
+	f4 = memr3[1];		/* R3 */ \
+	f3 = memi2[1];		/* I2 */ \
+	f5 = memi3[1];		/* I3 */ \
+	f2 = f2 * f7 + f3;	/* A2 = R2 * cosine/sine + I2 */ \
+	f4 = f4 * f7 - f5;	/* A3 = R3 * cosine/sine - I3 */ \
+	f3 = f3 * f7 - f6;	/* B2 = I2 * cosine/sine - R2 */ \
+	f5 = f5 * f7 + memr3[1];	/* B3 = I3 * cosine/sine + R3 */ \
+	f7 = s10;	/* sine */ \
+	f2 *= f7;			/* A2 = A2 * sine (final R2) */ \
+	f4 *= f7;			/* A3 = A3 * sine (final R3) */ \
+	f3 *= f7;			/* B2 = B2 * sine (final I2) */ \
+	f5 *= f7;			/* B3 = B3 * sine (final I3) */ \
 \
 	xprefetchw(u8ptr(pre1)); \
 \
-	f6 = f2;		/* Copy R2 */ \
-	f2 -= f4;		/* R2 - R3 */ \
-	f4 += f6;		/* R2 + R3 */ \
+	f6 = f2;			/* Copy R2 */ \
+	f2 -= f4;			/* R2 - R3 */ \
+	f4 += f6;			/* R2 + R3 */ \
 	f2 *= CONST_P866;	/* 0.866 * (R2 - R3) */ \
-	f7 = f3;		/* Copy I2 */ \
-	f3 -= f5;		/* I2 - I3 */ \
-	f5 += f7;		/* I2 + I3 */ \
+	f7 = f3;			/* Copy I2 */ \
+	f3 -= f5;			/* I2 - I3 */ \
+	f5 += f7;			/* I2 + I3 */ \
 	f3 *= CONST_P866;	/* 0.866 * (I2 - I3) */ \
-	f6 = f4;		/* 0.5 * (R2 + R3) */ \
+	f6 = f4;			/* 0.5 * (R2 + R3) */ \
 	f0 = memr1_1[1];	/* R1 */ \
-	f4 += f0;		/* R1 + R2 + R3 (final R1) */ \
+	f4 += f0;			/* R1 + R2 + R3 (final R1) */ \
 	f0 -= f6 * 0.5;		/* (R1-.5R2-.5R3) */ \
-	f6 = f5;		/* 0.5 * (I2 + I3) */ \
+	f6 = f5;			/* 0.5 * (I2 + I3) */ \
 	f1 = memr1_2[1];	/* I1 */ \
-	f5 += f1;		/* I1 + I2 + I3 (final I1) */ \
+	f5 += f1;			/* I1 + I2 + I3 (final I1) */ \
 	f1 -= f6 * 0.5;		/* (I1-.5I2-.5I3) */ \
 	f6 = f0; \
-	f0 -= f3;		/* Final R3 */ \
-	f3 += f6;		/* Final R2 */ \
+	f0 -= f3;			/* Final R3 */ \
+	f3 += f6;			/* Final R2 */ \
 	f7 = f1; \
-	f1 -= f2;		/* Final I2 */ \
-	f2 += f7;		/* Final I3 */ \
+	f1 -= f2;			/* Final I2 */ \
+	f2 += f7;			/* Final I3 */ \
 \
 	/*if 0 // pre2 NE 0; \
 	xprefetchw(u8ptr(pre1+pre2)); \
 	#endif*/ \
 \
-;	/* Do the six reals part */ \
+	/* Do the six reals part */ \
 \
 	xmm4[1] = f4; \
 	xmm3[1] = f3; \
@@ -1744,46 +1618,43 @@
 	xmm1[1] = f1; \
 	xmm2[1] = f2; \
 \
+	vec2f64 s2 = xptr(screg2); \
 	f6 = memr2[0];		/* R2 */ \
-	f7 = f6;		/* Copy R2 */ \
-	f6 *= f64ptr(screg2+8);	/* A2 = R2 * cosine/sine */ \
+	f7 = f6;			/* Copy R2 */ \
 	f4 = memr3[0];		/* R3 */ \
-	f4 *= f64ptr(screg1+16);	/* A3 = R3 * cosine/sine */ \
 	f0 = memi2[0];		/* R2 */ \
-	f6 += f0;		/* A2 = A2 + I2 */ \
 	f3 = memi3[0];		/* I3 */ \
-	f4 += f3;		/* A3 = A3 + I3 */ \
-	f0 *= f64ptr(screg2+8);	/* B2 = I2 * cosine/sine */ \
-	f3 *= f64ptr(screg1+16);	/* B3 = I3 * cosine/sine */ \
-	f0 -= f7;		/* B2 = B2 - R2 */ \
-	f3 -= memr3[0];		/* B3 = B3 - R3 */ \
-	f6 *= f64ptr(screg2);	/* A2 = A2 * sine (new R2) */ \
-	f4 *= f64ptr(screg1);	/* A3 = A3 * sine (new R3) */ \
-	f0 *= f64ptr(screg2);	/* B2 = B2 * sine (new I2) */ \
-	f3 *= f64ptr(screg1);	/* B3 = B3 * sine (new I3) */ \
+	f6 = f6 * s2[1] + f0;	/* A2 = R2 * cosine/sine + I2 */ \
+	f4 = f4 * s11 + f3;		/* A3 = R3 * cosine/sine + I3 */ \
+	f0 = f0 * s2[1] - f7;	/* B2 = I2 * cosine/sine - R2 */ \
+	f3 = f3 * s11 - memr3[0];	/* B3 = I3 * cosine/sine - R3 */ \
+	f6 *= s2[0];		/* A2 = A2 * sine (new R2) */ \
+	f4 *= s10;			/* A3 = A3 * sine (new R3) */ \
+	f0 *= s2[0];		/* B2 = B2 * sine (new I2) */ \
+	f3 *= s10;			/* B3 = B3 * sine (new I3) */ \
 \
-	f7 = f6;		/* Copy R2 */ \
-	f6 -= f4;		/* R2 - R3 */ \
-	f4 += f7;		/* R2 + R3 */ \
-	f2 = f0;		/* Copy I2 */ \
-	f0 -= f3;		/* I2 - I3 */ \
-	f3 += f2;		/* I2 + I3 */ \
-	f2 = f6;		/* 0.5 * (R2 - R3) */ \
-	f7 = f4;		/* 0.5 * (R2 + R3) */ \
+	f7 = f6;			/* Copy R2 */ \
+	f6 -= f4;			/* R2 - R3 */ \
+	f4 += f7;			/* R2 + R3 */ \
+	f2 = f0;			/* Copy I2 */ \
+	f0 -= f3;			/* I2 - I3 */ \
+	f3 += f2;			/* I2 + I3 */ \
+	f2 = f6;			/* 0.5 * (R2 - R3) */ \
+	f7 = f4;			/* 0.5 * (R2 + R3) */ \
 	f0 *= CONST_P866;	/* 0.866 * (I2 - I3) */ \
 	f3 *= CONST_P866;	/* 0.866 * (I2 + I3) */ \
-	f5 = memr1_2[0];		/* R1#2 */ \
-	f2 = f2 * 0.5 + f5;		/* R1#2 + 0.5 * (R2 - R3) */ \
-	f1 = memr1_1[0];		/* R1#1 */ \
-	f4 += f1;		/* final R1 = R1#1 + (R2 + R3) */ \
+	f5 = memr1_2[0];	/* R1#2 */ \
+	f2 = f2 * 0.5 + f5;	/* R1#2 + 0.5 * (R2 - R3) */ \
+	f1 = memr1_1[0];	/* R1#1 */ \
+	f4 += f1;			/* final R1 = R1#1 + (R2 + R3) */ \
 	f1 -= f7 * 0.5;		/* R1#1 - 0.5 * (R2 + R3) */ \
-	f5 -= f6;		/* final R4 = R1#2 - (R2 - R3) */ \
-	f7 = f3;		/* Copy 0.866 * (I2 + I3) */ \
-	f3 += f2;		/* final R2 = R1#2 + 0.5 * (R2 - R3) + 0.866 * (I2 + I3) */ \
-	f2 -= f7;		/* final R6 = R1#2 + 0.5 * (R2 - R3) - 0.866 * (I2 + I3) */ \
-	f6 = f0;		/* Copy 0.866 * (I2 - I3) */ \
-	f0 += f1;		/* final R3 = R1#1 - 0.5 * (R2 + R3) + 0.866 * (I2 - I3) */ \
-	f1 -= f6;		/* final R5 = R1#1 - 0.5 * (R2 + R3) - 0.866 * (I2 - I3) */ \
+	f5 -= f6;			/* final R4 = R1#2 - (R2 - R3) */ \
+	f7 = f3;			/* Copy 0.866 * (I2 + I3) */ \
+	f3 += f2;			/* final R2 = R1#2 + 0.5 * (R2 - R3) + 0.866 * (I2 + I3) */ \
+	f2 -= f7;			/* final R6 = R1#2 + 0.5 * (R2 - R3) - 0.866 * (I2 + I3) */ \
+	f6 = f0;			/* Copy 0.866 * (I2 - I3) */ \
+	f0 += f1;			/* final R3 = R1#1 - 0.5 * (R2 + R3) + 0.866 * (I2 - I3) */ \
+	f1 -= f6;			/* final R5 = R1#1 - 0.5 * (R2 + R3) - 0.866 * (I2 - I3) */ \
 	xmm0[0] = f0; \
 	xmm1[0] = f1; \
 	xmm2[0] = f2; \
@@ -1791,4 +1662,3 @@
 	xmm4[0] = f4; \
 	xmm5[0] = f5; \
 }
-#endif

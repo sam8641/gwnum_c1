@@ -1768,45 +1768,36 @@
 	f1 = mem3[1]; \
 	f1 += mem4[1];			/* r34a=r3+r4 */ \
 	f2 = mem7[1]; \
-	f2 -= mem10[1];		/* i25s=i2-i5 */ \
+	f2 -= mem10[1];			/* i25s=i2-i5 */ \
 	f3 = mem8[1]; \
 	f3 -= mem9[1];			/* i34s=i3-i4 */ \
-	f4 = CONST_P309; \
-	f4 *= f0;			/* cos2*r25a */ \
-	f5 = CONST_M809; \
-	f5 *= f1;			/* cos4*r34a */ \
-	f6 = CONST_P951; \
-	f6 *= f2;			/* sin2*i25s */ \
-	f7 = CONST_P588; \
-	f7 *= f3;			/* sin4*i34s */ \
-	f4 += f5;			/* cos2*r25a + cos4*r34a */ \
-	f6 += f7;			/* t2=sin2*i25s + sin4*i34s */ \
-	f5 = CONST_M809; \
-	f5 *= f0;			/* cos4*r25a */ \
-	f0 += f1;			/* r25a + r34a */ \
+	f4 = f0 * CONST_P309;	/* cos2*r25a */ \
+	f4 += f1 * CONST_M809;	/* cos2*r25a + cos4*r34a */ \
+	f6 = f2 * CONST_P951;	/* sin2*i25s */ \
+	f6 += f3 * CONST_P588;	/* t2=sin2*i25s + sin4*i34s */ \
+	f5 = f0 * CONST_M809;	/* cos4*r25a */ \
+	f5 += f1 * CONST_P309;	/* cos4*r25a+cos2*r34a */ \
+	f2 = f2 * CONST_P588;	/* sin4*i25s */ \
+	f2 -= f3 * CONST_P951;	/* t4=sin4*i25s-sin2*i34s */ \
+	f0 = f0 + f1;			/* r25a + r34a */ \
 	f7 = mem1[1]; \
-	f4 += f7;			/* t1=cos2*r25a + cos4*r34a + r1 */ \
-	f0 += f7;			/* outr(0) = r1 + r25a + r34a */ \
-	f1 *= CONST_P309;		/* cos2*r34a */ \
-	f2 *= CONST_P588;		/* sin4*i25s */ \
-	f3 *= CONST_P951;		/* sin2*i34s */ \
-	f5 += f1;			/* cos4*r25a+cos2*r34a */ \
-	f2 -= f3;			/* t4=sin4*i25s-sin2*i34s */ \
-	f5 += f7;			/* t3=cos4*r25a+cos2*r34a+r1 */ \
+	f4 += f7;				/* t1=cos2*r25a + cos4*r34a + r1 */ \
+	f0 += f7;				/* outr(0) = r1 + r25a + r34a */ \
+	f5 += f7;				/* t3=cos4*r25a+cos2*r34a+r1 */ \
 	f7 = f4; \
-	f4 -= f6;			/* outr(1)=t1-t2 */ \
-	f6 += f7;			/* outr(4)=t1+t2 */ \
+	f4 -= f6;				/* outr(1)=t1-t2 */ \
+	f6 += f7;				/* outr(4)=t1+t2 */ \
 	f7 = f5; \
-	f5 -= f2;			/* outr(2)=t3-t4 */ \
-	f2 += f7;			/* outr(3)=t3+t4 */ \
+	f5 -= f2;				/* outr(2)=t3-t4 */ \
+	f2 += f7;				/* outr(3)=t3+t4 */ \
 \
-	TMP1 = f4;		/* Save new r2 */ \
-	TMP2 = f5;		/* Save new r3 */ \
-	TMP3 = f2;		/* Save new r4 */ \
-	TMP4 = f6;		/* Save new r5 */ \
+	TMP1 = f4;				/* Save new r2 */ \
+	TMP2 = f5;				/* Save new r3 */ \
+	TMP3 = f2;				/* Save new r4 */ \
+	TMP4 = f6;				/* Save new r5 */ \
 \
 	f2 = mem7[1]; \
-	f2 += mem10[1];		/* i25a=i2+i5 */ \
+	f2 += mem10[1];			/* i25a=i2+i5 */ \
 	f3 = mem8[1]; \
 	f3 += mem9[1];			/* i34a=i3+i4 */ \
 	f4 = mem2[1]; \
@@ -1817,73 +1808,53 @@
 	dst1[1] = f0;			/* WARNING: dst1 may be alias to mem3 */ \
 \
 	f5 = f2; \
-	f5 += f3;			/* i25a+i34a */ \
-	f6 = CONST_P309; \
-	f6 *= f2;			/* cos2*i25a */ \
-	f7 = CONST_M809; \
-	f2 *= f7;			/* cos4*i25a */ \
-	f7 *= f3;			/* cos4*i34a */ \
-	f3 *= CONST_P309;		/* cos2*i34a */ \
-	f0 = CONST_P951; \
-	f0 *= f4;			/* sin2*r25s */ \
-	f6 += f7;			/* cos2*i25a + cos4*i34a */ \
-	f7 = CONST_P588; \
-	f4 *= f7;			/* sin4*r25s */ \
-	f7 *= f1;			/* sin4*r34s */ \
-	f1 *= CONST_P951;		/* sin2*r34s */ \
-	f2 += f3;			/* cos4*i25a + cos2*i34a */ \
+	f5 += f3;				/* i25a+i34a */ \
+	f6 = f2 * CONST_P309;	/* cos2*i25a */ \
+	f6 += f3 * CONST_M809;	/* cos2*i25a + cos4*i34a */ \
+	f2 = f2 * CONST_M809;	/* cos4*i25a */ \
+	f2 += f3 * CONST_P309;	/* cos4*i25a + cos2*i34a */ \
+	f0 = f4 * CONST_P951;	/* sin2*r25s */ \
+	f0 += f1 * CONST_P588;	/* t6=sin2*r25s + sin4*r34s */ \
+	f4 = f4 * CONST_P588;	/* sin4*r25s */ \
+	f4 -= f1 * CONST_P951;	/* t8=sin4*r25s - sin2*r34s */ \
 	f3 = mem6[1]; \
-	f6 += f3;			/* t5=cos2*i25a + cos4*i34a + i1 */ \
-	f0 += f7;			/* t6=sin2*r25s + sin4*r34s */ \
-	f2 += f3;			/* t7=cos4*i25a + cos2*i34a + i1 */ \
-	f4 -= f1;			/* t8=sin4*r25s - sin2*r34s */ \
+	f6 += f3;				/* t5=cos2*i25a + cos4*i34a + i1 */ \
+	f2 += f3;				/* t7=cos4*i25a + cos2*i34a + i1 */ \
 \
 	f7 = f6; \
-	f6 -= f0;			/* outi(4)=t5-t6 */ \
-	f0 += f7;			/* outi(1)=t5+t6 */ \
+	f6 -= f0;				/* outi(4)=t5-t6 */ \
+	f0 += f7;				/* outi(1)=t5+t6 */ \
 	f1 = f2; \
-	f2 -= f4;			/* outi(3)=t7-t8 */ \
-	f4 += f1;			/* outi(2)=t7+t8 */ \
-	f5 += f3;			/* outi(0)=i1+i25a+i34a */ \
+	f2 -= f4;				/* outi(3)=t7-t8 */ \
+	f4 += f1;				/* outi(2)=t7+t8 */ \
+	f5 += f3;				/* outi(0)=i1+i25a+i34a */ \
 \
-	f7 = TMP4;		/* Load R5 */ \
-	f3 = f64ptr(screg1+16);		/* Cosine/sine for w^n */ \
-	f7 *= f3;			/* A5 = R5 * cosine/sine */ \
-	f1 = TMP1;		/* Load R2 */ \
-	f1 *= f3;			/* A2 = R2 * cosine/sine */ \
-	f7 += f6;			/* A5 = A5 + I5 */ \
-	f1 -= f0;			/* A2 = A2 - I2 */ \
-	f6 *= f3;			/* B5 = I5 * cosine/sine */ \
-	f0 *= f3;			/* B2 = I2 * cosine/sine */ \
-	f6 -= TMP4;		/* B5 = B5 - R5 */ \
-	f0 += TMP1;		/* B2 = B2 + R2 */ \
+	f3 = f64ptr(screg1+16);	/* Cosine/sine for w^n */ \
+	f7 = TMP4 * f3 + f6;	/* A5 = R5 * cosine/sine + I5 */ \
+	f1 = TMP1 * f3 - f0;	/* A2 = R2 * cosine/sine - I2 */ \
+	f6 = f6 * f3 - TMP4;	/* B5 = I5 * cosine/sine - R5 */ \
+	f0 = f0 * f3 + TMP1;	/* B2 = I2 * cosine/sine + R2 */ \
 	dst2[1] = f5; \
 	f5 = f64ptr(screg1); \
-	f7 *= f5;			/* A5 = A5 * sine (new R5) */ \
+	f7 *= f5;				/* A5 = A5 * sine (new R5) */ \
 	dstr5[1] = f7; \
-	f1 *= f5;			/* A2 = A2 * sine (new R2) */ \
-	f6 *= f5;			/* B5 = B5 * sine (new I5) */ \
-	f0 *= f5;			/* B2 = B2 * sine (new I2) */ \
+	f1 *= f5;				/* A2 = A2 * sine (new R2) */ \
+	f6 *= f5;				/* B5 = B5 * sine (new I5) */ \
+	f0 *= f5;				/* B2 = B2 * sine (new I2) */ \
 \
-	f3 = TMP2;		/* Load R3 */ \
 	f7 = f64ptr(screg2+16);		/* Cosine/sine for w^2n */ \
-	f3 *= f7;	 		/* A3 = R3 * cosine/sine */ \
-	f5 = TMP3;		/* Load R4 */ \
-	f5 *= f7;			/* A4 = R4 * cosine/sine */ \
-	f3 -= f4;			/* A3 = A3 - I3 */ \
-	f4 *= f7;			/* B3 = I3 * cosine/sine */ \
-	f5 += f2;			/* A4 = A4 + I4 */ \
-	f2 *= f7;			/* B4 = I4 * cosine/sine */ \
-	f4 += TMP2;		/* B3 = B3 + R3 */ \
-	f2 -= TMP3;		/* B4 = B4 - R4 */ \
+	f3 = TMP2 * f7 - f4;	/* A3 = R3 * cosine/sine - I3 */ \
+	f5 = TMP3 * f7 + f2;	/* A4 = R4 * cosine/sine + I4 */ \
+	f4 = f4 * f7 + TMP2;	/* B3 = I3 * cosine/sine + R3 */ \
+	f2 = f2 * f7 - TMP3;	/* B4 = I4 * cosine/sine - R4 */ \
 	f7 = f64ptr(screg2); \
-	f3 *= f7;			/* A3 = A3 * sine (new R3) */ \
-	f5 *= f7;			/* A4 = A4 * sine (new R4) */ \
-	f4 *= f7;			/* B3 = B3 * sine (new I3) */ \
-	f2 *= f7;			/* B4 = B4 * sine (new I4) */ \
+	f3 *= f7;				/* A3 = A3 * sine (new R3) */ \
+	f5 *= f7;				/* A4 = A4 * sine (new R4) */ \
+	f4 *= f7;				/* B3 = B3 * sine (new I3) */ \
+	f2 *= f7;				/* B4 = B4 * sine (new I4) */ \
 \
 ;	/* Do the ten-reals part */ \
-	xmm1[1] = f1;		/* Copy to high part of XMM register */ \
+	xmm1[1] = f1;			/* Copy to high part of XMM register */ \
 	xmm6[1] = f6; \
 	xmm0[1] = f0; \
 	xmm3[1] = f3; \
@@ -1891,127 +1862,97 @@
 	xmm4[1] = f4; \
 	xmm2[1] = f2; \
 \
-	f3 = mem3[0];	/* R3 */ \
-	f3 += mem9[0];		/* R3+R9 */ \
-	f2 = mem5[0];		/* R5 */ \
-	f2 += mem7[0];	/* R5+R7 */ \
-	f0 = CONST_P309; \
-	f0 *= f3;		/* new oddR2 = .309*(R3+R9) */ \
-	f4 = mem1[0];	/* R1 */ \
-	f0 += f4;		/* new oddR2 += R1 */ \
-	f5 = CONST_M809; \
-	f5 *= f3;		/* new oddR3 = -.809*(R3+R9) */ \
-	f3 += f4;		/* new oddR1 = R1+R3+R9 */ \
-	f5 += f4;		/* new oddR3 += R1 */ \
-	f4 = CONST_M809; \
-	f4 *= f2;		/* -.809*(R5+R7) */ \
-	f3 += f2;		/* new oddR1 = R1+R3+R5+R7+R9 */ \
-	f2 *= CONST_P309;	/* .309*(R5+R7) */ \
-	f0 += f4;		/* new oddR2 += -.809*(R5+R7) */ \
-	f5 += f2;		/* new oddR3 += .309*(R5+R7) */ \
+	f3 = mem3[0];			/* R3 */ \
+	f3 += mem9[0];			/* R3+R9 */ \
+	f2 = mem5[0];			/* R5 */ \
+	f2 += mem7[0];			/* R5+R7 */ \
+	f4 = mem1[0];			/* R1 */ \
+	f0 = f3 * CONST_P309 + f4;	/* new oddR2 = .309*(R3+R9) + R1 */ \
+	f5 = f3 * CONST_M809 + f4;	/* new oddR3 = -.809*(R3+R9) + R1 */ \
+	f3 += f4;				/* new oddR1 = R1+R3+R9 */ \
+	f0 += f2 * CONST_M809;	/* new oddR2 += -.809*(R5+R7) */ \
+	f3 += f2;				/* new oddR1 = R1+R3+R5+R7+R9 */ \
+	f5 += f2 * CONST_P309;	/* new oddR3 += .309*(R5+R7) */ \
 \
-	f6 = mem2[0];	/* R2 */ \
-	f6 += mem10[0];		/* R2+R10 */ \
-	f2 = mem4[0];		/* R4 */ \
-	f2 += mem8[0];	/* R4+R8 */ \
-	f1 = CONST_P309; \
-	f1 *= f6;		/* new evenR3 = .309*(R2+R10) */ \
-	f4 = mem6[0];	/* R6 */ \
-	f1 += f4;		/* new evenR3 += R6 */ \
-	f7 = CONST_M809; \
-	f7 *= f6;		/* new evenR5 = -.809*(R2+R10) */ \
-	f6 += f4;		/* new evenR1 = R6+R2+R10 */ \
-	f7 += f4;		/* new evenR5 += R6 */ \
-	f4 = CONST_M809; \
-	f4 *= f2;		/* -.809*(R4+R8) */ \
-	f6 += f2;		/* new evenR1 = R6+R2+R4+R8+R10 */ \
-	f2 *= CONST_P309;	/* .309*(R4+R8) */ \
-	f1 += f4;		/* new evenR3 += -.809*(R4+R8) */ \
-	f7 += f2;		/* new evenR5 += .309*(R4+R8) */ \
+	f6 = mem2[0];			/* R2 */ \
+	f6 += mem10[0];			/* R2+R10 */ \
+	f2 = mem4[0];			/* R4 */ \
+	f2 += mem8[0];			/* R4+R8 */ \
+	f4 = mem6[0];			/* R6 */ \
+	f1 = f6 * CONST_P309 + f4;	/* new evenR3 = .309*(R2+R10) + R6 */ \
+	f7 = f6 * CONST_M809 + f4;	/* new evenR5 = -.809*(R2+R10) + R6 */ \
+	f6 += f4;				/* new evenR1 = R6+R2+R10 */ \
+	f1 += f2 * CONST_M809;	/* new evenR3 += -.809*(R4+R8) */ \
+	f6 += f2;				/* new evenR1 = R6+R2+R4+R8+R10 */ \
+	f7 += f2 *= CONST_P309;	/* new evenR5 += .309*(R4+R8) */ \
 \
-	f2 = f0;		/* Copy oddR2 */ \
-	f0 -= f7;		/* New R2 = oddR2 - evenR5 */ \
-	f7 += f2;		/* New R5 = oddR2 + evenR5 */ \
+	f2 = f0;				/* Copy oddR2 */ \
+	f0 -= f7;				/* New R2 = oddR2 - evenR5 */ \
+	f7 += f2;				/* New R5 = oddR2 + evenR5 */ \
 \
-	f2 = f5;		/* Copy oddR3 */ \
-	f5 -= f1;		/* New R4 = oddR3 - evenR3 */ \
-	f1 += f2;		/* New R3 = oddR3 + evenR3 */ \
+	f2 = f5;				/* Copy oddR3 */ \
+	f5 -= f1;				/* New R4 = oddR3 - evenR3 */ \
+	f1 += f2;				/* New R3 = oddR3 + evenR3 */ \
 \
-	TMP1 = f0;	/* Temporarily save new R2 */ \
-	TMP2 = f1;	/* Temporarily save new R3 */ \
+	TMP1 = f0;				/* Temporarily save new R2 */ \
+	TMP2 = f1;				/* Temporarily save new R3 */ \
 \
-	f4 = mem3[0];	/* R3 */ \
-	f4 -= mem9[0];		/* R3-R9 */ \
-	dst1[0] = f3;		/* Save oddR1, WARNING: dst1 may be alias to mem1 or mem3 */ \
-	f3 = mem5[0];		/* R5 */ \
-	f3 -= mem7[0];	/* R5-R7 */ \
-	f0 = CONST_P951; \
-	f0 *= f4;		/* new oddI2 = .951*(R3-R9) */ \
-	f2 = CONST_P588; \
-	f4 *= f2;		/* new oddI3 = .588*(R3-R9) */ \
-	f2 *= f3;		/* .588*(R5-R7) */ \
-	f3 *= CONST_P951;	/* .951*(R5-R7) */ \
-	f0 += f2;		/* new oddI2 += .588*(R5-R7) */ \
-	f4 -= f3;		/* new oddI3 -= .951*(R5-R7) */ \
+	f4 = mem3[0];			/* R3 */ \
+	f4 -= mem9[0];			/* R3-R9 */ \
+	dst1[0] = f3;			/* Save oddR1, WARNING: dst1 may be alias to mem1 or mem3 */ \
+	f3 = mem5[0];			/* R5 */ \
+	f3 -= mem7[0];			/* R5-R7 */ \
+	f0 = f4 * CONST_P951;	/* new oddI2 = .951*(R3-R9) */ \
+	f4 *= CONST_P588;		/* new oddI3 = .588*(R3-R9) */ \
+	f0 += f3 * CONST_P588;	/* new oddI2 += .588*(R5-R7) */ \
+	f4 -= f3 * CONST_P951;	/* new oddI3 -= .951*(R5-R7) */ \
 \
-	f3 = mem4[0];		/* R4 */ \
-	f3 -= mem8[0];	/* R4-R8 */ \
-	dst2[0] = f6;		/* Save evenR1, WARNING: dst2 may be alias to mem6 or mem8 */ \
-	f6 = mem2[0];	/* R2 */ \
-	f6 -= mem10[0];		/* R2-R10 */ \
-	f2 = CONST_P951; \
-	f2 *= f6;		/* new evenI3 = .951*(R2-R10) */ \
-	f1 = CONST_P588; \
-	f6 *= f1;		/* new evenI2 = .588*(R2-R10) */ \
-	f1 *= f3;		/* .588*(R4-R8) */ \
-	f3 *= CONST_P951;	/* .951*(R4-R8) */ \
-	f2 -= f1;		/* new evenI3 -= .588*(R4-R8) */ \
-	f6 += f3;		/* new evenI2 += .951*(R4-R8) */ \
+	f3 = mem4[0];			/* R4 */ \
+	f3 -= mem8[0];			/* R4-R8 */ \
+	dst2[0] = f6;			/* Save evenR1, WARNING: dst2 may be alias to mem6 or mem8 */ \
+	f6 = mem2[0];			/* R2 */ \
+	f6 -= mem10[0];			/* R2-R10 */ \
+	f2 = f6 * CONST_P951;	/* new evenI3 = .951*(R2-R10) */ \
+	f6 *= CONST_P588;		/* new evenI2 = .588*(R2-R10) */ \
+	f2 -= f3 * CONST_P588;	/* new evenI3 -= .588*(R4-R8) */ \
+	f6 += f3 * CONST_P951;	/* new evenI2 += .951*(R4-R8) */ \
 \
-	f3 = f6;		/* Copy evenI2 */ \
-	f6 -= f0;		/* New I5 = evenI2 - oddI2 */ \
-	f0 += f3;		/* New I2 = evenI2 + oddI2 */ \
+	f3 = f6;				/* Copy evenI2 */ \
+	f6 -= f0;				/* New I5 = evenI2 - oddI2 */ \
+	f0 += f3;				/* New I2 = evenI2 + oddI2 */ \
 \
-	f3 = f2;		/* Copy evenI3 */ \
-	f2 -= f4;		/* New I4 = evenI3 - oddI3 */ \
-	f4 += f3;		/* New I3 = evenI3 + oddI3 */ \
+	f3 = f2;				/* Copy evenI3 */ \
+	f2 -= f4;				/* New I4 = evenI3 - oddI3 */ \
+	f4 += f3;				/* New I3 = evenI3 + oddI3 */ \
 \
 ;	/* apply twiddles */ \
 \
 	f3 = f64ptr(screg2+16);	/* cosine/sine for w^4 */ \
-	f1 = f7;		/* Copy R5 */ \
-	f7 *= f3;		/* A5 = R5 * cosine/sine */ \
-	f7 -= f6;		/* A5 = A5 - I5 */ \
-	f6 *= f3;		/* B5 = I5 * cosine/sine */ \
-	f6 += f1;		/* B5 = B5 + R5 */ \
+	f1 = f7;				/* Copy R5 */ \
+	f7 = f7 * f3 - f6;		/* A5 = R5 * cosine/sine - I5 */ \
+	f6 = f6 * f3 + f1;		/* B5 = I5 * cosine/sine + R5 */ \
 \
 	f3 = f64ptr(screg3+24);	/* cosine/sine for w^3 */ \
-	f1 = f5;		/* Copy R4 */ \
-	f5 *= f3;		/* A4 = R4 * cosine/sine */ \
-	f5 -= f2;		/* A4 = A4 - I4 */ \
-	f2 *= f3;		/* B4 = I4 * cosine/sine */ \
-	f2 += f1;		/* B4 = B4 + R4 */ \
+	f1 = f5;				/* Copy R4 */ \
+	f5 = f5 * f3 - f2;		/* A4 = R4 * cosine/sine - I4 */ \
+	f2 = f2 * f3 + f1;		/* B4 = I4 * cosine/sine + R4 */ \
 \
 	f1 = f64ptr(screg2); \
-	f7 *= f1;		/* A5 = A5 * sine (new R5) */ \
-	f6 *= f1;		/* B5 = B5 * sine (new I5) */ \
+	f7 *= f1;				/* A5 = A5 * sine (new R5) */ \
+	f6 *= f1;				/* B5 = B5 * sine (new I5) */ \
 	f1 = f64ptr(screg3+16); \
-	f5 *= f1;		/* A4 = A4 * sine (new R4) */ \
-	f2 *= f1;		/* B4 = B4 * sine (new I4) */ \
+	f5 *= f1;				/* A4 = A4 * sine (new R4) */ \
+	f2 *= f1;				/* B4 = B4 * sine (new I4) */ \
 \
-	dstr5[0] = f7;		/* Save R5 */ \
+	dstr5[0] = f7;			/* Save R5 */ \
 \
-	f3 = f64ptr(screg1+16);	/* cosine/sine for w^2 */ \
-	f3 *= TMP2;	/* A3 = R3 * cosine/sine */ \
-	f3 -= f4;		/* A3 = A3 - I3 */ \
-	f4 *= f64ptr(screg1+16);	/* B3 = I3 * cosine/sine */ \
-	f4 += TMP2;	/* B3 = B3 + R3 */ \
+	f1 = f64ptr(screg1+16);	/* cosine/sine for w^2 */ \
+	f3 = TMP2 * f1 - f4;	/* A3 = R3 * cosine/sine - I3 */ \
+	f4 = f4 * f1 + TMP2;	/* B3 = I3 * cosine/sine + R3 */ \
 \
-	f1 = f64ptr(screg3+8);	/* cosine/sine for w^1 */ \
-	f1 *= TMP1;	/* A2 = R2 * cosine/sine */ \
-	f1 -= f0;		/* A2 = A2 - I2 */ \
-	f0 *= f64ptr(screg3+8);	/* B2 = I2 * cosine/sine */ \
-	f0 += TMP1;	/* B2 = B2 + R2 */ \
+	f7 = f64ptr(screg3+8);	/* cosine/sine for w^1 */ \
+	f1 = f7 * TMP1 - f0;	/* A2 = R2 * cosine/sine - I2 */ \
+	f0 = f0 * f7 + TMP1;	/* B2 = I2 * cosine/sine + R2 */ \
 \
 	f3 *= f64ptr(screg1);	/* A3 = A3 * sine (new R3) */ \
 	f4 *= f64ptr(screg1);	/* B3 = B3 * sine (new I3) */ \
@@ -2025,6 +1966,7 @@
 	xmm4[0] = f4; \
 	xmm2[0] = f2; \
 }
+
 
 /* */ \
 /* */ \
@@ -2399,134 +2341,109 @@
 	vec2f64 memi5 = memi5p; \
 	/* Do the five complex part */ \
 \
-	f1 = memr2[1];		/* Load R2 */ \
-	f0 = f64ptr(screg1+16);		/* Load cosine/sine for w^n */ \
-	f1 *= f0;			/* A2 = R2 * cosine/sine */ \
-	f7 = memr5[1];		/* Load R5 */ \
-	f7 *= f0;			/* A5 = R5 * cosine/sine */ \
-	f4 = memi2[1];		/* I2 */ \
-	f1 += f4;			/* A2 = A2 + I2 */ \
-	f6 = memi5[1];		/* I5 */ \
-	f7 -= f6;			/* A5 = A5 - I5 */ \
-	f4 *= f0;			/* B2 = I2 * cosine/sine */ \
-	f6 *= f0;			/* B5 = I5 * cosine/sine */ \
-	f4 -= memr2[1];		/* B2 = B2 - R2 */ \
-	f6 += memr5[1];		/* B5 = B5 + R5 */ \
+	f0 = f64ptr(screg1+16);	/* Load cosine/sine for w^n */ \
+	f2 = memr2[1];			/* Load R2 */ \
+	f4 = memi2[1];			/* I2 */ \
+	f5 = memr5[1];			/* Load R5 */ \
+	f6 = memi5[1];			/* I5 */ \
+	f1 = f2 * f0 + f4;			/* A2 = R2 * cosine/sine+ I2 */ \
+	f7 = f5 * f0 - f6;		/* A5 = R5 * cosine/sine - I5 */ \
+	f4 = f4 * f0 - f2;		/* B2 = I2 * cosine/sine - R2 */ \
+	f6 = f6 * f0 + f5;		/* B5 = I5 * cosine/sine + R5 */ \
 	f3 = f64ptr(screg1); \
-	f1 *= f3;			/* A2 = A2 * sine (new R2) */ \
-	f4 *= f3;			/* B2 = B2 * sine (new I2) */ \
-	f7 *= f3;			/* A5 = A5 * sine (new R5) */ \
-	f6 *= f3;			/* B5 = B5 * sine (new I5) */ \
+	f1 *= f3;				/* A2 = A2 * sine (new R2) */ \
+	f4 *= f3;				/* B2 = B2 * sine (new I2) */ \
+	f7 *= f3;				/* A5 = A5 * sine (new R5) */ \
+	f6 *= f3;				/* B5 = B5 * sine (new I5) */ \
 \
-	f2 = f1;			/* Copy R2 */ \
-	f1 -= f7;			/* r25s=r2-r5 */ \
-	f7 += f2;			/* r25a=r2+r5 */ \
-	f2 = f4;			/* Copy I2 */ \
-	f4 -= f6;			/* i25s=i2-i5 */ \
-	f6 += f2;			/* i25a=i2+i5 */ \
+	f2 = f1;				/* Copy R2 */ \
+	f1 -= f7;				/* r25s=r2-r5 */ \
+	f7 += f2;				/* r25a=r2+r5 */ \
+	f2 = f4;				/* Copy I2 */ \
+	f4 -= f6;				/* i25s=i2-i5 */ \
+	f6 += f2;				/* i25a=i2+i5 */ \
 \
-	TMP1 = f1;		/* Save r2-r5 */ \
-	TMP2 = f6;		/* Save i2+i5 */ \
+	TMP1 = f1;				/* Save r2-r5 */ \
+	TMP2 = f6;				/* Save i2+i5 */ \
 \
-	f5 = memr4[1];		/* Load R4 */ \
-	f1 = f64ptr(screg2+16);		/* Load cosine/sine for w^2n */ \
-	f5 *= f1;			/* A4 = R4 * cosine/sine */ \
-	f3 = memr3[1];		/* Load R3 */ \
-	f3 *= f1;			/* A3 = R3 * cosine/sine */ \
-	f2 = memi4[1];		/* I4 */ \
-	f5 -= f2;			/* A4 = A4 - I4 */ \
-	f0 = memi3[1];		/* I3 */ \
-	f3 += f0;			/* A3 = A3 + I3 */ \
-	f2 *= f1;			/* B4 = I4 * cosine/sine */ \
-	f0 *= f1;			/* B3 = I3 * cosine/sine */ \
-	f2 += memr4[1];		/* B4 = B4 + R4 */ \
-	f0 -= memr3[1];		/* B3 = B3 - R3 */ \
+	f5 = memr4[1];			/* Load R4 */ \
+	f3 = memr3[1];			/* Load R3 */ \
+	f2 = memi4[1];			/* I4 */ \
+	f0 = memi3[1];			/* I3 */ \
+	f1 = f64ptr(screg2+16);	/* Load cosine/sine for w^2n */ \
+	f5 = f5 * f1 - f2;		/* A4 = R4 * cosine/sine - I4 */ \
+	f3 = f3 * f1 + f0;		/* A3 = R3 * cosine/sine + I3 */ \
+	f2 = f2 * f1 + memr4[1];	/* B4 = I4 * cosine/sine */ \
+	f0 = f0 * f1 - memr3[1];	/* B3 = I3 * cosine/sine */ \
 	f6 = f64ptr(screg2); \
-	f5 *= f6;			/* A4 = A4 * sine (new R4) */ \
-	f2 *= f6;			/* B4 = B4 * sine (new I4) */ \
-	f3 *= f6;			/* A3 = A3 * sine (new R3) */ \
-	f0 *= f6;			/* B3 = B3 * sine (new I3) */ \
+	f5 *= f6;				/* A4 = A4 * sine (new R4) */ \
+	f2 *= f6;				/* B4 = B4 * sine (new I4) */ \
+	f3 *= f6;				/* A3 = A3 * sine (new R3) */ \
+	f0 *= f6;				/* B3 = B3 * sine (new I3) */ \
 \
-	f1 = f3;			/* Copy R3 */ \
-	f3 -= f5;			/* r34s=r3-r4 */ \
-	f5 += f1;			/* r34a=r3+r4 */ \
+	f1 = f3;				/* Copy R3 */ \
+	f3 -= f5;				/* r34s=r3-r4 */ \
+	f5 += f1;				/* r34a=r3+r4 */ \
 	TMP3 = f3; \
-	f6 = f0;			/* Copy I3 */ \
-	f0 -= f2;			/* i34s=i3-i4 */ \
-	f2 += f6;			/* i34a=i3+i4 */ \
+	f6 = f0;				/* Copy I3 */ \
+	f0 -= f2;				/* i34s=i3-i4 */ \
+	f2 += f6;				/* i34a=i3+i4 */ \
 	TMP4 = f2; \
 \
-	f1 = CONST_P309; \
-	f1 *= f7;			/* cos2*r25a */ \
-	f2 = CONST_M809; \
-	f2 *= f5;			/* cos4*r34a */ \
-	f3 = CONST_P951; \
-	f3 *= f4;			/* sin2*i25s */ \
-	f6 = CONST_P588; \
-	f6 *= f0;			/* sin4*i34s */ \
-	f1 += f2;			/* cos2*r25a + cos4*r34a */ \
-	f3 += f6;			/* t2=sin2*i25s + sin4*i34s */ \
-	f2 = CONST_M809; \
-	f2 *= f7;			/* cos4*r25a */ \
-	f7 += f5;			/* r25a + r34a */ \
+	f1 = f7 * CONST_P309;	/* cos2*r25a */ \
+	f1 += f5 * CONST_M809;	/* cos2*r25a + cos4*r34a */ \
+	f3 = f4 * CONST_P951;	/* sin2*i25s */ \
+	f3 += f0 * CONST_P588;	/* t2=sin2*i25s + sin4*i34s */ \
+	f2 = f7 * CONST_M809;	/* cos4*r25a */ \
+	f2 += f5 * CONST_P309;	/* cos4*r25a+cos2*r34a */ \
+	f4 = f4 * CONST_P588;		/* sin4*i25s */ \
+	f4 -= f0 * CONST_P951;	/* t4=sin4*i25s-sin2*i34s */ \
+	f7 += f5;				/* r25a + r34a */ \
 	vec2f64 memr1 = memr1p; \
 	f6 = memr1[1]; \
-	f1 += f6;			/* t1=cos2*r25a + cos4*r34a + r1 */ \
-	f7 += f6;			/* outr(0) = r1 + r25a + r34a */ \
-	f5 *= CONST_P309;		/* cos2*r34a */ \
-	f4 *= CONST_P588;		/* sin4*i25s */ \
-	f0 *= CONST_P951;		/* sin2*i34s */ \
-	f2 += f5;			/* cos4*r25a+cos2*r34a */ \
-	f4 -= f0;			/* t4=sin4*i25s-sin2*i34s */ \
-	f2 += f6;			/* t3=cos4*r25a+cos2*r34a+r1 */ \
+	f1 += f6;				/* t1=cos2*r25a + cos4*r34a + r1 */ \
+	f7 += f6;				/* outr(0) = r1 + r25a + r34a */ \
+	f2 += f6;				/* t3=cos4*r25a+cos2*r34a+r1 */ \
 	f6 = f1; \
-	f1 -= f3;			/* outr(4)=t1-t2 */ \
-	f3 += f6;			/* outr(1)=t1+t2 */ \
+	f1 -= f3;				/* outr(4)=t1-t2 */ \
+	f3 += f6;				/* outr(1)=t1+t2 */ \
 	f5 = f2; \
-	f2 -= f4;			/* outr(3)=t3-t4 */ \
-	f4 += f5;			/* outr(2)=t3+t4 */ \
+	f2 -= f4;				/* outr(3)=t3-t4 */ \
+	f4 += f5;				/* outr(2)=t3+t4 */ \
 \
 	dstr1[1] = f7; \
-	dstr2[1] = f3;		/* Save new r2 */ \
-	dstr3[1] = f4;		/* Save new r3 */ \
-	dstr4[1] = f2;		/* Save new r4 */ \
-	dstr5[1] = f1;		/* Save new r5 */ \
+	dstr2[1] = f3;			/* Save new r2 */ \
+	dstr3[1] = f4;			/* Save new r3 */ \
+	dstr4[1] = f2;			/* Save new r4 */ \
+	dstr5[1] = f1;			/* Save new r5 */ \
 \
-	f0 = TMP1;		/* r25s=r2-r5 */ \
-	f2 = TMP2;		/* i25a=i2+i5 */ \
-	f1 = TMP3;		/* r34s=r3-r4 */ \
-	f3 = TMP4;		/* i34a=i3+i4 */ \
+	f0 = TMP1;				/* r25s=r2-r5 */ \
+	f2 = TMP2;				/* i25a=i2+i5 */ \
+	f1 = TMP3;				/* r34s=r3-r4 */ \
+	f3 = TMP4;				/* i34a=i3+i4 */ \
 \
 	f5 = f2; \
-	f5 += f3;			/* i25a+i34a */ \
-	f6 = CONST_P309; \
-	f6 *= f2;			/* cos2*i25a */ \
-	f7 = CONST_M809; \
-	f2 *= f7;			/* cos4*i25a */ \
-	f7 *= f3;			/* cos4*i34a */ \
-	f3 *= CONST_P309;		/* cos2*i34a */ \
-	f4 = CONST_P951; \
-	f4 *= f0;			/* sin2*r25s */ \
-	f6 += f7;			/* cos2*i25a + cos4*i34a */ \
-	f7 = CONST_P588; \
-	f0 *= f7;			/* sin4*r25s */ \
-	f7 *= f1;			/* sin4*r34s */ \
-	f1 *= CONST_P951;		/* sin2*r34s */ \
-	f2 += f3;			/* cos4*i25a + cos2*i34a */ \
+	f5 += f3;				/* i25a+i34a */ \
+	f6 = f2 * CONST_P309;	/* cos2*i25a */ \
+	f6 += f3 * CONST_M809;	/* cos2*i25a + cos4*i34a */ \
+	f2 = f2 * CONST_M809;	/* cos4*i25a */ \
+	f2 += f3 * CONST_P309;	/* cos4*i25a + cos2*i34a */ \
+	f4 = f0 * CONST_P951;	/* sin2*r25s */ \
+	f4 += f1 * CONST_P588;	/* t6=sin2*r25s + sin4*r34s */ \
+	f0 = f0 * CONST_P588;	/* sin4*r25s */ \
+	f0 -= f1 * CONST_P951;	/* t8=sin4*r25s - sin2*r34s */ \
 	vec2f64 memi1 = memi1p; \
-	f3 = memi1[1];		/* I1 */ \
-	f6 += f3;			/* t5=cos2*i25a + cos4*i34a + i1 */ \
-	f4 += f7;			/* t6=sin2*r25s + sin4*r34s */ \
-	f2 += f3;			/* t7=cos4*i25a + cos2*i34a + i1 */ \
-	f0 -= f1;			/* t8=sin4*r25s - sin2*r34s */ \
+	f3 = memi1[1];			/* I1 */ \
+	f6 += f3;				/* t5=cos2*i25a + cos4*i34a + i1 */ \
+	f2 += f3;				/* t7=cos4*i25a + cos2*i34a + i1 */ \
 \
 	f7 = f6; \
-	f6 -= f4;			/* outi(1)=t5-t6 */ \
-	f4 += f7;			/* outi(4)=t5+t6 */ \
+	f6 -= f4;				/* outi(1)=t5-t6 */ \
+	f4 += f7;				/* outi(4)=t5+t6 */ \
 	f1 = f2; \
-	f2 -= f0;			/* outi(2)=t7-t8 */ \
-	f0 += f1;			/* outi(3)=t7+t8 */ \
-	f5 += f3;			/* outi(0)=i1+i25a+i34a */ \
+	f2 -= f0;				/* outi(2)=t7-t8 */ \
+	f0 += f1;				/* outi(3)=t7+t8 */ \
+	f5 += f3;				/* outi(0)=i1+i25a+i34a */ \
 \
 ;	/* Do the ten reals part */ \
 \
@@ -2537,136 +2454,112 @@
 	xmm5[1] = f5; \
 \
 	vec2f64 sc30 = xptr(screg3); \
-	f1 = memr2[0];		/* R2 */ \
-	f1 *= sc30[1];	/* A2 = R2 * cosine/sine */ \
-	f0 = memr3[0];	/* R3 */ \
-	f0 *= f64ptr(screg1+16);	/* A3 = R3 * cosine/sine */ \
-	f3 = memi2[0];		/* I2 */ \
-	f1 += f3;		/* A2 = A2 + I2 */ \
-	f7 = memi3[0];	/* I3 */ \
-	f0 += f7;		/* A3 = A3 + I3 */ \
-	f3 *= sc30[1];	/* B2 = I2 * cosine/sine */ \
-	f7 *= f64ptr(screg1+16);	/* B3 = I3 * cosine/sine */ \
-	f3 -= memr2[0];		/* B2 = B2 - R2 */ \
-	f7 -= memr3[0];	/* B3 = B3 - R3 */ \
-	f1 *= sc30[0];	/* A2 = A2 * sine (new R2) */ \
-	f0 *= f64ptr(screg1);	/* A3 = A3 * sine (new R3) */ \
-	f3 *= sc30[0];	/* B2 = B2 * sine (new I2) */ \
-	f7 *= f64ptr(screg1);	/* B3 = B3 * sine (new I3) */ \
+	f5 = f64ptr(screg1+16); \
+	f1 = memr2[0];				/* R2 */ \
+	f0 = memr3[0];				/* R3 */ \
+	f3 = memi2[0];				/* I2 */ \
+	f7 = memi3[0];				/* I3 */ \
+	f1 = f1 * sc30[1] + f3;		/* A2 = R2 * cosine/sine + I2 */ \
+	f0 = memr3[0] * f5 + f7;	/* A3 = R3 * cosine/sine + I3 */ \
+	f3 = f3 * sc30[1] - memr2[0];	/* B2 = I2 * cosine/sine - R2 */ \
+	f7 = f7 * f5 - memr3[0];	/* B3 = I3 * cosine/sine - R3 */ \
+	\
+	f5 = f64ptr(screg1); \
+	f1 *= sc30[0];				/* A2 = A2 * sine (new R2) */ \
+	f0 *= f5;					/* A3 = A3 * sine (new R3) */ \
+	f3 *= sc30[0];				/* B2 = B2 * sine (new I2) */ \
+	f7 *= f5;					/* B3 = B3 * sine (new I3) */ \
 	TMP2R = f1; \
 	TMP2I = f3; \
 	TMP3R = f0; \
 	TMP3I = f7; \
 \
 	vec2f64 sc31 = xptr(screg3+16); \
-	f1 = memr4[0];		/* R4 */ \
-	f1 *= sc31[1];	/* A4 = R4 * cosine/sine */ \
-	f0 = memr5[0];	/* R5 */ \
-	f0 *= f64ptr(screg2+16);	/* A5 = R5 * cosine/sine */ \
-	f3 = memi4[0];		/* I4 */ \
-	f1 += f3;		/* A4 = A4 + I4 */ \
-	f7 = memi5[0];	/* I5 */ \
-	f0 += f7;		/* A5 = A5 + I5 */ \
-	f3 *= sc31[1];	/* B4 = I4 * cosine/sine */ \
-	f7 *= f64ptr(screg2+16);	/* B5 = I5 * cosine/sine */ \
-	f3 -= memr4[0];		/* B4 = B4 - R4 */ \
-	f7 -= memr5[0];	/* B5 = B5 - R5 */ \
-	f1 *= sc31[0];	/* A4 = A4 * sine (new R4) */ \
-	f0 *= f64ptr(screg2);	/* A5 = A5 * sine (new R5) */ \
-	f3 *= sc31[0];	/* B4 = B4 * sine (new I4) */ \
-	f7 *= f64ptr(screg2);	/* B5 = B5 * sine (new I5) */ \
+	f5 = f64ptr(screg2+16); \
+	f1 = memr4[0];				/* R4 */ \
+	f0 = memr5[0];				/* R5 */ \
+	f3 = memi4[0];				/* I4 */ \
+	f1 = f1 * sc31[1] + f3;		/* A4 = R4 * cosine/sine + I4 */ \
+	f7 = memi5[0];				/* I5 */ \
+	f0 = f0 * f5 + f7;			/* A5 = R5 * cosine/sine + I5 */ \
+	f3 = f3 * sc31[1] - memr4[0];	/* B4 = I4 * cosine/sine - R4 */ \
+	f7 = f7 * f5 - memr5[0];	/* B5 = I5 * cosine/sine - R5 */ \
+	f5 = f64ptr(screg2); \
+	f1 *= sc31[0];				/* A4 = A4 * sine (new R4) */ \
+	f0 *= f5;					/* A5 = A5 * sine (new R5) */ \
+	f3 *= sc31[0];				/* B4 = B4 * sine (new I4) */ \
+	f7 *= f5;					/* B5 = B5 * sine (new I5) */ \
 	TMP4R = f1; \
 	TMP4I = f3; \
 	TMP5R = f0; \
 	TMP5I = f7; \
 \
-	f7 =  TMP2R;	/* R2 */ \
-	f7 += TMP5R;	/* R2+R5 */ \
-	f1 =  TMP3R;	/* R3 */ \
-	f1 += TMP4R;	/* R3+R4 */ \
-	f0 = CONST_P309; \
-	f0 *= f7;		/* new R3 = .309*(R2+R5) */ \
-	f3 = memr1[0];	/* R1_1 */ \
-	f0 += f3;		/* new R3 += R1_1 */ \
-	f6 = CONST_M809; \
-	f6 *= f7;		/* new R5 = -.809*(R2+R5) */ \
-	f7 += f3;		/* new R1 = R1_1+R2+R5 */ \
-	f6 += f3;		/* new R5 += R1_1 */ \
-	f3 = CONST_M809; \
-	f3 *= f1;		/* -.809*(R3+R4) */ \
-	f7 += f1;		/* final R1 = R1_1+R2+R5+R3+R4 */ \
-	f1 *= CONST_P309;	/* .309*(R3+R4) */ \
-	f0 += f3;		/* new R3 += -.809*(R3+R4) */ \
-	f6 += f1;		/* new R5 += .309*(R3+R4) */ \
-	dstr1[0] = f7;		/* Save final R1 */ \
+	f7 =  TMP2R;			/* R2 */ \
+	f7 += TMP5R;			/* R2+R5 */ \
+	f1 =  TMP3R;			/* R3 */ \
+	f1 += TMP4R;			/* R3+R4 */ \
+	f3 = memr1[0];			/* R1_1 */ \
+	f0 = f7 * CONST_P309 + f3;	/* new R3 = .309*(R2+R5) + R1_1 */ \
+	f6 = f7 * CONST_M809 + f3;	/* new R5 = -.809*(R2+R5) + R1_1 */ \
+	f7 += f3;				/* new R1 = R1_1+R2+R5 */ \
+	f0 += f1 * CONST_M809;	/* new R3 += -.809*(R3+R4) */ \
+	f6 += f1 * CONST_P309;	/* new R5 += .309*(R3+R4) */ \
+	f7 += f1;				/* final R1 = R1_1+R2+R5+R3+R4 */ \
+	dstr1[0] = f7;			/* Save final R1 */ \
 \
-	f3  = TMP2I;	/* I2 */ \
-	f3 -= TMP5I;	/* I2-I5 */ \
-	f1  = TMP3I;	/* I3 */ \
-	f1 -= TMP4I;	/* I3-I4 */ \
-	f7 = CONST_P951; \
-	f7 *= f3;		/* tmp1 = .951*(I2-I5) */ \
-	f4 = CONST_P588; \
-	f3 *= f4;		/* tmp2 = .588*(I2-I5) */ \
-	f4 *= f1;		/* .588*(I3-I4) */ \
-	f1 *= CONST_P951;	/* .951*(I3-I4) */ \
-	f7 += f4;		/* tmp1 += .588*(I3-I4) */ \
-	f3 -= f1;		/* tmp2 -= .951*(I3-I4) */ \
+	f3  = TMP2I;			/* I2 */ \
+	f3 -= TMP5I;			/* I2-I5 */ \
+	f1  = TMP3I;			/* I3 */ \
+	f1 -= TMP4I;			/* I3-I4 */ \
+	f7 = f3 * CONST_P951;	/* tmp1 = .951*(I2-I5) */ \
+	f7 += f1 * CONST_P588;	/* tmp1 += .588*(I3-I4) */ \
+	f3 = f3 * CONST_P588;	/* tmp2 = .588*(I2-I5) */ \
+	f3 -= f1 * CONST_P951;	/* tmp2 -= .951*(I3-I4) */ \
 \
-	f1 = f0;		/* Copy new R3 */ \
-	f0 -= f7;		/* final R9 = new R3 - tmp1 */ \
-	f7 += f1;		/* final R3 = new R3 + tmp1 */ \
+	f1 = f0;				/* Copy new R3 */ \
+	f0 -= f7;				/* final R9 = new R3 - tmp1 */ \
+	f7 += f1;				/* final R3 = new R3 + tmp1 */ \
 \
-	f1 = f6;		/* Copy new R5 */ \
-	f6 -= f3;		/* final R7 = new R5 - tmp2 */ \
-	f3 += f1;		/* final R5 = new R5 + tmp2 */ \
+	f1 = f6;				/* Copy new R5 */ \
+	f6 -= f3;				/* final R7 = new R5 - tmp2 */ \
+	f3 += f1;				/* final R5 = new R5 + tmp2 */ \
 \
-	f5 =  TMP3R;	/* R3 */ \
-	f5 -= TMP4R;	/* R3-R4 */ \
-	f1 =  TMP2R;	/* R2 */ \
-	f1 -= TMP5R;	/* R2-R5 */ \
-	f4 = CONST_P309; \
-	f4 *= f5;		/* new R2 = .309*(R3-R4) */ \
+	f5 =  TMP3R;			/* R3 */ \
+	f5 -= TMP4R;			/* R3-R4 */ \
+	f1 =  TMP2R;			/* R2 */ \
+	f1 -= TMP5R;			/* R2-R5 */ \
 	dstr3[0] = f7;		/* Save final R3 */ \
 	f7 = memi1[0];	/* R1_2 */ \
-	f4 += f7;		/* new R2 += R1_2 */ \
-	f2 = CONST_M809; \
-	f2 *= f5;		/* new R4 = -.809*(R3-R4) */ \
-	f5 += f7;		/* new R6 = R1_2+(R3-R4) */ \
-	f2 += f7;		/* new R4 += R1_2 */ \
-	f7 = CONST_M809; \
-	f7 *= f1;		/* -.809*(R2-R5) */ \
-	f5 -= f1;		/* final R6 = R6+(R3-R4)-(R2-R5) */ \
-	f1 *= CONST_P309;	/* .309*(R2-R5) */ \
-	f4 -= f7;		/* new R2 -= -.809*(R2-R5) */ \
-	f2 -= f1;		/* new R4 -= .309*(R2-R5) */ \
+	f4 = f5 * CONST_P309 + f7;	/* new R2 = .309*(R3-R4) + R1_2 */ \
+	f2 = f5 * CONST_M809 + f7;	/* new R4 = -.809*(R3-R4) + R1_2 */ \
+	f5 += f7;				/* new R6 = R1_2+(R3-R4) */ \
+	f4 -= f1 * CONST_M809;	/* new R2 -= -.809*(R2-R5) */ \
+	f2 -= f1 * CONST_P309;	/* new R4 -= .309*(R2-R5) */ \
+	f5 -= f1;				/* final R6 = R6+(R3-R4)-(R2-R5) */ \
 \
-	dstr5[0] = f3;		/* Save final R5 */ \
+	dstr5[0] = f3;			/* Save final R5 */ \
+	xmm5[0] = f5; \
+	dstr6 = xmm5;			/* Save final R6 */ \
+\
 	f3  = TMP2I;	/* I2 */ \
 	f3 += TMP5I;	/* I2+I5 */ \
 	f1  = TMP3I;	/* I3 */ \
 	f1 += TMP4I;	/* I3+I4 */ \
-	f7 = CONST_P951; \
-	f7 *= f3;		/* tmp2 = .951*(I2+I5) */ \
-	xmm5[0] = f5; \
-	dstr6 = xmm5;		/* Save final R6 */ \
-	f5 = CONST_P588; \
-	f3 *= f5;		/* tmp1 = .588*(I2+I5) */ \
-	f5 *= f1;		/* .588*(I3+I4) */ \
-	f1 *= CONST_P951;	/* .951*(I3+I4) */ \
-	f7 -= f5;		/* tmp2 -= .588*(I3+I4) */ \
-	f3 += f1;		/* tmp1 += .951*(I3+I4) */ \
+	f7 = f3 * CONST_P951;	/* tmp2 = .951*(I2+I5) */ \
+	f7 -= f1 * CONST_P588;	/* tmp2 -= .588*(I3+I4) */ \
+	f3 = f3 * CONST_P588;	/* tmp1 = .588*(I2+I5) */ \
+	f3 += f1 * CONST_P951;	/* tmp1 += .951*(I3+I4) */ \
 \
-	f1 = f4;		/* Copy new R2 */ \
-	f4 -= f3;		/* Final R10 = new R2 - tmp1 */ \
-	f3 += f1;		/* Final R2 = new R2 + tmp1 */ \
+	f1 = f4;				/* Copy new R2 */ \
+	f4 -= f3;				/* Final R10 = new R2 - tmp1 */ \
+	f3 += f1;				/* Final R2 = new R2 + tmp1 */ \
 \
-	f1 = f2;		/* Copy new R4 */ \
-	f2 -= f7;		/* Final R8 = new R4 - tmp2 */ \
-	f7 += f1;		/* Final R4 = new R4 + tmp2 */ \
+	f1 = f2;				/* Copy new R4 */ \
+	f2 -= f7;				/* Final R8 = new R4 - tmp2 */ \
+	f7 += f1;				/* Final R4 = new R4 + tmp2 */ \
 \
-	dstr2[0] = f3;		/* Save final R2 */ \
-	dstr4[0] = f7;		/* Save final R4 */ \
+	dstr2[0] = f3;			/* Save final R2 */ \
+	dstr4[0] = f7;			/* Save final R4 */ \
 \
 	xmm6[0] = f6; \
 	xmm4[0] = f4; \
@@ -2779,45 +2672,39 @@
 \
 ;	/* Do the odd columns for the real results */ \
 \
-	xmm0 = sd4[0];			/* r5 */ \
-	xmm0 += sd1[3];			/* r5+r17 */ \
-	xmm1 = CONST2_P309; \
-	xmm1 *= xmm0;			/* .309(r5+r17) */ \
-	xmm4 = CONST2_P809; \
-	xmm4 *= xmm0;			/* .809(r5+r17) */ \
+	xmm7 = sd4[0];			/* r5 */ \
+	xmm0 = sd1[3];			/* r17 */ \
+	vec2f64 r5s17 = xmm7 - xmm0; \
+	xmm7 += xmm0;			/* r5+r17 */ \
 	xmm2 = sd0[0];			/* r1 */ \
-	xmm0 += xmm2;			/* r1+(r5+r17) */ \
-	xmm1 += xmm2;			/* r1+.309(r5+r17) */ \
-	xmm2 -= xmm4;			/* r1-.809(r5+r17) */ \
+	xmm0 = xmm7 + xmm2;		/* r1+(r5+r17) */ \
+	xmm1 = xmm2 + xmm7 * CONST2_P309;	/* r1+.309(r5+r17) */ \
+	xmm2 = xmm2 - xmm7 * CONST2_P809;	/* r1-.809(r5+r17) */ \
 \
 	xmm4 = sd3[1];			/* r9 */ \
-	xmm4 += sd2[2];			/* r9+r13 */ \
-	xmm5 = CONST2_P809; \
-	xmm5 *= xmm4;			/* .809(r9+r13) */ \
+	xmm5 = sd2[2];			/* r13 */ \
+	vec2f64 r9s13 = xmm4 - xmm5; \
+	xmm4 += xmm5;			/* r9+r13 */ \
 	xmm0 += xmm4;			/* r1+(r5+r17)+(r9+r13) */ \
-	xmm4 *= CONST2_P309;			/* .309(r9+r13) */ \
-	xmm1 -= xmm5;			/* r1+.309(r5+r17)-.809(r9+r13) */ \
-	xmm2 += xmm4;			/* r1-.809(r5+r17)+.309(r9+r13) */ \
+	xmm1 -= xmm4 * CONST2_P809;	/* r1+.309(r5+r17)-.809(r9+r13) */ \
+	xmm2 += xmm4 * CONST2_P309;	/* r1-.809(r5+r17)+.309(r9+r13) */ \
 \
-	xmm5 = sd2[0];			/* r3 */ \
-	xmm5 += sd3[3];			/* r3+r19 */ \
-	xmm6 = CONST2_P809; \
-	xmm6 *= xmm5;			/* .809(r3+r19) */ \
-	xmm7 = CONST2_P309; \
-	xmm7 *= xmm5;			/* .309(r3+r19) */ \
+	xmm7 = sd2[0];			/* r3 */ \
+	xmm4 = sd3[3];			/* r19 */ \
+	vec2f64 r3s19 = xmm7 - xmm4; \
+	xmm7 += xmm4;			/* r3+r19 */ \
 	xmm4 = sd0[2];			/* r11 */ \
-	xmm5 += xmm4;			/* (r3+r19)+r11 */ \
-	xmm6 -= xmm4;			/* .809(r3+r19)-r11 */ \
-	xmm7 += xmm4;			/* .309(r3+r19)+r11 */ \
+	xmm5 = xmm7 + xmm4;		/* (r3+r19)+r11 */ \
+	xmm6 = xmm7 * CONST2_P809 - xmm4;	/* .809(r3+r19)-r11 */ \
+	xmm7 = xmm7 * CONST2_P309 + xmm4;	/* .309(r3+r19)+r11 */ \
 \
 	xmm4 = sd1[1];			/* r7 */ \
-	xmm4 += sd4[2];			/* r7+r15 */ \
-	xmm3 = CONST2_P309; \
-	xmm3 *= xmm4;			/* .309(r7+r15) */ \
+	xmm3 = sd4[2];			/* r15 */ \
+	vec2f64 r7s15 = xmm4 - xmm3; \
+	xmm4 += xmm3;			/* r7+r15 */ \
 	xmm5 += xmm4;			/* (r3+r19)+(r7+r15)+r11 */ \
-	xmm4 *= CONST2_P809;			/* .809(r7+r15) */ \
-	xmm6 -= xmm3;			/* .809(r3+r19)-.309(r7+r15)-r11 */ \
-	xmm7 -= xmm4;			/* .309(r3+r19)-.809(r7+r15)+r11 */ \
+	xmm6 -= xmm4 * CONST2_P309;	/* .809(r3+r19)-.309(r7+r15)-r11 */ \
+	xmm7 -= xmm4 * CONST2_P809;	/* .309(r3+r19)-.809(r7+r15)+r11 */ \
 \
 	xmm4 = xmm0;			/* Copy 1-mod-4-cols row #1 */ \
 	xmm0 -= xmm5;			/* Real odd-cols row #6 (final real #6) */ \
@@ -2841,45 +2728,45 @@
 ;	/* Do the even columns for the real results */ \
 \
 	xmm7 = sd1[0];			/* r2 */ \
-	xmm7 += sd4[3];			/* r2+r20 */ \
+	xmm2 = sd4[3];			/* r20 */ \
+	vec2f64 r2s20 = xmm7 - xmm2; \
+	xmm7 += xmm2;			/* r2+r20 */ \
 	xmm0 = sd4[1];			/* r10 */ \
-	xmm0 += sd1[2];			/* r10+r12 */ \
+	xmm2 = sd1[2];			/* r12 */ \
+	vec2f64 r10s12 = xmm0 - xmm2; \
+	xmm0 += xmm2;			/* r10+r12 */ \
 	xmm2 = xmm7; \
 	xmm7 -= xmm0;			/* (r2+r20)-(r10+r12) */ \
 	xmm0 += xmm2;			/* (r2+r20)+(r10+r12) */ \
 \
-	xmm6 = CONST2_P951; \
-	xmm6 *= xmm7;			/* .951((r2+r20)-(r10+r12)) */ \
-	xmm7 *= CONST2_P588;			/* .588((r2+r20)-(r10+r12)) */ \
 \
 	xmm4 = sd3[0];			/* r4 */ \
-	xmm4 += sd2[3];			/* r4+r18 */ \
+	xmm2 = sd2[3];			/* r18 */ \
+	vec2f64 r4s18 = xmm4 - xmm2; \
+	xmm4 += xmm2;			/* r4+r18 */ \
 	xmm1 = sd2[1];			/* r8 */ \
-	xmm1 += sd3[2];			/* r8+r14 */ \
+	xmm2 = sd3[2];			/* r14 */ \
+	vec2f64 r8s14 = xmm1 - xmm2; \
+	xmm1 += xmm2;			/* r8+r14 */ \
 	xmm2 = xmm4; \
 	xmm4 -= xmm1;			/* (r4+r18)-(r8+r14) */ \
 	xmm1 += xmm2;			/* (r4+r18)+(r8+r14) */ \
 \
-	xmm3 = CONST2_P588; \
-	xmm3 *= xmm4;			/* .588((r4+r18)-(r8+r14)) */ \
-	xmm6 += xmm3;			/* .951((r2+r20)-(r10+r12))+.588((r4+r18)-(r8+r14)) */ \
-	xmm4 *= CONST2_P951;			/* .951((r4+r18)-(r8+r14)) */ \
-	xmm7 -= xmm4;			/* .588((r2+r20)-(r10+r12))-.951((r4+r18)-(r8+r14)) */ \
+	xmm6 = xmm7 * CONST2_P951;	/* .951((r2+r20)-(r10+r12)) */ \
+	xmm6 += xmm4 * CONST2_P588;	/* .951((r2+r20)-(r10+r12))+.588((r4+r18)-(r8+r14)) */ \
+	xmm7 = xmm7 * CONST2_P588;	/* .588((r2+r20)-(r10+r12)) */ \
+	xmm7 -= xmm4 * CONST2_P951;	/* .588((r2+r20)-(r10+r12))-.951((r4+r18)-(r8+r14)) */ \
 \
 	t5 = xmm6;				/* Save real even-cols row #2 */ \
 	t6 = xmm7;				/* Save real even-cols row #4 */ \
 \
-	xmm4 = CONST2_P809; \
-	xmm4 *= xmm0;			/* .809((r2+r20)+(r10+r12)) */ \
-	xmm5 = CONST2_P309; \
-	xmm5 *= xmm0;			/* .309((r2+r20)+(r10+r12)) */ \
+	xmm4 = xmm0 * CONST2_P809;	/* .809((r2+r20)+(r10+r12)) */ \
+	xmm5 = xmm0 * CONST2_P309;	/* .309((r2+r20)+(r10+r12)) */ \
 \
-	xmm0 += xmm1;			/* ((r2+r20)+(r10+r12))+((r4+r18)+(r8+r14)) */ \
-	xmm3 = CONST2_P309; \
-	xmm3 *= xmm1;			/* .309((r4+r18)+(r8+r14)) */ \
-	xmm4 -= xmm3;			/* .809((r2+r20)+(r10+r12))-.309((r4+r18)+(r8+r14)) */ \
-	xmm1 *= CONST2_P809;			/* .809((r4+r18)+(r8+r14)) */ \
-	xmm5 -= xmm1;			/* .309((r2+r20)+(r10+r12))-.809((r4+r18)+(r8+r14)) */ \
+	xmm0 += xmm1;				/* ((r2+r20)+(r10+r12))+((r4+r18)+(r8+r14)) */ \
+	xmm3 *= xmm1 * CONST2_P309;	/* .309((r4+r18)+(r8+r14)) */ \
+	xmm4 -= xmm1 * CONST2_P309;	/* .809((r2+r20)+(r10+r12))-.309((r4+r18)+(r8+r14)) */ \
+	xmm5 -= xmm1 * CONST2_P809;	/* .309((r2+r20)+(r10+r12))-.809((r4+r18)+(r8+r14)) */ \
 \
 	xmm2 = sd0[1];			/* r6 */ \
 	xmm3 = sd0[3];			/* r16 */ \
@@ -2895,84 +2782,54 @@
 \
 ;	/* Do the even columns for the imaginary results */ \
 \
-	xmm0 = sd1[0];			/* r2 */ \
-	xmm0 -= sd4[3];			/* r2-r20 */ \
-	xmm4 = sd4[1];			/* r10 */ \
-	xmm4 -= sd1[2];			/* r10-r12 */ \
-	xmm3 = xmm4; \
-	xmm4 += xmm0;			/* (r2-r20)+(r10-r12) */ \
+	xmm0 = r2s20;			/* r2-r20 */ \
+	xmm7 = r10s12;			/* r10-r12 */ \
+	xmm3 = xmm7; \
+	xmm7 += xmm0;			/* (r2-r20)+(r10-r12) */ \
 	xmm0 -= xmm3;			/* (r2-r20)-(r10-r12) */ \
 \
-	xmm6 = CONST2_P309; \
-	xmm6 *= xmm4;			/* .309((r2-r20)+(r10-r12)) */ \
-	xmm7 = CONST2_P809; \
-	xmm7 *= xmm4;			/* .809((r2-r20)+(r10-r12)) */ \
+	xmm4 = xmm7 + xmm2;			/* ((r2-r20)+(r10-r12))+(r6-r16) */ \
+	xmm6 = xmm7 * CONST2_P309 + xmm2;	/* .309((r2-r20)+(r10-r12))+(r6-r16) */ \
+	xmm7 = xmm7 * CONST2_P809 - xmm2;	/* .809((r2-r20)+(r10-r12))-(r6-r16) */ \
 \
-	xmm4 += xmm2;			/* ((r2-r20)+(r10-r12))+(r6-r16) */ \
-	xmm6 += xmm2;			/* .309((r2-r20)+(r10-r12))+(r6-r16) */ \
-	xmm7 -= xmm2;			/* .809((r2-r20)+(r10-r12))-(r6-r16) */ \
-\
-	xmm1 = sd3[0];			/* r4 */ \
-	xmm1 -= sd2[3];			/* r4-r18 */ \
-	xmm3 = sd2[1];			/* r8 */ \
-	xmm3 -= sd3[2];			/* r8-r14 */ \
+	xmm1 = r4s18;			/* r4-r18 */ \
+	xmm3 = r8s14;			/* r8-r14 */ \
 	xmm2 = xmm3; \
 	xmm3 += xmm1;			/* (r4-r18)+(r8-r14) */ \
 	xmm1 -= xmm2;			/* (r4-r18)-(r8-r14) */ \
 \
 	xmm4 -= xmm3;			/* ((r2-r20)+(r10-r12))-((r4-r18)+(r8-r14))+(r6-r16) */ \
-	xmm2 = CONST2_P809; \
-	xmm2 *= xmm3;			/* .809((r4-r18)+(r8-r14)) */ \
-	xmm6 += xmm2;			/* .309((r2-r20)+(r10-r12))+.809((r4-r18)+(r8-r14))+(r6-r16) */ \
-	xmm3 *= CONST2_P309;			/* .309((r4-r18)+(r8-r14)) */ \
-	xmm7 += xmm3;			/* .809((r2-r20)+(r10-r12))+.309((r4-r18)+(r8-r14))-(r6-r16) */ \
+	xmm6 += xmm3 * CONST2_P809;	/* .309((r2-r20)+(r10-r12))+.809((r4-r18)+(r8-r14))+(r6-r16) */ \
+	xmm7 += xmm3 * CONST2_P309;	/* .809((r2-r20)+(r10-r12))+.309((r4-r18)+(r8-r14))-(r6-r16) */ \
 \
 	t9 = xmm4;	/* Save imag row #6 */ \
 	t10 = xmm6;	/* Save imag even-cols row #2 */ \
 	t11 = xmm7;	/* Save imag even-cols row #4 */ \
 \
-	xmm5 = CONST2_P588; \
-	xmm5 *= xmm0;			/* .588((r2-r20)-(r10-r12)) */ \
-	xmm0 *= CONST2_P951;	/* .951((r2-r20)-(r10-r12)) */ \
-\
-	xmm3 = CONST2_P951; \
-	xmm3 *= xmm1;			/* .951((r4-r18)-(r8-r14)) */ \
-	xmm5 += xmm3;			/* .588((r2-r20)-(r10-r12))+.951((r4-r18)-(r8-r14)) */ \
-	xmm1 *= CONST2_P588;	/* .588((r4-r18)-(r8-r14)) */ \
-	xmm0 -= xmm1;			/* .951((r2-r20)-(r10-r12))-.588((r4-r18)-(r8-r14)) */ \
+	xmm5 = xmm1 * CONST2_P951;	/* .951((r4-r18)-(r8-r14)) */ \
+	xmm5 += xmm0 * CONST2_P588;	/* .588((r2-r20)-(r10-r12))+.951((r4-r18)-(r8-r14)) */ \
+	xmm0 = xmm0 * CONST2_P951;	/* .951((r2-r20)-(r10-r12)) */ \
+	xmm0 -= xmm1 * CONST2_P588;	/* .951((r2-r20)-(r10-r12))-.588((r4-r18)-(r8-r14)) */ \
 \
 	t12 = xmm5;	/* Save imag even-cols row #3 */ \
 	t13 = xmm0;	/* Save imag even-cols row #5 */ \
 \
 ;	/* Do the odd columns for the imag results */ \
 \
-	xmm1 = sd4[0];			/* r5 */ \
-	xmm1 -= sd1[3];			/* r5-r17 */ \
-	xmm0 = CONST2_P951; \
-	xmm0 *= xmm1;			/* .951(r5-r17) */ \
-	xmm1 *= CONST2_P588;	/* .588(r5-r17) */ \
+	xmm1 = r5s17;			/* r5-r17 */ \
+	xmm7 = r9s13;			/* r9-r13 */ \
+	xmm0 = xmm1 * CONST2_P951;	/* .951(r5-r17) */ \
+	xmm0 += xmm7 * CONST2_P588;			/* .951(r5-r17)+.588(r9-r13) */ \
+	xmm1 = xmm1 * CONST2_P588;	/* .588(r5-r17) */ \
+	xmm1 -= xmm7 * CONST2_P951;			/* .588(r5-r17)-.951(r9-r13) */ \
 \
-	xmm7 = sd3[1];			/* r9 */ \
-	xmm7 -= sd2[2];			/* r9-r13 */ \
-	xmm5 = CONST2_P588; \
-	xmm5 *= xmm7;			/* .588(r9-r13) */ \
-	xmm7 *= CONST2_P951;	/* .951(r9-r13) */ \
-	xmm0 += xmm5;			/* .951(r5-r17)+.588(r9-r13) */ \
-	xmm1 -= xmm7;			/* .588(r5-r17)-.951(r9-r13) */ \
+	xmm7 = r3s19;			/* r3-r19 */ \
+	xmm6 = xmm7 * CONST2_P588;	/* .588(r3-r19) */ \
+	xmm7 = xmm7 * CONST2_P951;	/* .951(r3-r19) */ \
 \
-	xmm7 = sd2[0];			/* r3 */ \
-	xmm7 -= sd3[3];			/* r3-r19 */ \
-	xmm6 = CONST2_P588; \
-	xmm6 *= xmm7;			/* .588(r3-r19) */ \
-	xmm7 *= CONST2_P951;	/* .951(r3-r19) */ \
-\
-	xmm2 = sd1[1];			/* r7 */ \
-	xmm2 -= sd4[2];			/* r7-r15 */ \
-	xmm5 = CONST2_P951; \
-	xmm5 *= xmm2;			/* .951(r7-r15) */ \
-	xmm2 *= CONST2_P588;	/* .588(r7-r15) */ \
-	xmm6 += xmm5;			/* .588(r3-r19)+.951(r7-r15) */ \
-	xmm7 -= xmm2;			/* .951(r3-r19)-.588(r7-r15) */ \
+	xmm2 = r7s15;			/* r7-r15 */ \
+	xmm6 += xmm2 * CONST2_P951;	/* .588(r3-r19)+.951(r7-r15) */ \
+	xmm7 -= xmm2 * CONST2_P588;	/* .951(r3-r19)-.588(r7-r15) */ \
 \
 	xmm4 = xmm0;			/* Copy 1-mod-4 imag odd-cols row #2 */ \
 	xmm0 += xmm6;			/* Imag odd-cols row #2 */ \
@@ -2998,25 +2855,23 @@
 	xmm2 -= xmm3;			/* Imag #10 */ \
 	xmm3 += t10;			/* Imag #2 */ \
 \
-	xmm5 = sc[8*2+1];		/* cosine/sine */ \
+	xmm5 = sc[8*2+1]; \
 	xmm7 = xmm0;			/* Copy R10 */ \
-	xmm0 *= xmm5;			/* A10 = R10 * cosine/sine */ \
-	xmm0 -= xmm2;			/* A10 = A10 - I10 */ \
-	xmm2 *= xmm5;			/* B10 = I10 * cosine/sine */ \
-	xmm2 += xmm7;			/* B10 = B10 + R10 */ \
+	xmm0 = xmm7 * xmm5 - xmm2;	/* A10 = R10 * cosine/sine - I10 */ \
+	xmm2 = xmm2 * xmm5 + xmm7;	/* B10 = I10 * cosine/sine + R10 */ \
 	xmm0 *= sc[8*2];		/* A10 = A10 * sine (final R10) */ \
 	xmm2 *= sc[8*2];		/* B10 = B10 * sine (final I10) */ \
 	sd4[2] = xmm0;			/* Save final R10 */ \
 	sd4[3] = xmm2;			/* Save final I10 */ \
 \
-	xmm4 = sc[1];			/* cosine/sine */ \
+	xmm4 = sc[1]; \
+	xmm7 = sc[0]; \
 	xmm6 = xmm1;			/* Copy R2 */ \
-	xmm1 *= xmm4;			/* A2 = R2 * cosine/sine */ \
-	xmm1 -= xmm3;			/* A2 = A2 - I2 */ \
-	xmm3 *= xmm4;			/* B2 = I2 * cosine/sine */ \
-	xmm3 += xmm6;			/* B2 = B2 + R2 */ \
+	xmm1 = xmm6 * xmm4 - xmm3;			/* A2 = R2 * cosine/sine - I2 */ \
+	xmm3 = xmm3 * xmm4 + xmm6;			/* B2 = I2 * cosine/sine + R2 */ \
 	xmm1 *= sc[0];			/* A2 = A2 * sine (final R2) */ \
 	xmm3 *= sc[0];			/* B2 = B2 * sine (final I2) */ \
+\
 	sd0[2] = xmm1;			/* Save final R2 */ \
 	sd0[3] = xmm3;			/* Save final I2 */ \
 \
@@ -3031,23 +2886,20 @@
 \
 	xmm5 = sc[7*2+1];		/* cosine/sine */ \
 	xmm7 = xmm0;			/* Copy R9 */ \
-	xmm0 *= xmm5;			/* A9 = R9 * cosine/sine */ \
-	xmm0 -= xmm2;			/* A9 = A9 - I9 */ \
-	xmm2 *= xmm5;			/* B9 = I9 * cosine/sine */ \
-	xmm2 += xmm7;			/* B9 = B9 + R9 */ \
+	xmm0 = xmm7 * xmm5 - xmm2;	/* A9 = R9 * cosine/sine - I9 */ \
+	xmm2 = xmm2 * xmm5 + xmm7;	/* B9 = I9 * cosine/sine + R9 */ \
 	xmm0 *= sc[7*2];		/* A9 = A9 * sine (final R9) */ \
 	xmm2 *= sc[7*2];		/* B9 = B9 * sine (final I9) */ \
-	sd4[0] = xmm0;			/* Save final R9 */ \
-	sd4[1] = xmm2;			/* Save final I9 */ \
 \
 	xmm4 = sc[2+1];			/* cosine/sine */ \
 	xmm6 = xmm1;			/* Copy R3 */ \
-	xmm1 *= xmm4;			/* A3 = R3 * cosine/sine */ \
-	xmm1 -= xmm3;			/* A3 = A3 - I3 */ \
-	xmm3 *= xmm4;			/* B3 = I3 * cosine/sine */ \
-	xmm3 += xmm6;			/* B3 = B3 + R3 */ \
+	xmm1 = xmm6 * xmm4 - xmm3;	/* A3 = R3 * cosine/sine - I3 */ \
+	xmm3 = xmm3 * xmm4 + xmm6;	/* B3 = I3 * cosine/sine + R3 */ \
 	xmm1 *= sc[2];			/* A3 = A3 * sine (final R3) */ \
 	xmm3 *= sc[2];			/* B3 = B3 * sine (final I3) */ \
+\
+	sd4[0] = xmm0;			/* Save final R9 */ \
+	sd4[1] = xmm2;			/* Save final I9 */ \
 	sd1[0] = xmm1;			/* Save final R3 */ \
 	sd1[1] = xmm3;			/* Save final I3 */ \
 \
@@ -3062,23 +2914,20 @@
 \
 	xmm5 = sc[6*2+1];		/* cosine/sine */ \
 	xmm7 = xmm0;			/* Copy R8 */ \
-	xmm0 *= xmm5;			/* A8 = R8 * cosine/sine */ \
-	xmm0 -= xmm2;			/* A8 = A8 - I8 */ \
-	xmm2 *= xmm5;			/* B8 = I8 * cosine/sine */ \
-	xmm2 += xmm7;			/* B8 = B8 + R8 */ \
+	xmm0 = xmm7 * xmm5 - xmm2;	/* A8 = R8 * cosine/sine - I8 */ \
+	xmm2 = xmm2 * xmm5 + xmm7;	/* B8 = I8 * cosine/sine + R8 */ \
 	xmm0 *= sc[6*2];		/* A8 = A8 * sine (final R8) */ \
 	xmm2 *= sc[6*2];		/* B8 = B8 * sine (final I8) */ \
-	sd3[2] = xmm0;			/* Save final R8 */ \
-	sd3[3] = xmm2;			/* Save final I8 */ \
 \
 	xmm4 = sc[2*2+1];		/* cosine/sine */ \
 	xmm6 = xmm1;			/* Copy R4 */ \
-	xmm1 *= xmm4;			/* A4 = R4 * cosine/sine */ \
-	xmm1 -= xmm3;			/* A4 = A4 - I4 */ \
-	xmm3 *= xmm4;			/* B4 = I4 * cosine/sine */ \
-	xmm3 += xmm6;			/* B4 = B4 + R4 */ \
+	xmm1 = xmm6 * xmm4 - xmm3;	/* A4 = R4 * cosine/sine - I4 */ \
+	xmm3 = xmm3 * xmm4 + xmm6;	/* B4 = I4 * cosine/sine + R4 */ \
 	xmm1 *= sc[2*2];		/* A4 = A4 * sine (final R4) */ \
 	xmm3 *= sc[2*2];		/* B4 = B4 * sine (final I4) */ \
+\
+	sd3[2] = xmm0;			/* Save final R8 */ \
+	sd3[3] = xmm2;			/* Save final I8 */ \
 	sd1[2] = xmm1;			/* Save final R4 */ \
 	sd1[3] = xmm3;			/* Save final I4 */ \
 \
@@ -3091,37 +2940,33 @@
 	xmm2 -= xmm3;			/* Imag #7 */ \
 	xmm3 += t13;			/* Imag #5 */ \
 \
-	xmm5 = sc[5*2+1];		/* cosine/sine */ \
-	xmm7 = xmm0;			/* Copy R7 */ \
-	xmm0 *= xmm5;			/* A7 = R7 * cosine/sine */ \
-	xmm0 -= xmm2;			/* A7 = A7 - I7 */ \
-	xmm2 *= xmm5;			/* B7 = I7 * cosine/sine */ \
-	xmm2 += xmm7;			/* B7 = B7 + R7 */ \
+	xmm4 = sc[5*2+1];		/* cosine/sine */ \
+	xmm6 = xmm0;			/* Copy R7 */ \
+	xmm0 = xmm6 * xmm4 - xmm2;	/* A7 = R7 * cosine/sine - I7 */ \
+	xmm2 = xmm2 * xmm4 + xmm6;	/* B7 = I7 * cosine/sine + R7 */ \
 	xmm0 *= sc[5*2];		/* A7 = A7 * sine (final R7) */ \
 	xmm2 *= sc[5*2];		/* B7 = B7 * sine (final I7) */ \
+\
+	xmm5 = sc[3*2+1];		/* cosine/sine */ \
+	xmm7 = xmm1;			/* Copy R5 */ \
+	xmm1 = xmm7 * xmm5 - xmm3;	/* A5 = R5 * cosine/sine - I5 */ \
+	xmm3 = xmm3 * xmm5 + xmm7;	/* B5 = I5 * cosine/sine + R5 */ \
+	xmm1 *= sc[3*2];		/* A5 = A5 * sine (final R5) */ \
+	xmm3 *= sc[3*2];		/* B5 = B5 * sine (final I5) */ \
+\
 	sd3[0] = xmm0;			/* Save final R7 */ \
 	sd3[1] = xmm2;			/* Save final I7 */ \
 \
-	xmm4 = sc[3*2+1];		/* cosine/sine */ \
-	xmm6 = xmm1;			/* Copy R5 */ \
-	xmm1 *= xmm4;			/* A5 = R5 * cosine/sine */ \
-	xmm1 -= xmm3;			/* A5 = A5 - I5 */ \
-	xmm3 *= xmm4;			/* B5 = I5 * cosine/sine */ \
-	xmm3 += xmm6;			/* B5 = B5 + R5 */ \
-	xmm1 *= sc[3*2];		/* A5 = A5 * sine (final R5) */ \
-	xmm3 *= sc[3*2];		/* B5 = B5 * sine (final I5) */ \
-	sd2[0] = xmm1;			/* Save final R5 */ \
-	sd2[1] = xmm3;			/* Save final I5 */ \
-\
-	xmm0 = t4;				/* Real #6 */ \
+	xmm6 = t4;				/* Real #6 */ \
 	xmm2 = t9;				/* Imag #6 */ \
-	xmm5 = sc[4*2+1];		/* cosine/sine */ \
-	xmm0 *= xmm5;			/* A6 = R6 * cosine/sine */ \
-	xmm0 -= xmm2;			/* A6 = A6 - I6 */ \
-	xmm2 *= xmm5;			/* B6 = I6 * cosine/sine */ \
-	xmm2 += t4;				/* B6 = B6 + R6 */ \
+	xmm4 = sc[4*2+1];		/* cosine/sine */ \
+	xmm0 = xmm6 * xmm4 - xmm2;	/* A6 = R6 * cosine/sine - I6 */ \
+	xmm2 = xmm2 * xmm4 + xmm6;	/* B6 = I6 * cosine/sine + R6 */ \
 	xmm0 *= sc[4*2];		/* A6 = A6 * sine (final R6) */ \
 	xmm2 *= sc[4*2];		/* B6 = B6 * sine (final I6) */ \
+\
+	sd2[0] = xmm1;			/* Save final R5 */ \
+	sd2[1] = xmm3;			/* Save final I5 */ \
 	sd2[2] = xmm0;			/* Save final R6 */ \
 	sd2[3] = xmm2;			/* Save final I6 */ \
 \
@@ -3636,8 +3481,8 @@
 \
 
 #define r5_x10cl_20_reals_last_unfft(srcreg,srcinc,d1,screg,scoff) \
-	vec2f64 XMM_COL_MULTS_1[19]; \
-	vec2f64 XMM_COL_MULTS_2[19]; \
+	vec2f64 temp1[19]; \
+	vec2f64 temp2[19]; \
 \
 	/* Using pointers improves clang ARM64 compiler. */ \
 	vec2f64 *sd0 = (vec2f64*)(srcreg); \
@@ -3651,135 +3496,48 @@
 	vec2f64 *sd8 = (vec2f64*)(srcreg+d1*8); \
 	vec2f64 *sd9 = (vec2f64*)(srcreg+d1*9); \
 \
+	vec2f64 *sc1 = (vec2f64*)(screg); \
+	vec2f64 *sc2 = (vec2f64*)(screg+scoff); \
+\
 ;	/* Apply the 9 twiddle factors */ \
 \
-	r5_x9c_twiddle(0,screg,XMM_COL_MULTS_1); \
-	r5_x9c_twiddle(1,screg+scoff,XMM_COL_MULTS_2); \
+\
+	r5_x9c_twiddle_PART8(sc1,0,temp1) \
+	r5_x9c_twiddle_PART(sc1,0,temp1,sd1,sd9,0,16) \
+	r5_x9c_twiddle_PART(sc1,0,temp1,sd3,sd7,4,12) \
+	r5_x9c_twiddle_PART(sc2,1,temp2,sd1,sd9,0,16) \
+	r5_x9c_twiddle_PART(sc2,1,temp2,sd3,sd7,4,12) \
+	r5_x9c_twiddle_PART(sc2,1,temp2,sd4,sd6,6,10) \
+	r5_x9c_twiddle_PART(sc2,1,temp2,sd2,sd8,2,14) \
+	r5_x9c_twiddle_PART8(sc2,1,temp2) \
 \
 ;	/* Do the 20 reals inverse FFT */ \
 \
-	r5_x20r_unfft(sd1,sd3,sd5,sd7,sd9,sd0[1],sd0[3],XMM_COL_MULTS_2); \
-	r5_x20r_unfft(sd0,sd2,sd4,sd6,sd8,sd0[0],sd0[2],XMM_COL_MULTS_1); \
+	r5_x20r_unfft(sd1,sd3,sd5,sd7,sd9,sd0[1],sd0[3],temp2); \
+	r5_x9c_twiddle_PART(sc1,0,temp1,sd4,sd6,6,10) \
+	r5_x9c_twiddle_PART(sc1,0,temp1,sd2,sd8,2,14) \
+	r5_x20r_unfft(sd0,sd2,sd4,sd6,sd8,sd0[0],sd0[2],temp1); \
 \
 	srcreg += srcinc; \
 \
 \
 /* Apply the 9 twiddle factors.  Also do the first +/- on the reals so that */ \
 /* we have a perfect balance of adds and subtracts. */ \
-\
 
-#define r5_x9c_twiddle(SN,screg,tmpreg) { \
-	vec2f64 *sc = (vec2f64*)(screg); \
-	xmm0 = sc[1];			/* cosine/sine */ \
-	xmm2 = sd1[0+SN];		/* R2 */ \
-	xmm2 *= xmm0;			/* A2 = R2 * cosine/sine */ \
-	xmm4 = sc[8*2+1];		/* cosine/sine */ \
-	xmm6 = sd9[0+SN];		/* R10 */ \
-	xmm6 *= xmm4;			/* A10 = R10 * cosine/sine */ \
-	xmm3 = sd1[2+SN];		/* I2 */ \
-	xmm2 += xmm3;			/* A2 = A2 + I2 */ \
-	xmm3 *= xmm0;			/* B2 = I2 * cosine/sine */ \
-	xmm7 = sd9[2+SN];		/* I10 */ \
-	xmm6 += xmm7;			/* A10 = A10 + I10 */ \
-	xmm7 *= xmm4;			/* B10 = I10 * cosine/sine */ \
-	xmm3 -= sd1[0+SN];		/* B2 = B2 - R2 */ \
-	xmm1 = sc[0];			/* sine */ \
-	xmm2 *= xmm1;			/* R2 = A2 * sine */ \
-	xmm7 -= sd9[0+SN];		/* B10 = B10 - R10 */ \
-	xmm5 = sc[8*2];			/* sine */ \
-	xmm6 *= xmm5;			/* R10 = A10 * sine */ \
-	xmm3 *= xmm1;			/* I2 = B2 * sine */ \
-	xmm7 *= xmm5;			/* I10 = B10 * sine */ \
-	xmm1 = xmm2;			/* Copy R2 */ \
-	xmm2 += xmm6;			/* R2+R10 */ \
-	xmm1 -= xmm6;			/* R2-R10 */ \
-	xmm5 = xmm3;			/* Copy I2 */ \
-	xmm3 += xmm7;			/* I2+I10 */ \
-	xmm5 -= xmm7;			/* I2-I10 */ \
-	tmpreg[16] = xmm2;		/* Save R2+R10 */ \
-	tmpreg[0] = xmm1;		/* Save R2-R10 */ \
-	tmpreg[17] = xmm3;		/* Save I2+I10 */ \
-	tmpreg[1] = xmm5;		/* Save I2-I10 */ \
-\
-	xmm0 = sc[2+1];		/* cosine/sine */ \
-	xmm2 = sd2[0+SN];		/* R3 */ \
-	xmm2 *= xmm0;			/* A3 = R3 * cosine/sine */ \
-	xmm4 = sc[7*2+1];		/* cosine/sine */ \
-	xmm6 = sd8[0+SN];		/* R9 */ \
-	xmm6 *= xmm4;			/* A9 = R9 * cosine/sine */ \
-	xmm3 = sd2[2+SN];		/* I3 */ \
-	xmm2 += xmm3;			/* A3 = A3 + I3 */ \
-	xmm3 *= xmm0;			/* B3 = I3 * cosine/sine */ \
-	xmm7 = sd8[2+SN];		/* I9 */ \
-	xmm6 += xmm7;			/* A9 = A9 + I9 */ \
-	xmm7 *= xmm4;			/* B9 = I9 * cosine/sine */ \
-	xmm3 -= sd2[0+SN];		/* B3 = B3 - R3 */ \
-	xmm1 = sc[2];			/* sine */ \
-	xmm2 *= xmm1;			/* R3 = A3 * sine */ \
-	xmm7 -= sd8[0+SN];		/* B9 = B9 - R9 */ \
-	xmm5 = sc[7*2];			/* sine */ \
-	xmm6 *= xmm5;			/* R9 = A9 * sine */ \
-	xmm3 *= xmm1;			/* I3 = B3 * sine */ \
-	xmm7 *= xmm5;			/* I9 = B9 * sine */ \
-	xmm1 = xmm2;			/* Copy R3 */ \
-	xmm2 += xmm6;			/* R3+R9 */ \
-	xmm1 -= xmm6;			/* R3-R9 */ \
-	xmm5 = xmm3;			/* Copy I3 */ \
-	xmm3 += xmm7;			/* I3+I9 */ \
-	xmm5 -= xmm7;			/* I3-I9 */ \
-	tmpreg[14] = xmm2;		/* Save R3+R9 */ \
-	tmpreg[2] = xmm1;		/* Save R3-R9 */ \
-	tmpreg[15] = xmm3;		/* Save I3+I9 */ \
-	tmpreg[3] = xmm5;		/* Save I3-I9 */ \
-\
-	xmm0 = sc[2*2+1];		/* cosine/sine */ \
-	xmm2 = sd3[0+SN];		/* R4 */ \
-	xmm2 *= xmm0;			/* A4 = R4 * cosine/sine */ \
-	xmm4 = sc[6*2+1];		/* cosine/sine */ \
-	xmm6 = sd7[0+SN];		/* R8 */ \
-	xmm6 *= xmm4;			/* A8 = R8 * cosine/sine */ \
-	xmm3 = sd3[2+SN];		/* I4 */ \
-	xmm2 += xmm3;			/* A4 = A4 + I4 */ \
-	xmm3 *= xmm0;			/* B4 = I4 * cosine/sine */ \
-	xmm7 = sd7[2+SN];		/* I8 */ \
-	xmm6 += xmm7;			/* A8 = A8 + I8 */ \
-	xmm7 *= xmm4;			/* B8 = I8 * cosine/sine */ \
-	xmm3 -= sd3[0+SN];		/* B4 = B4 - R4 */ \
-	xmm1 = sc[2*2];			/* sine */ \
-	xmm2 *= xmm1;			/* R4 = A4 * sine */ \
-	xmm7 -= sd7[0+SN];		/* B8 = B8 - R8 */ \
-	xmm5 = sc[6*2];			/* sine */ \
-	xmm6 *= xmm5;			/* R8 = A8 * sine */ \
-	xmm3 *= xmm1;			/* I4 = B4 * sine */ \
-	xmm7 *= xmm5;			/* I8 = B8 * sine */ \
-	xmm1 = xmm2;			/* Copy R4 */ \
-	xmm2 += xmm6;			/* R4+R8 */ \
-	xmm1 -= xmm6;			/* R4-R8 */ \
-	xmm5 = xmm3;			/* Copy I4 */ \
-	xmm3 += xmm7;			/* I4+I8 */ \
-	xmm5 -= xmm7;			/* I4-I8 */ \
-	tmpreg[12] = xmm2;		/* Save R4+R8 */ \
-	tmpreg[4] = xmm1;		/* Save R4-R8 */ \
-	tmpreg[13] = xmm3;		/* Save I4+I8 */ \
-	tmpreg[5] = xmm5;		/* Save I4-I8 */ \
-\
-	xmm0 = sc[3*2+1];		/* cosine/sine */ \
-	xmm2 = sd4[0+SN];		/* R5 */ \
-	xmm2 *= xmm0;			/* A5 = R5 * cosine/sine */ \
-	xmm4 = sc[5*2+1];		/* cosine/sine */ \
-	xmm6 = sd6[0+SN];		/* R7 */ \
-	xmm6 *= xmm4;			/* A7 = R7 * cosine/sine */ \
-	xmm3 = sd4[2+SN];		/* I5 */ \
-	xmm2 += xmm3;			/* A5 = A5 + I5 */ \
-	xmm3 *= xmm0;			/* B5 = I5 * cosine/sine */ \
-	xmm7 = sd6[2+SN];		/* I7 */ \
-	xmm6 += xmm7;			/* A7 = A7 + I7 */ \
-	xmm7 *= xmm4;			/* B7 = I7 * cosine/sine */ \
-	xmm3 -= sd4[0+SN];		/* B5 = B5 - R5 */ \
-	xmm1 = sc[3*2];			/* sine */ \
+#define r5_x9c_twiddle_PART(SC,SN,tmpreg,SD1,SD2,SCN1,SCN2) \
+	xmm0 = SC[SCN1+1];		/* cosine/sine */ \
+	xmm4 = SC[SCN2+1];		/* cosine/sine */ \
+	xmm1 = SD1[0+SN];		/* R5 */ \
+	xmm5 = SD2[0+SN];		/* R7 */ \
+	xmm3 = SD1[2+SN];		/* I5 */ \
+	xmm7 = SD2[2+SN];		/* I7 */ \
+	xmm2 = xmm1 * xmm0 + xmm3;	/* A5 = R5 * cosine/sine + I5 */ \
+	xmm6 = xmm5 * xmm4 + xmm7;	/* A7 = R7 * cosine/sine + I7 */ \
+	xmm3 = xmm3 * xmm0 - xmm1;	/* B5 = I5 * cosine/sine - R5 */ \
+	xmm7 = xmm7 * xmm4 - xmm5;	/* B7 = I7 * cosine/sine - R7 */ \
+	xmm1 = SC[SCN1];		/* sine */ \
+	xmm5 = SC[SCN2];		/* sine */ \
 	xmm2 *= xmm1;			/* R5 = A5 * sine */ \
-	xmm7 -= sd6[0+SN];		/* B7 = B7 - R7 */ \
-	xmm5 = sc[5*2];			/* sine */ \
 	xmm6 *= xmm5;			/* R7 = A7 * sine */ \
 	xmm3 *= xmm1;			/* I5 = B5 * sine */ \
 	xmm7 *= xmm5;			/* I7 = B7 * sine */ \
@@ -3789,65 +3547,51 @@
 	xmm5 = xmm3;			/* Copy I5 */ \
 	xmm3 += xmm7;			/* I5+I7 */ \
 	xmm5 -= xmm7;			/* I5-I7 */ \
-	tmpreg[10] = xmm2;		/* Save R5+R7 */ \
-	tmpreg[6] = xmm1;		/* Save R5-R7 */ \
-	tmpreg[11] = xmm3;		/* Save I5+I7 */ \
-	tmpreg[7] = xmm5;		/* Save I5-I7 */ \
-\
-	xmm0 = sc[4*2+1];		/* cosine/sine */ \
-	xmm2 = sd5[0+SN];		/* R6 */ \
-	xmm2 *= xmm0;			/* A6 = R6 * cosine/sine */ \
-	xmm3 = sd5[2+SN];		/* I6 */ \
-	xmm2 += xmm3;			/* A6 = A6 + I6 */ \
-	xmm3 *= xmm0;			/* B6 = I6 * cosine/sine */ \
-	xmm3 -= sd5[0+SN];		/* B6 = B6 - R6 */ \
-	xmm1 = sc[4*2];		/* sine */ \
+	tmpreg[SCN2] = xmm2;	/* Save R5+R7 */ \
+	tmpreg[SCN1] = xmm1;	/* Save R5-R7 */ \
+	tmpreg[SCN2+1] = xmm3;	/* Save I5+I7 */ \
+	tmpreg[SCN1+1] = xmm5;	/* Save I5-I7 */ \
+
+#define r5_x9c_twiddle_PART8(SC,SN,tmpreg) \
+	xmm4 = sd5[0+SN];		/* R6 */ \
+	xmm5 = sd5[2+SN];		/* I6 */ \
+	xmm0 = SC[4*2+1];		/* cosine/sine */ \
+	xmm1 = SC[4*2];			/* sine */ \
+	xmm2 = xmm4 * xmm0 + xmm5;	/* A6 = R6 * cosine/sine + I6 */ \
+	xmm3 = xmm5 * xmm0 - xmm4;	/* B6 = I6 * cosine/sine - R6 */ \
 	xmm2 *= xmm1;			/* R6 = A6 * sine */ \
 	xmm3 *= xmm1;			/* I6 = B6 * sine */ \
 	tmpreg[8] = xmm2;		/* Save R6 */ \
 	tmpreg[9] = xmm3;		/* Save I6 */ \
-}
+
 
 
 #define r5_x20r_unfft(sd0,sd2,sd4,sd6,sd8,r1A,r1B,tmpreg) \
 \
 ;	/* Calculate odd columns derived from real inputs (even rows) */ \
 \
-	xmm0 = tmpreg[2];		/* r3-r9 */ \
-	xmm6 = CONST2_P809; \
-	xmm6 *= xmm0;			/* .809(r3-r9) */ \
-	xmm7 = r1B;			/* r1-r11 */ \
-	xmm6 += xmm7;			/* r1+.809(r3-r9)-r11 */ \
-	xmm1 = CONST2_P309; \
-	xmm1 *= xmm0;			/* .309(r3-r9) */ \
-	xmm0 -= xmm7;			/* -(r1-(r3-r9)-r11) */ \
-	xmm7 -= xmm1;			/* r1-.309(r3-r9)-r11 */ \
+	xmm5 = tmpreg[2];			/* r3-r9 */ \
+	xmm4 = r1B;					/* r1-r11 */ \
+	xmm6 = xmm5 * CONST2_P809 + xmm4;	/* r1+.809(r3-r9)-r11 */ \
+	xmm7 = xmm4 - xmm5 * CONST2_P309;	/* r1-.309(r3-r9)-r11 */ \
+	xmm0 = xmm4 - xmm5;			/* r1-(r3-r9)-r11 */ \
 \
-	xmm1 = tmpreg[6];		/* r5-r7 */ \
-	xmm2 = CONST2_P309; \
-	xmm2 *= xmm1;			/* .309(r5-r7) */ \
-	xmm6 += xmm2;			/* r1+.809(r3-r9)+.309(r5-r7)-r11 */ \
-	xmm2 = CONST2_P809; \
-	xmm2 *= xmm1;			/* .809(r5-r7) */ \
-	xmm7 -= xmm2;			/* r1-.309(r3-r9)-.809(r5-r7)-r11 */ \
-	xmm1 -= xmm0;			/* r1-(r3-r9)+(r5-r7)-r11 */ \
+	xmm1 = tmpreg[6];			/* r5-r7 */ \
+	xmm6 += xmm1 * CONST2_P309;	/* r1+.809(r3-r9)+.309(r5-r7)-r11 */ \
+	xmm7 -= xmm1 * CONST2_P809;	/* r1-.309(r3-r9)-.809(r5-r7)-r11 */ \
+	xmm1 += xmm0;				/* r1-(r3-r9)+(r5-r7)-r11 */ \
 \
-	tmpreg[18] = xmm1;		/* Save odd-real-cols row #6 (also is real-cols row #6) */ \
+	tmpreg[18] = xmm1;			/* Save odd-real-cols row #6 (also is real-cols row #6) */ \
 \
 ;	/* Calculate even columns derived from real inputs (even rows) */ \
 ;	/* From above, odd-real-col rols rows #2,4 are in xmm6, xmm7 */ \
 \
-	xmm2 = tmpreg[0];		/* r2-r10 */ \
-	xmm1 = CONST2_P951; \
-	xmm1 *= xmm2;			/* .951(r2-r10) */ \
-	xmm2 *= CONST2_P588;	/* .588(r2-r10) */ \
-\
-	xmm0 = tmpreg[4];		/* r4-r8 */ \
-	xmm4 = CONST2_P588; \
-	xmm4 *= xmm0;			/* .588(r4-r8) */ \
-	xmm1 += xmm4;			/* .951(r2-r10)+.588(r4-r8) */ \
-	xmm0 *= CONST2_P951;	/* .951(r4-r8) */ \
-	xmm2 -= xmm0;			/* .588(r2-r10)-.951(r4-r8) */ \
+	xmm2 = tmpreg[0];			/* r2-r10 */ \
+	xmm0 = tmpreg[4];			/* r4-r8 */ \
+	xmm1 = xmm2 * CONST2_P951;	/* .951(r2-r10) */ \
+	xmm2 = xmm2 * CONST2_P588;	/* .588(r2-r10) */ \
+	xmm1 += xmm0 * CONST2_P588;	/* .951(r2-r10)+.588(r4-r8) */ \
+	xmm2 -= xmm0 * CONST2_P951;	/* .588(r2-r10)-.951(r4-r8) */ \
 \
 ;	/* Combine even and odd columns (even rows) */ \
 \
@@ -3866,45 +3610,31 @@
 \
 ;	/* Calculate even columns derived from real inputs (odd rows) */ \
 \
-	xmm0 = tmpreg[16];		/* r2+r10 */ \
-	xmm6 = CONST2_P809; \
-	xmm6 *= xmm0;			/* .809(r2+r10) */ \
-	xmm7 = CONST2_P309; \
-	xmm7 *= xmm0;			/* .309(r2+r10) */ \
+	xmm4 = tmpreg[8];			/* r6 */ \
+	xmm5 = tmpreg[16];			/* r2+r10 */ \
 \
-	xmm1 = tmpreg[12];		/* r4+r8 */ \
-	xmm0 += xmm1;			/* (r2+r10)+(r4+r8) */ \
-	xmm4 = CONST2_P309; \
-	xmm4 *= xmm1;			/* .309(r4+r8) */ \
-	xmm6 -= xmm4;			/* .809(r2+r10)-.309(r4+r8) */ \
-	xmm1 *= CONST2_P809;			/* .809(r4+r8) */ \
-	xmm7 -= xmm1;			/* .309(r2+r10)-.809(r4+r8) */ \
+	xmm0 = xmm5 + xmm4;			/* (r2+10)+r6 */ \
+	xmm6 = xmm5 * CONST2_P809 - xmm4;	/* .809(r2+r10)-r6 */ \
+	xmm7 = xmm5 * CONST2_P309 + xmm4;	/* .309(r2+r10)+r6 */ \
 \
-	xmm4 = tmpreg[8];		/* r6 */ \
-	xmm0 += xmm4;			/* (r2+r10)+(r4+r8)+r6 */ \
-	xmm6 -= xmm4;			/* .809(r2+r10)-.309(r4+r8)-r6 */ \
-	xmm7 += xmm4;			/* .309(r2+r10)-.809(r4+r8)+r6 */ \
+	xmm1 = tmpreg[12];			/* r4+r8 */ \
+	xmm0 += xmm1;				/* (r2+r10)+(r4+r8)+r6 */ \
+	xmm6 -= xmm1 * CONST2_P309;	/* .809(r2+r10)-.309(r4+r8)-r6 */ \
+	xmm7 -= xmm1 * CONST2_P809;	/* .309(r2+r10)-.809(r4+r8)+r6 */ \
 \
 ;	/* Calculate odd columns derived from real inputs (odd rows) */ \
 ;	/* From above, even-real-cols row #1,3,5 are in xmm0,xmm6,xmm7 */ \
 \
-	xmm1 = tmpreg[14];		/* r3+r9 */ \
-	xmm2 = CONST2_P309; \
-	xmm2 *= xmm1;			/* .309(r3+r9) */ \
-	xmm4 = CONST2_P809; \
-	xmm4 *= xmm1;			/* .809(r3+r9) */ \
-	xmm3 = r1A;				/* r1+r11 */ \
-	xmm1 += xmm3;			/* r1+(r3+r9)+r11 */ \
-	xmm2 += xmm3;			/* r1+.309(r3+r9)+r11 */ \
-	xmm3 -= xmm4;			/* r1-.809(r3+r9)+r11 */ \
+	xmm5 = tmpreg[14];			/* r3+r9 */ \
+	xmm3 = r1A;					/* r1+r11 */ \
+	xmm1 = xmm5 + xmm3;			/* r1+(r3+r9)+r11 */ \
+	xmm2 = xmm5 * CONST2_P309 + xmm3;	/* r1+.309(r3+r9)+r11 */ \
+	xmm3 -= xmm5 * CONST2_P809;	/* r1-.809(r3+r9)+r11 */ \
 \
-	xmm4 = tmpreg[10];		/* r5+r7 */ \
-	xmm1 += xmm4;			/* r1+(r3+r9)+(r5+r7)+r11 */ \
-	xmm5 = CONST2_P809; \
-	xmm5 *= xmm4;			/* .809(r5+r7) */ \
-	xmm2 -= xmm5;			/* r1+.309(r3+r9)-.809(r5+r7)+r11 */ \
-	xmm4 *= CONST2_P309;			/* .309(r5+r7) */ \
-	xmm3 += xmm4;			/* r1-.809(r3+r9)+.309(r5+r7)+r11 */ \
+	xmm4 = tmpreg[10];			/* r5+r7 */ \
+	xmm1 += xmm4;				/* r1+(r3+r9)+(r5+r7)+r11 */ \
+	xmm2 -= xmm4 * CONST2_P809;	/* r1+.309(r3+r9)-.809(r5+r7)+r11 */ \
+	xmm3 += xmm4 * CONST2_P309;	/* r1-.809(r3+r9)+.309(r5+r7)+r11 */ \
 \
 ;	/* Combine even and odd columns (odd rows) */ \
 \
@@ -3928,24 +3658,15 @@
 \
 ;	/* Calculate even columns derived from imaginary inputs (even rows) */ \
 \
-	xmm0 = tmpreg[17];		/* i2+i10 */ \
-	xmm6 = CONST2_P309; \
-	xmm6 *= xmm0;			/* .309(i2+i10) */ \
-	xmm7 = CONST2_P809; \
-	xmm7 *= xmm0;			/* .809(i2+i10) */ \
-\
-	xmm1 = tmpreg[13];		/* i4+i8 */ \
-	xmm0 -= xmm1;			/* (i2+i10)-(i4+i8) */ \
-	xmm4 = CONST2_P809; \
-	xmm4 *= xmm1;			/* .809(i4+i8) */ \
-	xmm6 += xmm4;			/* .309(i2+i10)+.809(i4+i8) */ \
-	xmm1 *= CONST2_P309;			/* .309(i4+i8) */ \
-	xmm7 += xmm1;			/* .809(i2+i10)+.309(i4+i8) */ \
-\
-	xmm4 = tmpreg[9];		/* i6 */ \
-	xmm0 += xmm4;			/* (i2+i10)-(i4+i8)+i6 */ \
-	xmm6 += xmm4;			/* .309(i2+i10)+.809(i4+i8)+i6 */ \
-	xmm7 -= xmm4;			/* .809(i2+i10)+.309(i4+i8)-i6 */ \
+	xmm3 = tmpreg[17];			/* i2+i10 */ \
+	xmm4 = tmpreg[9];			/* i6 */ \
+	xmm1 = tmpreg[13];			/* i4+i8 */ \
+	xmm0 = xmm3 + xmm4;			/* (i2+i10)+i6 */ \
+	xmm6 = xmm3 * CONST2_P309 + xmm4;	/* .309(i2+i10)+i6 */ \
+	xmm7 = xmm3 * CONST2_P809 - xmm4;	/* .809(i2+i10)-i6 */ \
+	xmm0 -= xmm1;				/* (i2+i10)-(i4+i8)+i6 */ \
+	xmm6 += xmm1 * CONST2_P809;	/* .309(i2+i10)+.809(i4+i8)+i6 */ \
+	xmm7 += xmm1 * CONST2_P309;	/* .809(i2+i10)+.309(i4+i8)-i6 */ \
 \
 ;	/* Combine real and imaginary data for row #6 */ \
 \
@@ -3958,17 +3679,12 @@
 ;	/* Calculate odd columns derived from imaginary inputs (even rows) */ \
 ;	/* From above, even-imag-cols row #2,4 are in xmm6, xmm7 */ \
 \
-	xmm4 = tmpreg[15];		/* i3+i9 */ \
-	xmm3 = CONST2_P588; \
-	xmm3 *= xmm4;			/* .588(i3+i9) */ \
-	xmm4 *= CONST2_P951;			/* .951(i3+i9) */ \
-\
-	xmm0 = tmpreg[11];		/* i5+i7 */ \
-	xmm1 = CONST2_P951; \
-	xmm1 *= xmm0;			/* .951(i5+i7) */ \
-	xmm3 += xmm1;			/* .588(i3+i9)+.951(i5+i7) */ \
-	xmm0 *= CONST2_P588;			/* .588(i5+i7) */ \
-	xmm4 -= xmm0;			/* .951(i3+i9)-.588(i5+i7) */ \
+	xmm4 = tmpreg[15];			/* i3+i9 */ \
+	xmm0 = tmpreg[11];			/* i5+i7 */ \
+	xmm3 = xmm4 * CONST2_P588;	/* .588(i3+i9) */ \
+	xmm4 = xmm4 * CONST2_P951;	/* .951(i3+i9) */ \
+	xmm3 += xmm0 * CONST2_P951;	/* .588(i3+i9)+.951(i5+i7) */ \
+	xmm4 -= xmm0 * CONST2_P588;	/* .951(i3+i9)-.588(i5+i7) */ \
 \
 ;	/* Combine even and odd columns, then real and imag data (even rows) */ \
 \
@@ -4003,32 +3719,22 @@
 \
 ;	/* Calculate even columns derived from imaginary inputs (odd rows) */ \
 \
-	xmm7 = tmpreg[1];		/* i2-i10 */ \
-	xmm6 = CONST2_P588; \
-	xmm6 *= xmm7;			/* .588(i2-i10) */ \
-	xmm7 *= CONST2_P951;	/* .951(i2-i10) */ \
-\
-	xmm4 = tmpreg[5];		/* i4-i8 */ \
-	xmm3 = CONST2_P951; \
-	xmm3 *= xmm4;			/* .951(i4-i8) */ \
-	xmm6 += xmm3;			/* .588(i2-i10)+.951(i4-i8) */ \
-	xmm4 *= CONST2_P588;	/* .588(i4-i8) */ \
-	xmm7 -= xmm4;			/* .951(i2-i10)-.588(i4-i8) */ \
+	xmm7 = tmpreg[1];			/* i2-i10 */ \
+	xmm4 = tmpreg[5];			/* i4-i8 */ \
+	xmm6 = xmm7 * CONST2_P588;	/* .588(i2-i10) */ \
+	xmm7 = xmm7 * CONST2_P951;	/* .951(i2-i10) */ \
+	xmm6 += xmm4 * CONST2_P951;	/* .588(i2-i10)+.951(i4-i8) */ \
+	xmm7 -= xmm4 * CONST2_P588;	/* .951(i2-i10)-.588(i4-i8) */ \
 \
 ;	/* Calculate odd columns derived from imaginary inputs (odd rows) */ \
 ;	/* From above, even-imag-cols row #3,5 are in xmm6,xmm7 */ \
 \
-	xmm4 = tmpreg[3];		/* i3-i9 */ \
-	xmm3 = CONST2_P951; \
-	xmm3 *= xmm4;			/* .951(i3-i9) */ \
-	xmm4 *= CONST2_P588;			/* .588(i3-i9) */ \
-\
-	xmm0 = tmpreg[7];		/* i5-i7 */ \
-	xmm1 = CONST2_P588; \
-	xmm1 *= xmm0;			/* .588(i5-i7) */ \
-	xmm3 += xmm1;			/* .951(i3-i9)+.588(i5-i7) */ \
-	xmm0 *= CONST2_P951;			/* .951(i5-i7) */ \
-	xmm4 -= xmm0;			/* .588(i3-i9)-.951(i5-i7) */ \
+	xmm4 = tmpreg[3];			/* i3-i9 */ \
+	xmm0 = tmpreg[7];			/* i5-i7 */ \
+	xmm3 = xmm4 * CONST2_P951;	/* .951(i3-i9) */ \
+	xmm4 = xmm4 * CONST2_P588;	/* .588(i3-i9) */ \
+	xmm3 += xmm0 * CONST2_P588;	/* .951(i3-i9)+.588(i5-i7) */ \
+	xmm4 -= xmm0 * CONST2_P951;	/* .588(i3-i9)-.951(i5-i7) */ \
 \
 ;	/* Combine even and odd columns, then real and imag data (odd rows) */ \
 \
