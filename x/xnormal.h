@@ -124,8 +124,7 @@ echk(maxpd(errreg, xmmreg));		/* Compute maximum error */ \
 #define rounding2noexecnoexec(xmmval, xmmcarry, xmmtmp, basereg) \
 	xmmval -= XMM_BIGVAL2; \
 	xmmcarry = xptr2(g->u.xmm.XMM_LIMIT_INVERSE, basereg); \
-	xmmcarry *= xmmval; \
-	xmmcarry += XMM_BIGVAL2; \
+	xmmcarry = xmmcarry * xmmval + XMM_BIGVAL2; \
 	xmmtmp = xmmcarry - XMM_BIGVAL2; \
 	xmmtmp *= xptr2(g->u.xmm.XMM_LIMIT_BIGMAX, basereg); \
 	xmmval -= xmmtmp;
@@ -134,8 +133,7 @@ echk(maxpd(errreg, xmmreg));		/* Compute maximum error */ \
 #define rounding2noexecexec(xmmval, xmmcarry, xmmtmp, basereg) \
 	xmmval -= XMM_BIGVAL2; \
 	xmmtmp = xptr2(g->u.xmm.XMM_LIMIT_INVERSE, basereg); \
-	xmmtmp *= xmmval; \
-	xmmtmp += XMM_BIGVAL2; \
+	xmmtmp = xmmtmp * xmmval + XMM_BIGVAL2; \
 	xmmcarry += xmmtmp; \
 	xmmtmp -= XMM_BIGVAL2; \
 	xmmtmp *= xptr2(g->u.xmm.XMM_LIMIT_BIGMAX, basereg); \
@@ -174,8 +172,7 @@ echk(maxpd(errreg, xmmreg));		/* Compute maximum error */ \
 #define single_rounding2noexec(xmmval, xmmcarry, xmmtmp, basereg) \
 	xmmval -= XMM_BIGVAL1; \
 	xmmcarry = f64ptr2(g->u.xmm.XMM_LIMIT_INVERSE, basereg); \
-	xmmcarry *= xmmval; \
-	xmmcarry += XMM_BIGVAL1; \
+	xmmcarry = xmmcarry * xmmval + XMM_BIGVAL1; \
 	xmmtmp = xmmcarry - XMM_BIGVAL1; \
 	xmmtmp *= f64ptr2(g->u.xmm.XMM_LIMIT_BIGMAX, basereg); \
 	xmmval -= xmmtmp;
