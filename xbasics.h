@@ -23,12 +23,12 @@
 
 
 #define xs_complex_square xp_complex_square
-#if 0
+#if 1
 #define xs_complex_mult xp_complex_mult
 #define xp_complex_mult(real1, imag1, real2, imag2, tmp1, tmp2) \
-	tmp1 = real1*real2-imag1*imag2; \
-	tmp2 = real1*imag2+real2*imag1; \
-	real1 = tmp1; \
+	tmp1 = real1 * real2; \
+	tmp2 = real1 * imag2 + real2 * imag1; \
+	real1 = tmp1 - imag1 * imag2; \
 	imag1 = tmp2;
 #else
 #define xs_complex_mult(real1, imag1, real2m, imag2m, tmp1, tmp2) { \
@@ -52,10 +52,11 @@
 	imag1 += tmp1;		/* real1*imag2+real2*imag1 (new imag) */ \
 }
 #endif
-#if 0
+#if 1
 #define xp_complex_square(real, imag, tmp) \
 	tmp = imag * real; \
-	real = real*real - imag*imag; \
+	real = real * real; \
+	real -= imag * imag; \
 	imag = tmp + tmp;
 #else
 #define xp_complex_square(real, imag, tmp) \

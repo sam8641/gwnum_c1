@@ -432,34 +432,21 @@
 	r7 -= r8;			/* I1 = I1 - I2 (final I2) */ \
 	r8 += r4;			/* I2 = I1 + I2 (final I1) */ \
 \
-	r4 = r1 * SC1;		/* A3 = R3 * cosine/sine */ \
-\
 	dst2 = r8;			/* Save I1 */ \
 \
-	r8 = r3 * SC3;		/* A2 = R2 * cosine/sine */ \
-\
-	r4 -= r2;			/* A3 = A3 - I3 */ \
-	r2 *= SC1;			/* B3 = I3 * cosine/sine */ \
-	r2 += r1;			/* B3 = B3 + R3 */ \
-\
-	r1 = r6 * SC1;		/* A4 = R4 * cosine/sine */ \
-\
-	r8 -= r7;			/* A2 = A2 - I2 */ \
-	r7 *= SC3;			/* B2 = I2 * cosine/sine */ \
+	r4 = r1 * SC1 - r2;	/* A3 = R3 * cosine/sine - I3 */ \
+	r2 = r2 * SC1 + r1;	/* B3 = I3 * cosine/sine + R3 */ \
+	r8 = r3 * SC3 - r7;	/* A2 = R2 * cosine/sine - I2 */ \
+	r7 = r7 * SC3 + r3;	/* B2 = I2 * cosine/sine + R2 */ \
+	r1 = r6 * SC1 + r5;	/* A4 = R4 * cosine/sine + I4 */ \
+	r5 = r5 * SC1 - r6;	/* B4 = I4 * cosine/sine - R4 */ \
 \
 	xprefetchw(u8ptr(pre1+pre2)); \
-\
-	r1 += r5;			/* A4 = A4 + I4 */ \
-	r5 *= SC1;			/* B4 = I4 * cosine/sine */ \
-\
-	r7 += r3;			/* B2 = B2 + R2 */ \
-	r5 -= r6;			/* B4 = B4 - R4 */ \
-\
 	r4 *= SC0;			/* A3 = A3 * sine (final R3) */ \
 	r2 *= SC0;			/* B3 = B3 * sine (final I3) */ \
 	r8 *= SC2;			/* A2 = A2 * sine (final R2) */ \
-	r1 *= SC0;			/* A4 = A4 * sine (final R4) */ \
 	r7 *= SC2;			/* B2 = B2 * sine (final I2) */ \
+	r1 *= SC0;			/* A4 = A4 * sine (final R4) */ \
 	r5 *= SC0;			/* B4 = B4 * sine (final I4) */ \
 \
 
