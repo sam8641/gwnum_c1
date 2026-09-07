@@ -20,7 +20,19 @@
 
 typedef unsigned _BitInt(128) uint128;
 typedef signed _BitInt(128) int128;
-#if 0
+
+
+
+#if 0 //def __x86_64__
+static inline uint64_t shldq(uint64_t a, uint64_t b, uint32_t c) {
+    __asm__ ( "shrdq %%cl, %1, %0" : "+r" (a) : "r" (b), "c"(c) : "cc" );
+    return a;
+}
+static inline uint64_t shrdq(uint64_t a, uint64_t b, uint32_t c) {
+    __asm__ ( "shldq %%cl, %1, %0" : "+r" (a) : "r" (b), "c"(c) : "cc" );
+    return a;
+}
+#elif 0
 static inline uint64_t shldq(uint64_t a, uint64_t b, uint32_t c) {
 	uint128 r = b | ((uint128)a << 64);
 	return r << (c&63) >> 64;
@@ -31,11 +43,11 @@ static inline uint64_t shrdq(uint64_t a, uint64_t b, uint32_t c) {
 }
 #else
 static inline uint64_t shldq(uint64_t a, uint64_t b, uint32_t c) {
-	c &= 63;
+	//c &= 63;
 	return a<<c | b>>1>>(63^c);
 }
 static inline uint64_t shrdq(uint64_t a, uint64_t b, uint32_t c) {
-	c &= 63;
+	//c &= 63;
 	return a>>c | b<<1<<(63^c);
 }
 #endif

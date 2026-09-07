@@ -65,7 +65,7 @@ static const vec2f64 XMM_SQRTHALF2 = {
 #define shuffle_load_with_temp(A,B,C,D,E) shuffle_load(A,B,C,D)
 
 // x86  maxsd A,B is (A>B?A:B) ; when any input is NAN, then return B.
-// arm64 fmax A,B is fmax(A,B) ; when any input is NAN, then return NAN.
+// arm64 fmax A,B is fmax(A,B) ; when any one input are NAN, then return other number.
 // __builtin_elementwise_max is fast on ARM64, but slow multi-instruction on x86.
 
 #if defined(__x86_64) || defined(__i386__)
