@@ -10351,6 +10351,7 @@ void zpad_sub7 (
 	/* Now, that the weighted and multiplied 7 zpad words have been subtracted from the multiplication results, AVX-512 FFTs need the words unweighted */
 	/* for the final divide-by-k step.  Actually, only the traditional one-pass AVX-512 FFTs use this code.  It would be nice to convert more asm code */
 	/* to work this way, but that might be a fair amount of work. */
+#if AVX512_ENABLE
 	if (gwdata->cpu_flags & CPU_AVX512F && gwdata->PASS2_SIZE == 0 && !gwdata->RATIONAL_FFT) {
 		// asm_data->ZPAD0_6[0] *= gwdata->ZPAD0_6_ADJUST[0];    This weight should always be 1.0
 		asm_data->ZPAD0_6[1] *= gwdata->ZPAD0_6_ADJUST[1];
@@ -10360,6 +10361,7 @@ void zpad_sub7 (
 		asm_data->ZPAD0_6[5] *= gwdata->ZPAD0_6_ADJUST[5];
 		asm_data->ZPAD0_6[6] *= gwdata->ZPAD0_6_ADJUST[6];
 	}
+#endif
 }
 
 /* Internal routine to implement gwmul3 by calling fft/multiply assembly code. */

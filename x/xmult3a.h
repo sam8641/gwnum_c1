@@ -11,8 +11,6 @@
 
 #define inorm(lab, ttp, echk, const1, base2, sse4) \
 void CONCAT(lab, ARCH1)(struct gwasm_data *__restrict g, uintptr_t rsi) { \
-	/*puts("inorm3-1 " #lab","#ttp","#echk","#const1","#base2","#sse4);*/ \
-	/*printf("inorm rsi: %p %p %p\n", (void*)rsi, g->data_addr, g->scratch_area);*/ \
 	uintptr_t rdi, rbp; \
 	ttp(uintptr_t rdx); \
 	ttp(uintptr_t rbx); \
@@ -41,7 +39,6 @@ ttp(rbx = u16ptr(rdi)); \
 			vec2f64 carry3 = xptr(rbp+3*16); \
 			do{ /*ilp2:*/ \
 				/*xprefetchw [rsi+64]*/; \
-				/*ttp(printf("inorm3: %lu %lu %lu %lu %lu %x reg: %lx %lx \n", loopcount3, loopcount2, loopcount1, (rbx >> 8) & 255, rbx & 255, blk8_counter, rsi, rdi));*/ \
 				xnorm_wpn(ttp, echk, const1, base2, sse4, carry0, carry1, carry2, carry3); \
 				rsi += 64; \
 				rdi += 2; \
@@ -55,7 +52,6 @@ ttp(rbx = u16ptr(rdi)); \
 			rbp += 64; /* Next set of carries */ \
 			blk8_counter += 0x20000000u; /* 2^32 / 8 */ \
 			if(blk8_counter == 0) { \
-				/*puts("carry1");*/ \
 				rsi += g->normblkdst8; \
 			} \
 		}ttp(while(--loopcount2)); \
@@ -104,7 +100,6 @@ ttp(rbx = u16ptr(rdi)); \
 			vec2f64 carry2 = xptr(rbp+2*16); \
 			vec2f64 carry3 = xptr(rbp+3*16); \
 			do{ /*ilp2:*/ \
-				/*ttp(printf("znorm3: %lu %lu %lu %lu %lu\n", loopcount3z, loopcount2z, loopcount1z, (rbx >> 8) & 255, rbx & 255));*/ \
 				/*xprefetchw [rsi+64]*/; \
 				xnorm_wpn_zpad(ttp, echk, const1, base2, sse4, khi, c1, cm1, carry0, carry1, carry2, carry3); \
 				rsi += 64; \

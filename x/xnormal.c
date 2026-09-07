@@ -466,6 +466,7 @@ void xfunc572(struct gwasm_data *__restrict g) {
 		f4 *= ZPAD_K1_LO;
 		f0 -= f4;
 		g->u.xmm.XMM_TMP1 = TMP12;
+		g->ZPAD0_6[0] = f0;		/* Save remainder */
 	};
 }
 #endif
