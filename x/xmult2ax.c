@@ -4,6 +4,7 @@
 
 #include "../gwnum.h"
 #include "../gwcommon.h"
+#include "../intmath.h"
 #include "../unravel.h"
 #include "../gwtables.h"
 #include "../xarch.h"
@@ -25,13 +26,13 @@ void gwxaddq2(struct gwasm_data *__restrict g)
 	do{
 		unsigned int a = g->normval4;
 		do{
-			unsigned int carry;
+			uint32_t carry;
 			do{
 				*(vec8f64b*)rsi = *(vec8f64b*)rdx + *(vec8f64b*)rcx;
 				rcx += 64;
 				rdx += 64;
 				rsi += 64;
-				a = __builtin_addc(a, 0x80000000u / 64u, 0, &carry);
+				a = addc32(a, 0x80000000u / 64u, 0, &carry);
 			}while(!carry);
 			rcx += 128;
 			rdx += 128;
@@ -54,13 +55,13 @@ void gwxsubq2(struct gwasm_data *__restrict g)
 	do{
 		unsigned int a = g->normval4;
 		do{
-			unsigned int carry;
+			uint32_t carry;
 			do{
 				*(vec8f64b*)rsi = *(vec8f64b*)rdx - *(vec8f64b*)rcx;
 				rcx += 64;
 				rdx += 64;
 				rsi += 64;
-				a = __builtin_addc(a, 0x80000000u / 64u, 0, &carry);
+				a = addc32(a, 0x80000000u / 64u, 0, &carry);
 			}while(!carry);
 			rcx += 128;
 			rdx += 128;
@@ -85,7 +86,7 @@ void gwxaddsubq2(struct gwasm_data *__restrict g)
 	do{
 		unsigned int a = g->normval4;
 		do{
-			unsigned int carry;
+			uint32_t carry;
 			do{
 				vec4f64b x = *(vec4f64b*)rcx;
 				vec4f64b y = *(vec4f64b*)rdx;
@@ -98,7 +99,7 @@ void gwxaddsubq2(struct gwasm_data *__restrict g)
 				rcx += 64;
 				rdx += 64;
 				rsi += 64;
-				a = __builtin_addc(a, 0x80000000u / 64u, 0, &carry);
+				a = addc32(a, 0x80000000u / 64u, 0, &carry);
 			}while(!carry);
 			rcx += 128;
 			rdx += 128;

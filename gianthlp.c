@@ -7,6 +7,7 @@
 
 #include "inttypes.h"
 #include <stdio.h>
+#include "intmath.h"
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -17,11 +18,6 @@
 #if defined(__i386__) || defined(__x86_64__) || defined(_M_X64) || defined(_M_IX86)
 #include <x86intrin.h>
 #endif
-
-typedef unsigned _BitInt(128) uint128;
-typedef signed _BitInt(128) int128;
-
-
 
 #if 0 //def __x86_64__
 static inline uint64_t shldq(uint64_t a, uint64_t b, uint32_t c) {
@@ -51,6 +47,8 @@ static inline uint64_t shrdq(uint64_t a, uint64_t b, uint32_t c) {
 	return a>>c | b<<1<<(63^c);
 }
 #endif
+
+#ifdef HAVE_INT128
 static inline uint64_t _mul128(int64_t a, int64_t b, int64_t *h) {
 	int128 o = a * (int128)b;
 	*h = o >> 64;
@@ -61,83 +59,87 @@ static inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t *h) {
 	*h = o >> 64;
 	return (uint64_t)o;
 }
+#endif
 
-static inline int64_t _div128(int64_t high, uint64_t low, int64_t d, int64_t *r) {
 #ifdef __x86_64__
+static inline int64_t _div128(int64_t high, uint64_t low, int64_t d, int64_t *r) {
 	uint64_t q;
 	// the "r"(d) can be "rm", but clang is not smart
 	__asm__ ("idivq %[v]": "=a" (q), "=d" (*r) : [v] "r" (d), "a" (low), "d" (high) : "cc");
 	return q;
-#else
-	int128 n = ((uint128)(high) << 64) | low;
-	*r = n % d;
-	return n / d;
-#endif
 }
 static inline uint64_t _udiv128(uint64_t high, uint64_t low, uint64_t d, uint64_t *r) {
-#ifdef __x86_64__
 	uint64_t q;
 	__asm__ ("divq %[v]": "=a" (q), "=d" (*r) : [v] "r" (d), "a" (low), "d" (high) : "cc");
 	return q;
-#else
+}
+#elif defined(HAVE_INT128)
+static inline int64_t _div128(int64_t high, uint64_t low, int64_t d, int64_t *r) {
+	int128 n = ((uint128)(high) << 64) | low;
+	*r = n % d;
+	return n / d;
+}
+static inline uint64_t _udiv128(uint64_t high, uint64_t low, uint64_t d, uint64_t *r) {
 	uint128 n = ((uint128)(high) << 64) | low;
 	*r = n % d;
 	return n / d;
-#endif
 }
+#endif
 
+#endif	/* _MSC_VER */
+
+#if defined(__x86_64__) && !defined(_MSC_VER)
 static inline int64_t div_u64_by_s64(uint64_t n, int64_t d) {
-#ifdef __x86_64__
 	uint64_t q;
 	__asm__ ("xor %%edx,%%edx\n idivq %[v]": "=a" (q) : [v] "r" (d), "a" (n) : "cc", "%rdx");
 	return q;
+}
 #else
+static inline int64_t div_u64_by_s64(uint64_t n, int64_t d) {
 	// Good for ARM64 CPU.
 	int64_t r1 = n / (uint64_t)(d < 0 ? -d : d);
 	if(d < 0)
 		r1 = -r1;
 	return r1;
-#endif
 }
-
 #endif
 
 #if 1
 void addhlp (uint32_t *res, uint32_t *carry, uint32_t val) {
 	uint32_t c = 0;
-	*res = __builtin_addc(*res, val, c, &c);
-	*carry = __builtin_addc(*carry, 0, c, &c);
+	*res = addc32(*res, val, c, &c);
+	*carry = addc32(*carry, 0, c, &c);
 }
 void subhlp (uint32_t *res, uint32_t *carry, uint32_t val) {
 	uint32_t c = 0;
-	*res = __builtin_subc(*res, val, c, &c);
-	*carry = __builtin_subc(*carry, 0, c, &c);
+	*res = subc32(*res, val, c, &c);
+	*carry = subc32(*carry, 0, c, &c);
 }
 void muladdhlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val1, uint32_t val2) {
 	uint64_t m = val1 * (uint64_t)val2;
 	uint32_t c = 0;
-	*res = __builtin_addc(*res, (uint32_t)m, c, &c);
-	*carryl = __builtin_addc(*carryl, m >> 32, c, &c);
-	*carryh = __builtin_addc(*carryh, 0, c, &c);
+	*res = addc32(*res, (uint32_t)m, c, &c);
+	*carryl = addc32(*carryl, (uint32_t)(m >> 32), c, &c);
+	*carryh = addc32(*carryh, 0, c, &c);
 }
 void muladd2hlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val1, uint32_t val2) {
 	uint64_t m = val1 * (uint64_t)val2;
 	uint32_t m1 = (uint32_t)m;
 	uint32_t m2 = m >> 32;
 	uint32_t c = 0;
-	m1 = __builtin_addc(m1, m1, 0, &c);
-	m2 = __builtin_addc(m2, m2, c, &c);
-	*carryh = __builtin_addc(*carryh, 0, c, &c);
-	*res = __builtin_addc(*res, m1, 0, &c);
-	*carryl = __builtin_addc(*carryl, m2, c, &c);
-	*carryh = __builtin_addc(*carryh, 0, c, &c);
+	m1 = addc32(m1, m1, 0, &c);
+	m2 = addc32(m2, m2, c, &c);
+	*carryh = addc32(*carryh, 0, c, &c);
+	*res = addc32(*res, m1, 0, &c);
+	*carryl = addc32(*carryl, m2, c, &c);
+	*carryh = addc32(*carryh, 0, c, &c);
 }
 void mulsubhlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val1, uint32_t val2) {
 	uint64_t m = val1 * (uint64_t)val2;
 	uint32_t c = 0;
-	*res = __builtin_subc(*res, (uint32_t)m, c, &c);
-	*carryl = __builtin_subc(*carryl, m >> 32, c, &c);
-	*carryh = __builtin_subc(*carryh, 0, c, &c);
+	*res = subc32(*res, (uint32_t)m, c, &c);
+	*carryl = subc32(*carryl, (uint32_t)(m >> 32), c, &c);
+	*carryh = subc32(*carryh, 0, c, &c);
 }
 #else
 void addhlp (uint32_t *res, uint32_t *carry, uint32_t val) {
@@ -157,9 +159,9 @@ void subhlp (uint32_t *res, uint32_t *carry, uint32_t val) {
 void muladdhlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val1, uint32_t val2) {
 #if 1
 	uint64_t a = val1 * (uint64_t)val2;
-	unsigned _BitInt(96) r =
+	uint128 r =
 		(((uint64_t) *carryl) << 32) | *res |
-		(((unsigned _BitInt(96)) *carryh) << 64);
+		(((uint128) *carryh) << 64);
 	r += a;
 	*res = (uint32_t)r;
 	*carryl = r >> 32;
@@ -167,10 +169,10 @@ void muladdhlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val1
 #else
 	uint64_t a = val1 * (uint64_t)val2;
 	uint64_t b = (((uint64_t) *carryl) << 32) + *res;
-	unsigned long long c = 0;
-	unsigned int c4 = 0;
-	a = __builtin_addcll(a, b, 0, &c);
-	*carryh = __builtin_addc(*carryh, 0, c, &c4);
+	uint64_t c = 0;
+	uint32_t c4 = 0;
+	a = addc64(a, b, 0, &c);
+	*carryh = addc32(*carryh, 0, (uint32_t)c, &c4);
 	*res = (uint32_t)a;
 	*carryl = a >> 32;
 #endif
@@ -179,9 +181,9 @@ void muladdhlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val1
 void muladd2hlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val1, uint32_t val2){
 #if 1
 	uint64_t a = val1 * (uint64_t)val2;
-	unsigned _BitInt(96) r =
+	uint128 r =
 		(((uint64_t) *carryl) << 32) | *res |
-		(((unsigned _BitInt(96)) *carryh) << 64);
+		(((uint128) *carryh) << 64);
 	r += a;
 	r += a;
 	*res = (uint32_t)r;
@@ -190,12 +192,12 @@ void muladd2hlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val
 #else
 	uint64_t a = val1 * (uint64_t)val2;
 	uint64_t b = (((uint64_t)*carryl) << 32) + *res;
-	unsigned long long c = 0;
-	unsigned int c4 = 0;
-	a = __builtin_addcll(a, b, 0, &c);
-	*carryh = __builtin_addc(*carryh, 0, c, &c4);
-	a = __builtin_addcll(a, b, 0, &c);
-	*carryh = __builtin_addc(*carryh, 0, c, &c4);
+	uint64_t c = 0;
+	uint32_t c4 = 0;
+	a = addc64(a, b, 0, &c);
+	*carryh = addc32(*carryh, 0, (uint32_t)c, &c4);
+	a = addc64(a, b, 0, &c);
+	*carryh = addc32(*carryh, 0, (uint32_t)c, &c4);
 	*res = (uint32_t)a;
 	*carryl = a >> 32;
 #endif
@@ -204,9 +206,9 @@ void muladd2hlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val
 void mulsubhlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val1, uint32_t val2){
 #if 1
 	uint64_t a = val1 * (uint64_t)val2;
-	unsigned _BitInt(96) r =
+	uint128 r =
 		(((uint64_t) *carryl) << 32) | *res |
-		(((unsigned _BitInt(96)) *carryh) << 64);
+		(((uint128) *carryh) << 64);
 	r -= a;
 	*res = (uint32_t)r;
 	*carryl = r >> 32;
@@ -214,10 +216,10 @@ void mulsubhlp (uint32_t *res, uint32_t *carryl, uint32_t *carryh, uint32_t val1
 #else
 	uint64_t a = val1 * (uint64_t)val2;
 	uint64_t b = (((uint64_t)*carryl) << 32) + *res;
-	unsigned long long c = 0;
-	unsigned int c4 = 0;
-	a = __builtin_subcll(a, b, 0, &c);
-	*carryh = __builtin_subc(*carryh, 0, c, &c4);
+	uint64_t c = 0;
+	uint32_t c4 = 0;
+	a = subc64(a, b, 0, &c);
+	*carryh = subc32(*carryh, 0, (uint32_t)c, &c4);
 	*res = (uint32_t)a;
 	*carryl = a >> 32;
 #endif
