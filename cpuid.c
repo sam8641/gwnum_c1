@@ -329,7 +329,7 @@ int canExecInstruction (
 /* Busy loop to keep CPU cores occupied.  Used sometimes to aid */
 /* in measuring CPU speed. */
 
-int	end_busy_loop = FALSE;
+volatile int end_busy_loop = FALSE;	/* volatile: otherwise -O2 hoists the read out of busy_loop and the threads never exit */
 
 void busy_loop (void *arg)
 {
