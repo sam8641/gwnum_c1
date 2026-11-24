@@ -8,6 +8,17 @@
 // vec2f64 in gwtables.h
 //typedef double __attribute__ ((vector_size (16))) vec2f64;
 
+#if defined(__aarch64__) || defined(__arm64__)
+#include <arm_neon.h>
+#endif
+
+#if defined(__clang__)
+#define vec2shuffle(A,B,I0,I1) __builtin_shufflevector(A, B, I0, I1)
+#else
+typedef long long __attribute__ ((vector_size (16))) vec2i64;
+#define vec2shuffle(A,B,I0,I1) __builtin_shuffle(A, B, (vec2i64){(I0), (I1)})
+#endif
+
 #if 0 // const in C
 __attribute__((visibility("hidden"))) extern const vec2f64 XMM_BIGVAL2;
 __attribute__((visibility("hidden"))) extern const vec2f64 XMM_SQRTHALF2;
@@ -37,7 +48,7 @@ static const vec2f64 XMM_SQRTHALF2 = {
 
 // need tmp, A and B can be the same.
 //#define shufpd(A,B,I) {vec2f64 t = B; A[0] = A[I & 1]; A[1] = t[(I >> 1) & 1]}
-#define shufpd(A,B,I) A = __builtin_shufflevector(A, B, I&1, (I>>1)&1|2);
+#define shufpd(A,B,I) A = vec2shuffle(A, B, I&1, (I>>1)&1|2);
 
 #define unpcklpd(A,B) A[1] = (B)[0];
 #define unpckhpd(A,B) A[0] = A[1]; A[1] = (B)[1];
@@ -48,8 +59,8 @@ static const vec2f64 XMM_SQRTHALF2 = {
 #define high_load(A,C,D) { A[0] = C[1]; A[1] = D[1]; }
 
 #define shuffle_store(M1,M2,A,B) { \
-	M1 = __builtin_shufflevector(A,B,0,2); \
-	M2 = __builtin_shufflevector(A,B,1,3); \
+	M1 = vec2shuffle(A,B,0,2); \
+	M2 = vec2shuffle(A,B,1,3); \
 }
 #define shuffle_store_with_temp(M1,M2,A,B,C) shuffle_store(M1,M2,A,B)
 
@@ -58,8 +69,8 @@ static const vec2f64 XMM_SQRTHALF2 = {
 	shuffle_store(M1,M2,A,B);
 
 #define shuffle_load(A,B,M1,M2) { \
-	A = __builtin_shufflevector(M1,M2,0,2); \
-	B = __builtin_shufflevector(M1,M2,1,3); \
+	A = vec2shuffle(M1,M2,0,2); \
+	B = vec2shuffle(M1,M2,1,3); \
 }
 
 #define shuffle_load_with_temp(A,B,C,D,E) shuffle_load(A,B,C,D)
@@ -79,7 +90,7 @@ static const vec2f64 XMM_SQRTHALF2 = {
 	#define vec2reducemin __builtin_reduce_min
 	#define vec2max __builtin_elementwise_max
 	#define vec2min __builtin_elementwise_min
-#elif defined(__arm64__)
+#elif defined(__aarch64__) || defined(__arm64__)
 	#define vec2reducemax vmaxvq_f64
 	#define vec2reducemin vminvq_f64
 	#define vec2max vmaxq_f64
@@ -134,10 +145,10 @@ static const vec2f64 XMM_SQRTHALF2 = {
 	#define roundx __builtin_elementwise_roundeven
 #elif defined(__SSE4_1__)
 	#define roundf64(A) __builtin_roundeven(A)
-	#define roundx(A) __builtin_ia32_roundpd(X,8)
-#elif defined(__arm64__)
+	#define roundx(A) __builtin_ia32_roundpd(A,8)
+#elif defined(__aarch64__) || defined(__arm64__)
 	#define roundf64(A) __builtin_roundeven(A)
-	#define roundx(A) vrndnq_f64(X)
+	#define roundx(A) vrndnq_f64(A)
 #else
 	#define roundf64(A) (((A) + XMM_BIGVAL1) - XMM_BIGVAL1)
 	#define roundx(A) (((A) + XMM_BIGVAL2) - XMM_BIGVAL2)
@@ -146,8 +157,7 @@ static const vec2f64 XMM_SQRTHALF2 = {
 #if defined(__has_builtin) && __has_builtin(__builtin_elementwise_abs)
 	#define absf64 __builtin_elementwise_abs
 	#define absx __builtin_elementwise_abs
-#elif defined(__arm64__)
-	#include <arm_neon.h>
+#elif defined(__aarch64__) || defined(__arm64__)
 	#define absf64 __builtin_fabs
 	#define absx vabsq_f64
 #else

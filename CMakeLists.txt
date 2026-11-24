@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(gwnum_c1_lib LANGUAGES C CXX)
+
+# CMAKE_SYSTEM_PROCESSOR is "AMD64" on Windows, "x86_64" on Linux, "arm64" on macOS: compare lowercase.
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" GW_PROC)
 #add_compile_options("-ffp-model=strict" "-")
 
 
@@ -98,7 +101,7 @@ x/xnormal.c
 )
 
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|i386|i686|x86")
+if(GW_PROC MATCHES "x86_64|amd64|i386|i686|x86")
 target_sources(gwnum_c1_lib PRIVATE
 x/xmult2a_k8.c
 x/xmult1a_sse41.c
@@ -111,12 +114,12 @@ cpuid_xsave.c
 )
 
 set_source_files_properties(cpuid_xsave.c PROPERTIES COMPILE_FLAGS "-mxsave")
-set_source_files_properties(xmult1ax.c PROPERTIES COMPILE_FLAGS "-march=x86-64-v2 -fmacro-backtrace-limit=0")
-set_source_files_properties(xmult1a_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
-set_source_files_properties(xmult2a_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
-set_source_files_properties(xmult3a_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
-set_source_files_properties(xmult2a_k8_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
-set_source_files_properties(xmult3a_k8_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
+set_source_files_properties(x/xmult1ax.c PROPERTIES COMPILE_FLAGS "-march=x86-64-v2") # -fmacro-backtrace-limit=0
+set_source_files_properties(x/xmult1a_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
+set_source_files_properties(x/xmult2a_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
+set_source_files_properties(x/xmult3a_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
+set_source_files_properties(x/xmult2a_k8_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
+set_source_files_properties(x/xmult3a_k8_sse41.c PROPERTIES COMPILE_FLAGS "-msse4.1")
 #set_source_files_properties(main.c PROPERTIES COMPILE_FLAGS "-msse4.1")
 #set_source_files_properties(gianthlp.c PROPERTIES COMPILE_FLAGS "-Os")
 endif()
@@ -137,7 +140,7 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	#message(STATUS "Using Clang compiler")
-	if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|i386|i686|x86|arm64|aarch64")
+	if(GW_PROC MATCHES "x86_64|amd64|i386|i686|x86|arm64|aarch64")
 		#target_compile_options(gwnum_c1_lib PRIVATE "-ffp-exception-behavior=maytrap")
 	endif()
 else()
